@@ -1,0 +1,211 @@
+@import 'tailwindcss';
+@import '@nuxt/ui';
+
+@theme static {
+  --font-sans: 'Manrope', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', arial, sans-serif;
+
+  --color-brand-50: #f8ffe8;
+  --color-brand-100: #efffc9;
+  --color-brand-200: #e2ff9f;
+  --color-brand-300: #d8ff7a;
+  --color-brand-400: #cdff52;
+  --color-brand-500: #c6ff3d;
+  --color-brand-600: #a8e014;
+  --color-brand-700: #7fa80f;
+  --color-brand-800: #5f7c13;
+  --color-brand-900: #3f5210;
+  --color-brand-950: #202b07;
+
+  --radius-site-sm: 8px;
+  --radius-site-md: 16px;
+  --radius-site-lg: 24px;
+}
+
+:root {
+  color-scheme: dark;
+
+  --site-bg: #070707;
+  --site-surface: #0f0f0f;
+  --site-surface-raised: #171717;
+  --site-border-color: #292929;
+  --site-text: #f5f5f1;
+  --site-text-muted: #9b9b95;
+  --site-accent: var(--color-brand-500);
+  --site-accent-hover: var(--color-brand-300);
+  --site-contrast-surface: #f1f1ec;
+  --site-contrast-text: #0a0a0a;
+
+  --site-content-max: 1600px;
+  --site-gutter: clamp(20px, 4vw, 72px);
+  --site-section-space: clamp(80px, 10vw, 160px);
+  --site-radius-sm: var(--radius-site-sm);
+  --site-radius-md: var(--radius-site-md);
+  --site-radius-lg: var(--radius-site-lg);
+  --site-border: 1px solid var(--site-border-color);
+
+  --type-display: clamp(2.5rem, 6.5vw, 5.5rem);
+  --type-display-leading: 1.02;
+  --type-display-tracking: -0.035em;
+  --type-h1: clamp(2.125rem, 4.5vw, 3.75rem);
+  --type-h1-leading: 1.06;
+  --type-h1-tracking: -0.03em;
+  --type-h2: clamp(1.625rem, 3vw, 2.5rem);
+  --type-h2-leading: 1.12;
+  --type-h2-tracking: -0.02em;
+  --type-h3: clamp(1.25rem, 2vw, 1.625rem);
+  --type-h3-leading: 1.22;
+  --type-h3-tracking: -0.015em;
+  --type-body: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --type-body-leading: 1.65;
+  --type-small: clamp(0.875rem, 0.85rem + 0.1vw, 0.9375rem);
+  --type-small-leading: 1.55;
+  --type-label: clamp(0.6875rem, 0.66rem + 0.15vw, 0.8125rem);
+  --type-label-leading: 1.2;
+  --type-label-tracking: 0.18em;
+
+  /* Nuxt UI semantic tokens are re-pointed at the GLUKE palette so components
+     inherit the brand instead of the default zinc/green defaults. */
+  --ui-primary: var(--site-accent);
+  --ui-bg: var(--site-bg);
+  --ui-bg-muted: var(--site-surface);
+  --ui-bg-elevated: var(--site-surface-raised);
+  --ui-bg-accented: var(--site-surface-raised);
+  --ui-bg-inverted: var(--site-contrast-surface);
+  --ui-border: var(--site-border-color);
+  --ui-border-muted: var(--site-border-color);
+  --ui-border-accented: var(--site-border-color);
+  --ui-border-inverted: var(--site-contrast-surface);
+  --ui-text-dimmed: var(--site-text-muted);
+  --ui-text-muted: var(--site-text-muted);
+  --ui-text-toned: var(--site-text);
+  --ui-text: var(--site-text);
+  --ui-text-highlighted: var(--site-text);
+  --ui-text-inverted: var(--site-contrast-text);
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    /* `clip` instead of `hidden`: no scroll container is created,
+       so `position: sticky` keeps working and layout overflow stays debuggable. */
+    overflow-x: clip;
+  }
+
+  html,
+  body {
+    min-height: 100%;
+  }
+
+  body {
+    min-height: 100dvh;
+    background-color: var(--site-bg);
+    color: var(--site-text);
+    font-family: var(--font-sans);
+    font-size: var(--type-body);
+    line-height: var(--type-body-leading);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizelegibility;
+  }
+
+  ::selection {
+    background-color: var(--site-accent);
+    color: var(--site-contrast-text);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--site-accent);
+    outline-offset: 3px;
+  }
+
+  img,
+  video,
+  canvas,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  img,
+  video {
+    height: auto;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* `!important` is required here to defeat inline and utility animation values. */
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .site-container {
+    width: 100%;
+    max-width: var(--site-content-max);
+    margin-inline: auto;
+    padding-inline: var(--site-gutter);
+  }
+
+  .site-section {
+    padding-block: var(--site-section-space);
+  }
+
+  .text-display {
+    font-size: var(--type-display);
+    line-height: var(--type-display-leading);
+    letter-spacing: var(--type-display-tracking);
+    font-weight: 600;
+    text-wrap: balance;
+  }
+
+  .text-heading {
+    font-size: var(--type-h1);
+    line-height: var(--type-h1-leading);
+    letter-spacing: var(--type-h1-tracking);
+    font-weight: 600;
+    text-wrap: balance;
+  }
+
+  .text-heading--md {
+    font-size: var(--type-h2);
+    line-height: var(--type-h2-leading);
+    letter-spacing: var(--type-h2-tracking);
+  }
+
+  .text-heading--sm {
+    font-size: var(--type-h3);
+    line-height: var(--type-h3-leading);
+    letter-spacing: var(--type-h3-tracking);
+  }
+
+  .text-body {
+    font-size: var(--type-body);
+    line-height: var(--type-body-leading);
+    font-weight: 400;
+  }
+
+  .text-body--sm {
+    font-size: var(--type-small);
+    line-height: var(--type-small-leading);
+  }
+
+  .text-label {
+    font-size: var(--type-label);
+    line-height: var(--type-label-leading);
+    letter-spacing: var(--type-label-tracking);
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+}

@@ -1,0 +1,105 @@
+brand:
+  name: GLUKE
+  descriptor: Студия 3D-визуализации
+  founder: Александр Глухов
+
+hero:
+  eyebrow: GLUKE — студия 3D-визуализации
+  title: Техническая 3D-визуализация продукции
+  description: Превращаем чертежи, CAD-файлы и фотографии в каталожные рендеры, анимацию и оптимизированные 3D-модели для сайтов.
+  primaryCta:
+    label: Обсудить проект
+    href: https://t.me/Gluke_art
+  secondaryCta:
+    label: Смотреть проекты
+    href: '#projects'
+
+about:
+  title: Внешняя команда визуализации для производителей
+  description: Мы соединяем художественную подачу и техническую точность. Работаем с оборудованием, мебелью и потребительскими товарами — от исходных чертежей до готовых материалов для сайта, каталога, маркетплейса или презентации.
+  team: Над проектами работает основная команда из 2–3 специалистов. Для крупных задач мы расширяем состав под необходимый объём и сроки.
+
+contacts:
+  - channel: telegram
+    label: Telegram
+    value: '@Gluke_art'
+    href: https://t.me/Gluke_art
+    primary: true
+  - channel: email
+    label: Email
+    value: gluke_art@mail.ru
+    href: mailto:gluke_art@mail.ru
+    primary: false
+  - channel: phone
+    label: Телефон
+    value: +7 912 87 43 440
+    href: tel:+79128743440
+    primary: false
+
+pricing:
+  summary: Средний бюджет проекта — около 30 000 ₽.
+  note: Небольшие отдельные задачи оцениваются индивидуально.
+
+stats:
+  - value: 6 лет
+    label: опыта в 3D
+  - value: 300+
+    label: выполненных заказов на Kwork
+  - value: 20+
+    label: коммерческих проектов
+  - value: 50+
+    label: моделей для Getic
+
+services:
+  - id: product-modeling
+    title: 3D-моделирование продукции и оборудования
+    description: Создание точных моделей по CAD, чертежам, размерам, фотографиям или физическому образцу.
+    proof: Getic, WiederKraft, HouseGuru
+  - id: catalog-visualization
+    title: Каталожная визуализация
+    description: Единый набор ракурсов, материалов и освещения для сайта, каталога или маркетплейса.
+    proof: Kiparis, WiederKraft, HouseGuru
+  - id: product-animation
+    title: Анимация и продуктовые видео
+    description: Демонстрация устройства, подключения, движения и преимуществ продукта.
+    proof: Getic, WiederKraft, HouseGuru
+  - id: web-ready-models
+    title: 3D-модели для веба и real-time
+    description: Оптимизация геометрии, материалов и текстур для GLB, WebGL и интерактивного просмотра.
+    proof: 50+ моделей Getic
+  - id: exploded-views
+    title: Взрыв-схемы
+    description: Наглядное представление внутреннего устройства, деталей и порядка сборки продукта.
+    proof: HouseGuru
+  - id: print-materials
+    title: Материалы для печати
+    description: Подготовка изображений высокого разрешения для каталогов, презентаций и крупноформатной печати.
+    proof: WiederKraft
+
+process:
+  - position: 1
+    title: Получаем материалы
+    description: Чертежи, CAD-файлы, фотографии, физический образец и требования к результату.
+  - position: 2
+    title: Оцениваем задачу
+    description: Определяем объём, форматы, сроки, ракурсы и уровень детализации.
+  - position: 3
+    title: Создаём модель
+    description: Выполняем моделирование, материалы, текстуры, освещение и техническую подготовку.
+  - position: 4
+    title: Согласовываем результат
+    description: Показываем промежуточные материалы и вносим согласованные правки.
+  - position: 5
+    title: Передаём материалы
+    description: Подготавливаем изображения, видео или 3D-файлы в форматах для сайта, каталога, маркетплейса или печати.
+
+audiences:
+  - Производители оборудования и продукции
+  - Интернет-магазины и маркетплейсы
+  - Агентства и производственные команды
+
+proofLinks:
+  - label: Профиль и публичные отзывы на Kwork
+    href: https://kwork.ru/user/aleksandr_gluke
+  - label: Работы Getic на сайте клиента
+    href: https://www.getic.com/
