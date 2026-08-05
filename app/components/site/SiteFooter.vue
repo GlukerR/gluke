@@ -21,7 +21,7 @@ function isWebLink(href: string): boolean {
           <p class="text-heading text-heading--sm text-highlighted">
             {{ site.brand.name }}
           </p>
-          <p class="text-body--sm text-muted">
+          <p class="text-body--sm site-footer__descriptor">
             {{ site.brand.descriptor }}
           </p>
           <p class="text-body--sm text-dimmed">
@@ -151,11 +151,15 @@ function isWebLink(href: string): boolean {
   min-width: 0;
 }
 
+.site-footer__descriptor {
+  color: var(--site-text-secondary);
+}
+
 .site-footer__link {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  color: var(--site-text-muted);
+  color: var(--site-text-secondary);
   overflow-wrap: anywhere;
   transition: color 150ms ease;
 }

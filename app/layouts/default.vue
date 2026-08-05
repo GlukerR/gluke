@@ -10,6 +10,8 @@ if (!site) {
     fatal: true,
   })
 }
+
+provideSiteContent(site)
 </script>
 
 <template>

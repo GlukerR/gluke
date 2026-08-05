@@ -30,6 +30,9 @@
   --site-border-color: #292929;
   --site-text: #f5f5f1;
   --site-text-muted: #9b9b95;
+  /* Derived from existing tokens: readable resting colour for normal-size
+     interactive text, while `--site-text-muted` stays for labels and captions. */
+  --site-text-secondary: color-mix(in srgb, var(--site-text) 86%, var(--site-bg));
   --site-accent: var(--color-brand-500);
   --site-accent-hover: var(--color-brand-300);
   --site-contrast-surface: #f1f1ec;
@@ -38,6 +41,7 @@
   --site-content-max: 1600px;
   --site-gutter: clamp(20px, 4vw, 72px);
   --site-section-space: clamp(80px, 10vw, 160px);
+  --site-anchor-offset: clamp(84px, 9vw, 120px);
   --site-radius-sm: var(--radius-site-sm);
   --site-radius-md: var(--radius-site-md);
   --site-radius-lg: var(--radius-site-lg);
@@ -160,6 +164,11 @@
 
   .site-section {
     padding-block: var(--site-section-space);
+  }
+
+  /* Keeps `#projects`, `#services`, ... below the sticky header when navigated to. */
+  .site-anchor {
+    scroll-margin-top: var(--site-anchor-offset);
   }
 
   .text-display {

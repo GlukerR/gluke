@@ -79,7 +79,7 @@ const primaryCta = computed(() => props.site.hero.primaryCta)
   min-height: 44px;
   padding-inline: 14px;
   border-radius: var(--site-radius-sm);
-  color: var(--site-text-muted);
+  color: var(--site-text-secondary);
   transition: color 150ms ease, background-color 150ms ease;
 }
 

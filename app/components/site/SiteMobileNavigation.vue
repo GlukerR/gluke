@@ -27,7 +27,11 @@ function close() {
     :description="site.brand.descriptor"
     :close="false"
     side="right"
-    :ui="{ content: 'w-full max-w-sm' }"
+    :ui="{
+      content: 'w-full max-w-sm',
+      header: 'justify-between gap-4',
+      wrapper: 'min-w-0',
+    }"
   >
     <UButton
       color="neutral"
@@ -48,6 +52,7 @@ function close() {
       <UButton
         color="neutral"
         variant="ghost"
+        class="site-menu-close"
         @click="close"
       >
         Закрыть
@@ -106,7 +111,7 @@ function close() {
             class="site-mobile-contact"
           >
             <span class="text-label text-dimmed">{{ contact.label }}</span>
-            <span class="text-body--sm text-muted">{{ contact.value }}</span>
+            <span class="text-body--sm site-mobile-contact__value">{{ contact.value }}</span>
           </a>
         </div>
       </div>
@@ -126,6 +131,14 @@ function close() {
   justify-content: center;
   gap: 5px;
   width: 16px;
+}
+
+.site-menu-close {
+  flex-shrink: 0;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+  color: var(--site-text);
 }
 
 .site-menu-trigger__bar {
@@ -158,6 +171,11 @@ function close() {
   transition: color 150ms ease;
 }
 
+.site-mobile-contact__value {
+  color: var(--site-text-secondary);
+  overflow-wrap: anywhere;
+}
+
 .site-mobile-contact--primary {
   border: var(--site-border);
   border-radius: var(--site-radius-md);
@@ -165,6 +183,10 @@ function close() {
 }
 
 .site-mobile-contact:hover {
+  color: var(--site-accent);
+}
+
+.site-mobile-contact:hover .site-mobile-contact__value {
   color: var(--site-accent);
 }
 </style>
