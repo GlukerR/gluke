@@ -4,6 +4,9 @@ import { siteNavigation } from '~/config/site-navigation'
 
 const props = defineProps<{ site: SiteCollectionItem }>()
 
+const { t } = useI18n()
+const { navigation } = useSiteRoutes()
+
 const primaryCta = computed(() => props.site.hero.primaryCta)
 const primaryContact = computed(() => props.site.contacts.find(contact => contact.primary) ?? props.site.contacts[0])
 const secondaryContacts = computed(() => props.site.contacts.filter(contact => contact !== primaryContact.value))
@@ -30,23 +33,23 @@ function isWebLink(href: string): boolean {
         </div>
 
         <nav
-          aria-label="Навигация в подвале"
+          :aria-label="t('nav.ariaFooter')"
           class="site-footer__column"
         >
           <p class="text-label text-dimmed">
-            Разделы
+            {{ t('footer.sections') }}
           </p>
           <ul class="flex flex-col gap-1">
             <li
               v-for="item in siteNavigation"
-              :key="item.to"
+              :key="item.labelKey"
             >
               <NuxtLink
-                :to="item.to"
+                :to="navigation(item)"
                 aria-current-value="false"
                 class="site-footer__link text-body--sm"
               >
-                {{ item.label }}
+                {{ t(item.labelKey) }}
               </NuxtLink>
             </li>
           </ul>
@@ -54,7 +57,7 @@ function isWebLink(href: string): boolean {
 
         <div class="site-footer__column">
           <p class="text-label text-dimmed">
-            Контакты
+            {{ t('footer.contacts') }}
           </p>
           <a
             :href="primaryContact.href"
@@ -81,7 +84,7 @@ function isWebLink(href: string): boolean {
 
         <div class="site-footer__column">
           <p class="text-label text-dimmed">
-            Подтверждения
+            {{ t('footer.proof') }}
           </p>
           <ul class="flex flex-col gap-1">
             <li

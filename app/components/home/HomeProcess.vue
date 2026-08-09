@@ -3,6 +3,8 @@ import type { SiteCollectionItem } from '@nuxt/content'
 
 const props = defineProps<{ steps: SiteCollectionItem['process'] }>()
 
+const { t } = useI18n()
+
 // Копия массива: исходные данные контента не мутируются.
 const orderedSteps = computed(() => [...props.steps].sort((a, b) => a.position - b.position))
 </script>
@@ -15,8 +17,8 @@ const orderedSteps = computed(() => [...props.steps].sort((a, b) => a.position -
   >
     <div class="site-container home-process__inner">
       <HomeSectionHeader
-        eyebrow="ПРОЦЕСС"
-        title="Понятный путь от исходников до результата"
+        :eyebrow="t('home.process.eyebrow')"
+        :title="t('home.process.title')"
         title-id="home-process-title"
       />
 

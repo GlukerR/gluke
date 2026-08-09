@@ -1,32 +1,52 @@
 <script setup lang="ts">
 const site = useSiteContent()
+const locale = useCurrentLocale()
+const { t } = useI18n()
+const { home } = useSiteRoutes()
 
-const { data: projects } = await useAsyncData('home-featured-projects', () => queryCollection('projects')
-  .where('status', '=', 'published')
-  .where('featured', '=', true)
-  .order('position', 'ASC')
-  .all())
+const { data: projects } = await useAsyncData(
+  computed(() => `home-featured-projects-${locale.value}`),
+  () => queryLocalizedProjects(locale.value)
+    .where('featured', '=', true)
+    .order('position', 'ASC')
+    .all(),
+)
 
-const featuredProjects = projects.value ?? []
-const heroProject = featuredProjects[0]
+const featuredProjects = computed(() => projects.value ?? [])
+const initialHeroProject = featuredProjects.value[0]
 
-if (!heroProject) {
+if (!initialHeroProject) {
   throw createError({
     statusCode: 500,
-    statusMessage: 'Опубликованные избранные проекты не найдены',
+    statusMessage: t('errors.featuredProjectsMissing'),
     fatal: true,
   })
 }
 
-const pageTitle = `${site.brand.name} — ${site.hero.title}`
+/* Обложка героя остаётся непустой и во время переключения языка. */
+const heroProject = computed(() => featuredProjects.value[0] ?? initialHeroProject)
 
-useSeoMeta({
+const pageTitle = computed(() => t('seo.homeTitle', {
+  site: site.value.brand.name,
+  tagline: site.value.hero.title,
+}))
+
+usePageSeo({
   title: pageTitle,
-  description: site.hero.description,
-  ogTitle: pageTitle,
-  ogDescription: site.hero.description,
-  ogType: 'website',
+  description: () => site.value.hero.description,
+  path: () => home(),
+  type: 'website',
+  image: () => heroProject.value.cover,
 })
+
+useSchemaOrg([
+  defineWebPage({
+    '@type': 'WebPage',
+    'name': () => pageTitle.value,
+    'description': () => site.value.hero.description,
+    'inLanguage': () => locale.value,
+  }),
+])
 </script>
 
 <template>

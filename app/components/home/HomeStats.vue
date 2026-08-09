@@ -2,6 +2,8 @@
 import type { SiteCollectionItem } from '@nuxt/content'
 
 defineProps<{ stats: SiteCollectionItem['stats'] }>()
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -14,7 +16,7 @@ defineProps<{ stats: SiteCollectionItem['stats'] }>()
         id="home-stats-title"
         class="sr-only"
       >
-        Опыт студии в цифрах
+        {{ t('home.stats.srTitle') }}
       </h2>
 
       <dl class="home-stats__list">

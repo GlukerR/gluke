@@ -7,6 +7,8 @@ const props = defineProps<{
   contacts: SiteCollectionItem['contacts']
 }>()
 
+const { t } = useI18n()
+
 const emailContact = computed(() => props.contacts.find(contact => contact.channel === 'email'))
 const isExternal = computed(() => props.cta.href.startsWith('https://'))
 </script>
@@ -24,7 +26,7 @@ const isExternal = computed(() => props.cta.href.startsWith('https://'))
             id="home-contact-title"
             class="text-heading home-contact__title"
           >
-            Обсудим ваш проект
+            {{ t('home.contact.title') }}
           </h2>
 
           <p class="text-body home-contact__summary">

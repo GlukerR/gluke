@@ -6,6 +6,8 @@ const props = defineProps<{
   deliverables: ProjectsCollectionItem['deliverables']
 }>()
 
+const { t } = useI18n()
+
 const hasServices = computed(() => props.services.length > 0)
 const hasDeliverables = computed(() => props.deliverables.length > 0)
 const hasContent = computed(() => hasServices.value || hasDeliverables.value)
@@ -22,7 +24,7 @@ const hasContent = computed(() => hasServices.value || hasDeliverables.value)
         id="project-scope-title"
         class="sr-only"
       >
-        Состав работ по проекту
+        {{ t('project.scopeSrTitle') }}
       </h2>
 
       <div
@@ -30,7 +32,7 @@ const hasContent = computed(() => hasServices.value || hasDeliverables.value)
         class="project-scope__group"
       >
         <h3 class="text-heading text-heading--sm project-scope__heading">
-          Услуги
+          {{ t('project.services') }}
         </h3>
         <ul class="project-scope__list">
           <li
@@ -48,7 +50,7 @@ const hasContent = computed(() => hasServices.value || hasDeliverables.value)
         class="project-scope__group"
       >
         <h3 class="text-heading text-heading--sm project-scope__heading">
-          Что подготовили
+          {{ t('project.deliverables') }}
         </h3>
         <ul class="project-scope__list">
           <li

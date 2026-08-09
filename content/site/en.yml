@@ -1,0 +1,107 @@
+locale: en
+
+brand:
+  name: GLUKE
+  descriptor: 3D visualization studio
+  founder: Alexander Glukhov
+
+hero:
+  eyebrow: GLUKE — 3D visualization studio
+  title: Technical 3D visualization of products
+  description: We turn drawings, CAD files and photographs into catalogue renders, animation and optimized 3D models for websites.
+  primaryCta:
+    label: Discuss a project
+    href: https://t.me/Gluke_art
+  secondaryCta:
+    label: See the projects
+    href: '#projects'
+
+about:
+  title: An external visualization team for manufacturers
+  description: We combine art direction with technical accuracy. We work with equipment, furniture and consumer goods — from the original drawings to finished assets for a website, catalogue, marketplace or presentation.
+  team: A core team of 2–3 specialists works on the projects. For larger tasks we scale the team to the required scope and deadlines.
+
+contacts:
+  - channel: telegram
+    label: Telegram
+    value: '@Gluke_art'
+    href: https://t.me/Gluke_art
+    primary: true
+  - channel: email
+    label: Email
+    value: gluke_art@mail.ru
+    href: mailto:gluke_art@mail.ru
+    primary: false
+  - channel: phone
+    label: Phone
+    value: +7 912 87 43 440
+    href: tel:+79128743440
+    primary: false
+
+pricing:
+  summary: The average project budget is around ₽30,000.
+  note: Smaller standalone tasks are quoted individually.
+
+stats:
+  - value: 6 years
+    label: of experience in 3D
+  - value: 300+
+    label: orders completed on Kwork
+  - value: 20+
+    label: commercial projects
+  - value: 50+
+    label: models for Getic
+
+services:
+  - id: product-modeling
+    title: 3D modeling of products and equipment
+    description: Accurate models built from CAD data, drawings, dimensions, photographs or a physical sample.
+    proof: Getic, WiederKraft, HouseGuru
+  - id: catalog-visualization
+    title: Catalogue visualization
+    description: A single set of angles, materials and lighting for a website, catalogue or marketplace.
+    proof: Kiparis, WiederKraft, HouseGuru
+  - id: product-animation
+    title: Animation and product videos
+    description: Showing how a product is built, connected, moved and what makes it different.
+    proof: Getic, WiederKraft, HouseGuru
+  - id: web-ready-models
+    title: 3D models for the web and real-time
+    description: Geometry, material and texture optimization for GLB, WebGL and interactive viewing.
+    proof: 50+ Getic models
+  - id: exploded-views
+    title: Exploded views
+    description: A clear look at the internal structure, the parts and the assembly order of a product.
+    proof: HouseGuru
+  - id: print-materials
+    title: Print-ready materials
+    description: High-resolution imagery prepared for catalogues, presentations and large-format printing.
+    proof: WiederKraft
+
+process:
+  - position: 1
+    title: We receive the source materials
+    description: Drawings, CAD files, photographs, a physical sample and the requirements for the result.
+  - position: 2
+    title: We scope the task
+    description: We define the volume, formats, deadlines, camera angles and level of detail.
+  - position: 3
+    title: We build the model
+    description: Modeling, materials, textures, lighting and technical preparation.
+  - position: 4
+    title: We approve the result
+    description: We share work in progress and apply the agreed corrections.
+  - position: 5
+    title: We hand over the materials
+    description: We prepare images, video or 3D files in the formats needed for a website, catalogue, marketplace or print.
+
+audiences:
+  - Equipment and product manufacturers
+  - Online stores and marketplaces
+  - Agencies and production teams
+
+proofLinks:
+  - label: Kwork profile and public reviews
+    href: https://kwork.ru/user/aleksandr_gluke
+  - label: Getic work on the client website
+    href: https://www.getic.com/

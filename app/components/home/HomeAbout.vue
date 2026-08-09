@@ -6,6 +6,8 @@ defineProps<{
   audiences: SiteCollectionItem['audiences']
   pricing: SiteCollectionItem['pricing']
 }>()
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -16,7 +18,7 @@ defineProps<{
   >
     <div class="site-container home-about__inner">
       <HomeSectionHeader
-        eyebrow="О СТУДИИ"
+        :eyebrow="t('home.about.eyebrow')"
         :title="about.title"
         title-id="home-about-title"
       />
@@ -29,7 +31,7 @@ defineProps<{
 
           <div class="home-about__team">
             <h3 class="text-label text-dimmed">
-              Команда
+              {{ t('home.about.team') }}
             </h3>
             <p class="text-body home-about__team-text">
               {{ about.team }}
@@ -40,7 +42,7 @@ defineProps<{
         <div class="home-about__side">
           <div class="home-about__audiences">
             <h3 class="text-label text-dimmed">
-              Для кого работаем
+              {{ t('home.about.audiences') }}
             </h3>
             <ul class="home-about__tags">
               <li
@@ -55,7 +57,7 @@ defineProps<{
 
           <div class="home-about__pricing">
             <h3 class="text-label text-dimmed">
-              Стоимость
+              {{ t('home.about.pricing') }}
             </h3>
             <p class="text-heading text-heading--sm home-about__pricing-summary">
               {{ pricing.summary }}

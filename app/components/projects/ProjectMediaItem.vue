@@ -9,6 +9,8 @@ const props = defineProps<{
   fallbackVideoPoster: string
 }>()
 
+const { t } = useI18n()
+
 const VIDEO_MIME_TYPES: Record<string, string> = {
   mp4: 'video/mp4',
   webm: 'video/webm',
@@ -44,11 +46,11 @@ const videoType = computed(() => {
         :src="item.src"
         :type="videoType"
       >
-      Ваш браузер не воспроизводит это видео.
+      {{ t('project.media.unsupported') }}
       <a
         :href="item.src"
         class="project-media__fallback"
-      >Открыть видеофайл</a>
+      >{{ t('project.media.openFile') }}</a>
     </video>
 
     <NuxtPicture

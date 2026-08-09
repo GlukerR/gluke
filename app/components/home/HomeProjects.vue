@@ -3,6 +3,8 @@ import type { ProjectsCollectionItem } from '@nuxt/content'
 
 defineProps<{ projects: ProjectsCollectionItem[] }>()
 
+const { t } = useI18n()
+
 const WIDE_SIZES = '100vw md:100vw lg:64vw xl:960px'
 const NARROW_SIZES = '100vw md:50vw lg:32vw xl:480px'
 </script>
@@ -15,8 +17,8 @@ const NARROW_SIZES = '100vw md:50vw lg:32vw xl:480px'
   >
     <div class="site-container home-projects__inner">
       <HomeSectionHeader
-        eyebrow="ПРОЕКТЫ"
-        title="Техническая визуализация в реальных задачах"
+        :eyebrow="t('home.projects.eyebrow')"
+        :title="t('home.projects.title')"
         title-id="home-projects-title"
       />
 

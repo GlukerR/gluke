@@ -2,6 +2,8 @@
 import type { ProjectsCollectionItem } from '@nuxt/content'
 
 defineProps<{ metrics: ProjectsCollectionItem['metrics'] }>()
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -14,7 +16,7 @@ defineProps<{ metrics: ProjectsCollectionItem['metrics'] }>()
         id="project-overview-title"
         class="sr-only"
       >
-        Ключевые показатели проекта
+        {{ t('project.overviewSrTitle') }}
       </h2>
 
       <dl class="project-overview__list">

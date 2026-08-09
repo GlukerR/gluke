@@ -3,7 +3,9 @@ import type { ProjectsCollectionItem } from '@nuxt/content'
 
 const props = defineProps<{ project: ProjectsCollectionItem }>()
 
-const clientLinkLabel = computed(() => `Перейти на сайт клиента ${props.project.client}`)
+const { t } = useI18n()
+
+const clientLinkLabel = computed(() => t('project.clientLinkAria', { client: props.project.client }))
 </script>
 
 <template>
@@ -33,7 +35,7 @@ const clientLinkLabel = computed(() => `Перейти на сайт клиен�
         <dl class="project-hero__facts">
           <div class="project-hero__fact">
             <dt class="text-label text-dimmed">
-              Период
+              {{ t('project.period') }}
             </dt>
             <dd class="text-body--sm project-hero__fact-value">
               {{ project.period }}
@@ -45,7 +47,7 @@ const clientLinkLabel = computed(() => `Перейти на сайт клиен�
             class="project-hero__fact"
           >
             <dt class="text-label text-dimmed">
-              Длительность
+              {{ t('project.duration') }}
             </dt>
             <dd class="text-body--sm project-hero__fact-value">
               {{ project.duration }}
@@ -61,7 +63,7 @@ const clientLinkLabel = computed(() => `Перейти на сайт клиен�
           rel="noopener noreferrer"
           class="project-hero__client-link text-body--sm"
         >
-          <span>Перейти на сайт клиента</span>
+          <span>{{ t('project.clientLink') }}</span>
           <span aria-hidden="true">↗</span>
         </a>
       </div>

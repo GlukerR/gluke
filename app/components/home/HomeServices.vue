@@ -3,6 +3,8 @@ import type { SiteCollectionItem } from '@nuxt/content'
 
 defineProps<{ services: SiteCollectionItem['services'] }>()
 
+const { t } = useI18n()
+
 function formatIndex(index: number): string {
   return String(index + 1).padStart(2, '0')
 }
@@ -16,8 +18,8 @@ function formatIndex(index: number): string {
   >
     <div class="site-container home-services__inner">
       <HomeSectionHeader
-        eyebrow="УСЛУГИ"
-        title="От модели до готовых материалов"
+        :eyebrow="t('home.services.eyebrow')"
+        :title="t('home.services.title')"
         title-id="home-services-title"
       />
 
@@ -43,7 +45,7 @@ function formatIndex(index: number): string {
           </p>
 
           <p class="text-body--sm home-services__proof">
-            <span class="text-label home-services__proof-label">Где применяли</span>
+            <span class="text-label home-services__proof-label">{{ t('home.services.proofLabel') }}</span>
             <span>{{ service.proof }}</span>
           </p>
         </li>

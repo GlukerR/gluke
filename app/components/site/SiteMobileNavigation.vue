@@ -6,6 +6,8 @@ const props = defineProps<{ site: SiteCollectionItem }>()
 
 const open = ref(false)
 const route = useRoute()
+const { t } = useI18n()
+const { navigation } = useSiteRoutes()
 
 const primaryCta = computed(() => props.site.hero.primaryCta)
 const primaryContact = computed(() => props.site.contacts.find(contact => contact.primary) ?? props.site.contacts[0])
@@ -45,7 +47,7 @@ function close() {
         <span class="site-menu-trigger__bar" />
         <span class="site-menu-trigger__bar" />
       </span>
-      Меню
+      {{ t('menu.open') }}
     </UButton>
 
     <template #actions>
@@ -55,29 +57,31 @@ function close() {
         class="site-menu-close"
         @click="close"
       >
-        Закрыть
+        {{ t('menu.close') }}
       </UButton>
     </template>
 
     <template #body>
       <div class="flex flex-col gap-8">
-        <nav aria-label="Мобильная навигация">
+        <nav :aria-label="t('nav.ariaMobile')">
           <ul class="flex flex-col">
             <li
               v-for="item in siteNavigation"
-              :key="item.to"
+              :key="item.labelKey"
             >
               <NuxtLink
-                :to="item.to"
+                :to="navigation(item)"
                 aria-current-value="false"
                 class="site-mobile-link text-heading text-heading--sm"
                 @click="close"
               >
-                {{ item.label }}
+                {{ t(item.labelKey) }}
               </NuxtLink>
             </li>
           </ul>
         </nav>
+
+        <SiteLocaleSwitcher />
 
         <UButton
           :to="primaryCta.href"
@@ -93,7 +97,7 @@ function close() {
 
         <div class="flex flex-col gap-3">
           <p class="text-label text-dimmed">
-            Контакты
+            {{ t('menu.contacts') }}
           </p>
           <a
             :href="primaryContact.href"

@@ -8,6 +8,8 @@ const props = defineProps<{
   fallbackVideoPoster: string
 }>()
 
+const { t } = useI18n()
+
 type RowVariant = 'wide' | 'paired' | 'solo'
 
 interface GalleryEntry {
@@ -121,7 +123,7 @@ const rows = computed<GalleryRow[]>(() => {
         id="project-gallery-title"
         class="text-heading text-heading--md text-highlighted"
       >
-        Материалы проекта
+        {{ t('project.gallery') }}
       </h2>
 
       <ul class="project-gallery__rows">

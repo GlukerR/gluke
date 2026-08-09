@@ -1,19 +1,23 @@
 <script setup lang="ts">
 const route = useRoute()
 const site = useSiteContent()
+const locale = useCurrentLocale()
+const { t } = useI18n()
+const { home, projects: projectsPath, project: projectPath } = useSiteRoutes()
+
+/* Слаг берётся из параметра маршрута, а не из пути: публичный URL
+   отвязан от внутреннего content-path (`/projects/en/getic`).
+   Проверка ключа сужает объединение параметров локализованных маршрутов без приведения типов. */
+const slug = computed(() => ('slug' in route.params ? route.params.slug : ''))
 
 const { data } = await useAsyncData(
-  () => `project-detail:${route.path}`,
+  computed(() => `project-detail-${locale.value}-${slug.value}`),
   async () => {
     const [project, orderedProjects] = await Promise.all([
-      queryCollection('projects')
-        .path(route.path)
-        .where('status', '=', 'published')
-        .first(),
-      queryCollection('projects')
-        .where('status', '=', 'published')
+      queryLocalizedProject(locale.value, slug.value).first(),
+      queryLocalizedProjects(locale.value)
         .order('position', 'ASC')
-        .select('title', 'path')
+        .select('title', 'slug')
         .all(),
     ])
 
@@ -21,12 +25,12 @@ const { data } = await useAsyncData(
       return null
     }
 
-    const currentIndex = orderedProjects.findIndex(item => item.path === route.path)
+    const currentIndex = orderedProjects.findIndex(item => item.slug === slug.value)
 
     if (currentIndex === -1) {
       throw createError({
         statusCode: 500,
-        statusMessage: 'Не удалось определить порядок кейсов',
+        statusMessage: t('errors.projectOrderFailed'),
         fatal: true,
       })
     }
@@ -42,12 +46,14 @@ const { data } = await useAsyncData(
 function notFound() {
   return createError({
     statusCode: 404,
-    statusMessage: 'Проект не найден',
+    statusMessage: t('errors.projectNotFound'),
     fatal: true,
   })
 }
 
-if (!data.value) {
+const initialData = data.value
+
+if (!initialData) {
   throw notFound()
 }
 
@@ -59,25 +65,61 @@ watch(data, (value) => {
   }
 })
 
-const project = computed(() => data.value?.project ?? null)
+/* Предыдущий кейс остаётся значением по умолчанию только на время
+   переходного рендера, реальный 404 обрабатывается watch выше. */
+const project = computed(() => data.value?.project ?? initialData.project)
 
-const pageTitle = computed(() => {
-  const current = project.value
+const pageTitle = computed(() => t('seo.projectTitle', {
+  title: project.value.title,
+  client: project.value.client,
+  site: site.value.brand.name,
+}))
+const pageDescription = computed(() => project.value.description)
 
-  return current
-    ? `${current.title} — ${current.client} — ${site.brand.name}`
-    : site.brand.name
+const { toAbsolute, toCanonical } = useSiteUrls()
+
+const canonicalUrl = computed(() => toCanonical(projectPath(project.value.slug)))
+const coverUrl = computed(() => toAbsolute(project.value.cover.src))
+const organizationId = computed(() => toAbsolute('#identity'))
+
+usePageSeo({
+  title: pageTitle,
+  description: pageDescription,
+  path: () => projectPath(project.value.slug),
+  type: 'article',
+  image: () => project.value.cover,
 })
 
-const pageDescription = computed(() => project.value?.description ?? site.hero.description)
-
-useSeoMeta({
-  title: () => pageTitle.value,
-  description: () => pageDescription.value,
-  ogTitle: () => pageTitle.value,
-  ogDescription: () => pageDescription.value,
-  ogType: 'article',
-})
+useSchemaOrg([
+  /* Явные @id нужны, чтобы узлы обновлялись при клиентском переходе между кейсами. */
+  defineWebPage({
+    '@id': () => `${canonicalUrl.value}#webpage`,
+    '@type': 'ItemPage',
+    'url': () => canonicalUrl.value,
+    'name': () => pageTitle.value,
+    'description': () => pageDescription.value,
+    'inLanguage': () => locale.value,
+  }),
+  {
+    '@id': () => `${canonicalUrl.value}#creativework`,
+    '@type': 'CreativeWork',
+    'name': () => project.value.title,
+    'description': () => pageDescription.value,
+    'url': () => canonicalUrl.value,
+    'image': () => coverUrl.value,
+    'inLanguage': () => locale.value,
+    'creator': { '@id': () => organizationId.value },
+    'provider': { '@id': () => organizationId.value },
+  },
+  defineBreadcrumb({
+    '@id': () => `${canonicalUrl.value}#breadcrumb`,
+    'itemListElement': [
+      defineListItem({ name: () => t('breadcrumb.home'), item: () => toAbsolute(home()) }),
+      defineListItem({ name: () => t('breadcrumb.projects'), item: () => toAbsolute(projectsPath()) }),
+      defineListItem({ name: () => project.value.title }),
+    ],
+  }),
+])
 </script>
 
 <template>
@@ -87,11 +129,11 @@ useSeoMeta({
   >
     <div class="site-container project-page__back">
       <NuxtLink
-        to="/#projects"
+        :to="projectsPath()"
         class="project-page__back-link text-body--sm"
       >
         <span aria-hidden="true">←</span>
-        <span>Вернуться к проектам</span>
+        <span>{{ t('project.back') }}</span>
       </NuxtLink>
     </div>
 

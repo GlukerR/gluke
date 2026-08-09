@@ -13,14 +13,17 @@ const props = withDefaults(
   },
 )
 
-const titleId = computed(() => `project-${props.project.stem.split('/').pop()}`)
+const { t } = useI18n()
+const { project: projectPath } = useSiteRoutes()
+
+const titleId = computed(() => `project-${props.project.slug}`)
 const leadMetric = computed(() => props.project.metrics[0])
 const services = computed(() => props.project.services.slice(0, 2))
 </script>
 
 <template>
   <NuxtLink
-    :to="project.path"
+    :to="projectPath(project.slug)"
     :aria-labelledby="titleId"
     class="project-card"
     :class="`project-card--${emphasis}`"
@@ -78,7 +81,7 @@ const services = computed(() => props.project.services.slice(0, 2))
       </span>
 
       <span class="project-card__go text-label">
-        <span>Смотреть кейс</span>
+        <span>{{ t('projects.card.view') }}</span>
         <span
           class="project-card__arrow"
           aria-hidden="true"

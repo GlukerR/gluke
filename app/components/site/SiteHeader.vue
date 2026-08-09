@@ -4,6 +4,9 @@ import { siteNavigation } from '~/config/site-navigation'
 
 const props = defineProps<{ site: SiteCollectionItem }>()
 
+const { t } = useI18n()
+const { navigation } = useSiteRoutes()
+
 const primaryCta = computed(() => props.site.hero.primaryCta)
 </script>
 
@@ -13,26 +16,28 @@ const primaryCta = computed(() => props.site.hero.primaryCta)
       <SiteLogo />
 
       <nav
-        aria-label="Основная навигация"
+        :aria-label="t('nav.ariaPrimary')"
         class="site-header__nav"
       >
         <ul class="flex items-center gap-1">
           <li
             v-for="item in siteNavigation"
-            :key="item.to"
+            :key="item.labelKey"
           >
             <NuxtLink
-              :to="item.to"
+              :to="navigation(item)"
               aria-current-value="false"
               class="site-header__link text-body--sm"
             >
-              {{ item.label }}
+              {{ t(item.labelKey) }}
             </NuxtLink>
           </li>
         </ul>
       </nav>
 
       <div class="flex items-center gap-2">
+        <SiteLocaleSwitcher class="site-header__locales" />
+
         <UButton
           :to="primaryCta.href"
           target="_blank"

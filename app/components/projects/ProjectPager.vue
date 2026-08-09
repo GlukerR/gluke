@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import type { ProjectsCollectionItem } from '@nuxt/content'
 
-type ProjectPagerLink = Pick<ProjectsCollectionItem, 'title' | 'path'>
+type ProjectPagerLink = Pick<ProjectsCollectionItem, 'title' | 'slug'>
 
 const props = defineProps<{
   previous: ProjectPagerLink | null
   next: ProjectPagerLink | null
 }>()
+
+const { t } = useI18n()
+const { project: projectPath } = useSiteRoutes()
 
 const hasLinks = computed(() => Boolean(props.previous ?? props.next))
 </script>
@@ -22,7 +25,7 @@ const hasLinks = computed(() => Boolean(props.previous ?? props.next))
         id="project-pager-title"
         class="sr-only"
       >
-        Другие кейсы
+        {{ t('project.pager.srTitle') }}
       </h2>
 
       <ul class="project-pager__list">
@@ -31,12 +34,12 @@ const hasLinks = computed(() => Boolean(props.previous ?? props.next))
           class="project-pager__cell"
         >
           <NuxtLink
-            :to="previous.path"
+            :to="projectPath(previous.slug)"
             class="project-pager__link project-pager__link--previous"
           >
             <span class="text-label project-pager__label">
               <span aria-hidden="true">←</span>
-              <span>Предыдущий кейс</span>
+              <span>{{ t('project.pager.previous') }}</span>
             </span>
             <span class="text-heading text-heading--sm project-pager__title">{{ previous.title }}</span>
           </NuxtLink>
@@ -47,11 +50,11 @@ const hasLinks = computed(() => Boolean(props.previous ?? props.next))
           class="project-pager__cell project-pager__cell--next"
         >
           <NuxtLink
-            :to="next.path"
+            :to="projectPath(next.slug)"
             class="project-pager__link project-pager__link--next"
           >
             <span class="text-label project-pager__label">
-              <span>Следующий кейс</span>
+              <span>{{ t('project.pager.next') }}</span>
               <span aria-hidden="true">→</span>
             </span>
             <span class="text-heading text-heading--sm project-pager__title">{{ next.title }}</span>

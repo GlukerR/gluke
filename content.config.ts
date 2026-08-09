@@ -3,8 +3,15 @@ import {
   defineContentConfig,
   z,
 } from '@nuxt/content'
+import { LOCALE_CODES } from './shared/i18n'
 
 const MEDIA_PREFIX = '/media/'
+
+/* Локаль документа берётся из явного поля, а не из пути файла:
+   генерируемый Nuxt Content `path` остаётся внутренним и не используется публично. */
+const localeSchema = z.enum(LOCALE_CODES)
+
+const slugSchema = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/)
 
 const visualSchema = z.object({
   src: z.string().min(1).startsWith(MEDIA_PREFIX),
@@ -54,8 +61,10 @@ export default defineContentConfig({
   collections: {
     projects: defineCollection({
       type: 'page',
-      source: 'projects/*.md',
+      source: 'projects/**/*.md',
       schema: z.object({
+        locale: localeSchema,
+        slug: slugSchema,
         client: z.string().min(1),
         industry: z.string().min(1),
         position: z.number().int().positive(),
@@ -75,8 +84,9 @@ export default defineContentConfig({
     }),
     site: defineCollection({
       type: 'data',
-      source: 'site.yml',
+      source: 'site/*.yml',
       schema: z.object({
+        locale: localeSchema,
         brand: z.object({
           name: z.string().min(1),
           descriptor: z.string().min(1),

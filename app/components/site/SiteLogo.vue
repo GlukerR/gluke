@@ -2,11 +2,13 @@
 const props = withDefaults(defineProps<{ label?: string }>(), {
   label: 'GLUKE',
 })
+
+const { home } = useSiteRoutes()
 </script>
 
 <template>
   <NuxtLink
-    to="/"
+    :to="home()"
     class="site-logo"
   >
     <img

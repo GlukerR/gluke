@@ -1,4 +1,6 @@
 ---
+locale: ru
+slug: wiederkraft
 title: Цифровой каталог оборудования WiederKraft
 description: Более 15 моделей автосервисного оборудования, каталожные рендеры, материалы для печати и продуктовый видеоролик.
 client: WiederKraft
