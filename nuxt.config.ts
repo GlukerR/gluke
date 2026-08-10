@@ -24,9 +24,15 @@ export default defineNuxtConfig({
     name: 'GLUKE',
     defaultLocale: DEFAULT_LOCALE,
   },
+  /* Интеграция Nuxt UI с Nuxt Color Mode: тёмная тема при первом визите,
+     класс `.dark`/`.light` ставит штатный ранний скрипт до гидратации,
+     сохранённый выбор пользователя читается из стандартного хранилища. */
   colorMode: {
     preference: 'dark',
     fallback: 'dark',
+    /* Nuxt UI по умолчанию глушит transition на время смены темы; здесь переход
+       разрешён, потому что он ограничен цветовыми свойствами и длится 180 ms. */
+    disableTransition: false,
   },
   content: {
     experimental: {

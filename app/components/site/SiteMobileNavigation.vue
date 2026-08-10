@@ -81,7 +81,10 @@ function close() {
           </ul>
         </nav>
 
-        <SiteLocaleSwitcher />
+        <div class="site-mobile-settings">
+          <SiteLocaleSwitcher />
+          <SiteThemeToggle />
+        </div>
 
         <UButton
           :to="primaryCta.href"
@@ -152,6 +155,14 @@ function close() {
   background-color: currentcolor;
 }
 
+/* Компактный блок настроек: язык и тема стоят рядом и не удлиняют меню. */
+.site-mobile-settings {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .site-mobile-link {
   display: flex;
   align-items: center;
@@ -162,7 +173,7 @@ function close() {
 }
 
 .site-mobile-link:hover {
-  color: var(--site-accent);
+  color: var(--site-accent-text);
   padding-inline-start: 4px;
 }
 
@@ -187,10 +198,10 @@ function close() {
 }
 
 .site-mobile-contact:hover {
-  color: var(--site-accent);
+  color: var(--site-accent-text);
 }
 
 .site-mobile-contact:hover .site-mobile-contact__value {
-  color: var(--site-accent);
+  color: var(--site-accent-text);
 }
 </style>

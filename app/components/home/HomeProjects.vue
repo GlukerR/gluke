@@ -7,6 +7,15 @@ const { t } = useI18n()
 
 const WIDE_SIZES = '100vw md:100vw lg:64vw xl:960px'
 const NARROW_SIZES = '100vw md:50vw lg:32vw xl:480px'
+
+/* Узкие карточки стоят в паре с широкой и тянутся на её высоту, поэтому у них
+   вертикальная обложка: лишняя высота уходит в фотографию, а не в пустоту. */
+const TALL_INDEXES = new Set([1, 2])
+
+function cardEmphasis(index: number) {
+  if (index === 0) return 'lead'
+  return TALL_INDEXES.has(index) ? 'tall' : 'default'
+}
 </script>
 
 <template>
@@ -30,7 +39,7 @@ const NARROW_SIZES = '100vw md:50vw lg:32vw xl:480px'
         >
           <ProjectsProjectCard
             :project="project"
-            :emphasis="index === 0 ? 'lead' : 'default'"
+            :emphasis="cardEmphasis(index)"
             :sizes="index === 0 || index === 3 ? WIDE_SIZES : NARROW_SIZES"
           />
         </li>
@@ -83,7 +92,6 @@ const NARROW_SIZES = '100vw md:50vw lg:32vw xl:480px'
 
   .home-projects__item:nth-child(2) {
     grid-column: span 4;
-    align-self: end;
   }
 
   .home-projects__item:nth-child(3) {

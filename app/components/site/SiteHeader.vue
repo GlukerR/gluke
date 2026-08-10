@@ -36,6 +36,10 @@ const primaryCta = computed(() => props.site.hero.primaryCta)
       </nav>
 
       <div class="flex items-center gap-2">
+        <div class="site-header__theme">
+          <SiteThemeToggle />
+        </div>
+
         <SiteLocaleSwitcher class="site-header__locales" />
 
         <UButton
@@ -94,7 +98,7 @@ const primaryCta = computed(() => props.site.hero.primaryCta)
 }
 
 .site-header__link:active {
-  color: var(--site-accent);
+  color: var(--site-accent-text);
 }
 
 .site-header__cta {
@@ -102,8 +106,19 @@ const primaryCta = computed(() => props.site.hero.primaryCta)
   min-height: 44px;
 }
 
+/* На узкой шапке верхняя строка не перегружается: переключатель темы там живёт
+   только в мобильном меню, а с 480px появляется рядом с языком и CTA.
+   Видимостью управляет обёртка, чтобы шапка не зависела от внутренних стилей компонента. */
+.site-header__theme {
+  display: none;
+}
+
 @media (min-width: 480px) {
   .site-header__cta {
+    display: inline-flex;
+  }
+
+  .site-header__theme {
     display: inline-flex;
   }
 }

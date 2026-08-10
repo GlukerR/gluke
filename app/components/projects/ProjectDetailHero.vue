@@ -15,7 +15,7 @@ const clientLinkLabel = computed(() => t('project.clientLinkAria', { client: pro
   >
     <div class="site-container project-hero__inner">
       <div class="project-hero__text">
-        <p class="text-label text-primary project-hero__meta">
+        <p class="text-label text-accent project-hero__meta">
           <span>{{ project.client }}</span>
           <span aria-hidden="true">/</span>
           <span>{{ project.industry }}</span>
@@ -157,7 +157,7 @@ const clientLinkLabel = computed(() => t('project.clientLinkAria', { client: pro
   align-self: flex-start;
   gap: 8px;
   min-height: 44px;
-  color: var(--site-accent);
+  color: var(--site-accent-text);
   text-decoration: underline;
   text-underline-offset: 4px;
   overflow-wrap: anywhere;
@@ -165,7 +165,7 @@ const clientLinkLabel = computed(() => t('project.clientLinkAria', { client: pro
 }
 
 .project-hero__client-link:hover {
-  color: var(--site-accent-hover);
+  color: var(--site-accent-text-hover);
 }
 
 .project-hero__visual {
@@ -180,7 +180,7 @@ const clientLinkLabel = computed(() => t('project.clientLinkAria', { client: pro
   overflow: hidden;
   border: var(--site-border);
   border-radius: var(--site-radius-lg);
-  background-color: var(--site-surface);
+  background-color: var(--site-media-canvas);
 }
 
 .project-hero__picture :deep(.project-hero__image) {

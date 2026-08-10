@@ -36,6 +36,12 @@ const { home } = useSiteRoutes()
   transition: opacity 150ms ease;
 }
 
+/* Логотип — один монохромный белый SVG, подключённый как `<img>`.
+   Второго файла не появляется: в светлой теме тот же файл приводится к почти чёрному. */
+:root.light .site-logo__image {
+  filter: brightness(0);
+}
+
 .site-logo:hover .site-logo__image {
   opacity: 0.75;
 }

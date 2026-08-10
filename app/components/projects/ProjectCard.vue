@@ -4,7 +4,7 @@ import type { ProjectsCollectionItem } from '@nuxt/content'
 const props = withDefaults(
   defineProps<{
     project: ProjectsCollectionItem
-    emphasis?: 'lead' | 'default'
+    emphasis?: 'lead' | 'tall' | 'default'
     sizes?: string
   }>(),
   {
@@ -110,7 +110,7 @@ const services = computed(() => props.project.services.slice(0, 2))
   display: block;
   overflow: hidden;
   border-radius: var(--site-radius-md);
-  background-color: var(--site-surface-raised);
+  background-color: var(--site-media-canvas);
 }
 
 .project-card__picture {
@@ -160,7 +160,7 @@ const services = computed(() => props.project.services.slice(0, 2))
 }
 
 .project-card__metric-value {
-  color: var(--site-accent);
+  color: var(--site-accent-text);
 }
 
 .project-card__metric-label {
@@ -205,7 +205,7 @@ const services = computed(() => props.project.services.slice(0, 2))
   align-items: center;
   gap: 8px;
   min-height: 44px;
-  color: var(--site-accent);
+  color: var(--site-accent-text);
 }
 
 .project-card__arrow {
@@ -234,6 +234,30 @@ const services = computed(() => props.project.services.slice(0, 2))
 @media (min-width: 1024px) {
   .project-card--lead {
     padding: clamp(24px, 2vw, 32px);
+  }
+
+  /* Узкая карточка растянута на высоту широкого соседа. Свободную высоту забирает
+     обложка, поэтому текстовый блок остаётся плотным, без провала в середине. */
+  .project-card--tall .project-card__media {
+    flex: 1;
+    min-height: clamp(220px, 18vw, 320px);
+  }
+
+  .project-card--tall .project-card__picture,
+  .project-card--tall .project-card__picture :deep(.project-card__image) {
+    height: 100%;
+  }
+
+  .project-card--tall .project-card__picture :deep(.project-card__image) {
+    aspect-ratio: auto;
+  }
+
+  .project-card--tall .project-card__body {
+    flex: 0 0 auto;
+  }
+
+  .project-card--tall .project-card__metric {
+    margin-top: 0;
   }
 }
 </style>

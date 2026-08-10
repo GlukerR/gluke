@@ -82,16 +82,17 @@ const orderedSteps = computed(() => [...props.steps].sort((a, b) => a.position -
   border: var(--site-border);
   border-radius: 999px;
   background-color: var(--site-bg);
-  color: var(--site-accent);
+  color: var(--site-accent-text);
   letter-spacing: 0;
 }
 
-/* Вертикальная связь между шагами на мобильном. */
+/* Вертикальная связь между шагами на мобильном: от нижнего края кружка
+   до верхнего края следующего, с зазором в 4px с обеих сторон. */
 .home-process__step:not(:last-child)::before {
   content: '';
   position: absolute;
   inset-inline-start: 20px;
-  inset-block: 44px calc(-1 * clamp(20px, 3vw, 32px));
+  inset-block: 40px calc(0px - clamp(20px, 3vw, 32px));
   width: 1px;
   background-color: var(--site-border-color);
 }
@@ -118,18 +119,15 @@ const orderedSteps = computed(() => [...props.steps].sort((a, b) => a.position -
     padding-top: 60px;
   }
 
-  /* Общая горизонтальная линия этапов. */
-  .home-process__step::after {
+  /* Связь между этапами: линия идёт от правого края кружка до левого края
+     следующего, поэтому начинается за кружком и заходит в промежуток колонок. */
+  .home-process__step:not(:last-child)::after {
     content: '';
     position: absolute;
     inset-block-start: 20px;
-    inset-inline: 0 calc(-1 * clamp(20px, 2vw, 32px));
+    inset-inline: 40px calc(0px - clamp(20px, 2vw, 32px));
     height: 1px;
     background-color: var(--site-border-color);
-  }
-
-  .home-process__step:last-child::after {
-    inset-inline-end: 0;
   }
 
   .home-process__step:not(:last-child)::before {

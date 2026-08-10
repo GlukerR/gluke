@@ -21,13 +21,20 @@
   --radius-site-lg: 24px;
 }
 
-:root {
+/* Тёмная тема — база: значения живут в `:root`, поэтому применяются и до того,
+   как Nuxt Color Mode поставит класс на `<html>`. Светлая тема переопределяет
+   те же роли в блоке `:root.light` ниже. */
+:root,
+:root.dark {
   color-scheme: dark;
 
   --site-bg: #070707;
   --site-surface: #0f0f0f;
   --site-surface-raised: #171717;
   --site-border-color: #292929;
+  /* Отдельная роль для границ, которые сами являются единственной
+     видимой рамкой интерактивного контрола. */
+  --site-border-strong: #3d3d3d;
   --site-text: #f5f5f1;
   --site-text-muted: #9b9b95;
   /* Derived from existing tokens: readable resting colour for normal-size
@@ -35,8 +42,16 @@
   --site-text-secondary: color-mix(in srgb, var(--site-text) 86%, var(--site-bg));
   --site-accent: var(--color-brand-500);
   --site-accent-hover: var(--color-brand-300);
+  /* Фирменный цвет для мелкого текста, eyebrow, ссылок и outline фокуса.
+     В тёмной теме совпадает с заливкой, в светлой — тёмно-зелёный. */
+  --site-accent-text: var(--color-brand-500);
+  --site-accent-text-hover: var(--color-brand-300);
+  --site-focus: var(--site-accent-text);
   --site-contrast-surface: #f1f1ec;
   --site-contrast-text: #0a0a0a;
+  /* Подложка для прозрачных PNG и видео остаётся тёмной в обеих темах:
+     белые модели оборудования иначе теряются. */
+  --site-media-canvas: #0f0f0f;
 
   --site-content-max: 1600px;
   --site-gutter: clamp(20px, 4vw, 72px);
@@ -46,6 +61,12 @@
   --site-radius-md: var(--radius-site-md);
   --site-radius-lg: var(--radius-site-lg);
   --site-border: 1px solid var(--site-border-color);
+
+  /* Роли, одинаковые в обеих темах: панель CTA всегда залита фирменным зелёным. */
+  --site-accent-fg: #0a0a0a;
+  --site-on-accent-surface: #070707;
+  --site-on-accent-surface-hover: #171717;
+  --site-on-accent-surface-text: #f5f5f1;
 
   --type-display: clamp(2.5rem, 6.5vw, 5.5rem);
   --type-display-leading: 1.02;
@@ -77,14 +98,37 @@
   --ui-bg-inverted: var(--site-contrast-surface);
   --ui-border: var(--site-border-color);
   --ui-border-muted: var(--site-border-color);
-  --ui-border-accented: var(--site-border-color);
+  --ui-border-accented: var(--site-border-strong);
   --ui-border-inverted: var(--site-contrast-surface);
   --ui-text-dimmed: var(--site-text-muted);
   --ui-text-muted: var(--site-text-muted);
   --ui-text-toned: var(--site-text);
   --ui-text: var(--site-text);
   --ui-text-highlighted: var(--site-text);
-  --ui-text-inverted: var(--site-contrast-text);
+  /* `--ui-primary` в обеих темах остаётся кислотно-зелёным, поэтому текст
+     на solid-кнопках Nuxt UI всегда почти чёрный. */
+  --ui-text-inverted: var(--site-accent-fg);
+}
+
+/* Светлая тема: те же роли, другие значения. Ни один компонент не знает
+   конкретных цветов, поэтому переопределяется только этот слой. */
+:root.light {
+  color-scheme: light;
+
+  --site-bg: #f2f1ec;
+  --site-surface: #fffffd;
+  --site-surface-raised: #e7e6de;
+  --site-border-color: #dbdad0;
+  /* Ровно настолько тёмная, чтобы рамка контрола давала 3:1 к общему фону. */
+  --site-border-strong: #86857a;
+  --site-text: #14150f;
+  --site-text-muted: #56564e;
+  --site-accent-hover: var(--color-brand-600);
+  --site-accent-text: var(--color-brand-900);
+  --site-accent-text-hover: var(--color-brand-950);
+  --site-contrast-surface: #14150f;
+  --site-contrast-text: #f5f5f1;
+  --site-media-canvas: #101010;
 }
 
 @layer base {
@@ -106,6 +150,13 @@
     min-height: 100%;
   }
 
+  /* Переход темы живёт только на цветовых свойствах корневых элементов;
+     остальные поверхности уже объявляют свои transition для тех же свойств. */
+  html,
+  body {
+    transition: background-color 180ms ease, color 180ms ease;
+  }
+
   body {
     min-height: 100dvh;
     background-color: var(--site-bg);
@@ -120,11 +171,11 @@
 
   ::selection {
     background-color: var(--site-accent);
-    color: var(--site-contrast-text);
+    color: var(--site-accent-fg);
   }
 
   :focus-visible {
-    outline: 2px solid var(--site-accent);
+    outline: 2px solid var(--site-focus);
     outline-offset: 3px;
   }
 
@@ -208,6 +259,12 @@
   .text-body--sm {
     font-size: var(--type-small);
     line-height: var(--type-small-leading);
+  }
+
+  /* Акцентный текст идёт через свою роль, а не через `text-primary` Nuxt UI:
+     в светлой теме кислотно-зелёная заливка нечитаема как цвет текста. */
+  .text-accent {
+    color: var(--site-accent-text);
   }
 
   .text-label {

@@ -17,7 +17,7 @@ const isExternal = computed(() => props.hero.primaryCta.href.startsWith('https:/
   >
     <div class="site-container home-hero__inner">
       <div class="home-hero__text">
-        <p class="text-label text-primary">
+        <p class="text-label text-accent">
           {{ hero.eyebrow }}
         </p>
 
@@ -156,7 +156,7 @@ const isExternal = computed(() => props.hero.primaryCta.href.startsWith('https:/
   overflow: hidden;
   border: var(--site-border);
   border-radius: var(--site-radius-lg);
-  background-color: var(--site-surface);
+  background-color: var(--site-media-canvas);
 }
 
 .home-hero__picture :deep(.home-hero__image) {

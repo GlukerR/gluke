@@ -9,7 +9,7 @@ defineProps<{
 
 <template>
   <div class="home-section-header">
-    <p class="text-label text-primary">
+    <p class="text-label text-accent">
       {{ eyebrow }}
     </p>
     <h2

@@ -186,6 +186,6 @@ useSchemaOrg([
 }
 
 .project-page__back-link:hover {
-  color: var(--site-accent);
+  color: var(--site-accent-text);
 }
 </style>

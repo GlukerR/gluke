@@ -69,7 +69,7 @@ const isExternal = computed(() => props.cta.href.startsWith('https://'))
   padding: clamp(28px, 5vw, 72px);
   border-radius: var(--site-radius-lg);
   background-color: var(--site-accent);
-  color: var(--site-contrast-text);
+  color: var(--site-accent-fg);
 }
 
 .home-contact__text {
@@ -81,18 +81,18 @@ const isExternal = computed(() => props.cta.href.startsWith('https://'))
 
 .home-contact__title {
   max-width: 18ch;
-  color: var(--site-contrast-text);
+  color: var(--site-accent-fg);
 }
 
 .home-contact__summary {
   max-width: 46ch;
-  color: var(--site-contrast-text);
+  color: var(--site-accent-fg);
   overflow-wrap: anywhere;
 }
 
 .home-contact__note {
   max-width: 46ch;
-  color: color-mix(in srgb, var(--site-contrast-text) 78%, var(--site-accent));
+  color: color-mix(in srgb, var(--site-accent-fg) 78%, var(--site-accent));
   overflow-wrap: anywhere;
 }
 
@@ -111,25 +111,25 @@ const isExternal = computed(() => props.cta.href.startsWith('https://'))
   min-height: 56px;
   padding-inline: clamp(24px, 3vw, 40px);
   border-radius: var(--site-radius-sm);
-  background-color: var(--site-bg);
-  color: var(--site-text);
+  background-color: var(--site-on-accent-surface);
+  color: var(--site-on-accent-surface-text);
   font-weight: 600;
   transition: background-color 150ms ease;
 }
 
 .home-contact__cta:hover {
-  background-color: var(--site-surface-raised);
+  background-color: var(--site-on-accent-surface-hover);
 }
 
 .home-contact__cta:focus-visible {
-  outline-color: var(--site-contrast-text);
+  outline-color: var(--site-accent-fg);
 }
 
 .home-contact__secondary {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  color: var(--site-contrast-text);
+  color: var(--site-accent-fg);
   text-decoration: underline;
   text-underline-offset: 4px;
   overflow-wrap: anywhere;

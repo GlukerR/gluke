@@ -90,7 +90,7 @@ const videoType = computed(() => {
   overflow: hidden;
   border: var(--site-border);
   border-radius: var(--site-radius-md);
-  background-color: var(--site-surface);
+  background-color: var(--site-media-canvas);
 }
 
 /* `height: auto` keeps the intrinsic ratio of every source image intact. */
@@ -108,12 +108,12 @@ const videoType = computed(() => {
   border-radius: var(--site-radius-md);
   /* Тёмная подложка из токенов: до отрисовки постера нет белой вспышки,
      а постер с другим соотношением сторон вписывается без искажений. */
-  background-color: var(--site-surface);
+  background-color: var(--site-media-canvas);
   object-fit: contain;
 }
 
 .project-media__fallback {
-  color: var(--site-accent);
+  color: var(--site-accent-text);
   text-decoration: underline;
   text-underline-offset: 4px;
 }

@@ -77,7 +77,7 @@ function formatIndex(index: number): string {
 }
 
 .home-services__number {
-  color: var(--site-accent);
+  color: var(--site-accent-text);
 }
 
 .home-services__title {

@@ -64,12 +64,12 @@ const isExternal = computed(() => props.cta.href.startsWith('https://'))
   padding: clamp(28px, 5vw, 64px);
   border-radius: var(--site-radius-lg);
   background-color: var(--site-accent);
-  color: var(--site-contrast-text);
+  color: var(--site-accent-fg);
 }
 
 .project-contact__title {
   max-width: 18ch;
-  color: var(--site-contrast-text);
+  color: var(--site-accent-fg);
 }
 
 .project-contact__actions {
@@ -87,25 +87,25 @@ const isExternal = computed(() => props.cta.href.startsWith('https://'))
   min-height: 56px;
   padding-inline: clamp(24px, 3vw, 40px);
   border-radius: var(--site-radius-sm);
-  background-color: var(--site-bg);
-  color: var(--site-text);
+  background-color: var(--site-on-accent-surface);
+  color: var(--site-on-accent-surface-text);
   font-weight: 600;
   transition: background-color 150ms ease;
 }
 
 .project-contact__cta:hover {
-  background-color: var(--site-surface-raised);
+  background-color: var(--site-on-accent-surface-hover);
 }
 
 .project-contact__cta:focus-visible {
-  outline-color: var(--site-contrast-text);
+  outline-color: var(--site-accent-fg);
 }
 
 .project-contact__secondary {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  color: var(--site-contrast-text);
+  color: var(--site-accent-fg);
   text-decoration: underline;
   text-underline-offset: 4px;
   overflow-wrap: anywhere;

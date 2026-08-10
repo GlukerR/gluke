@@ -168,7 +168,7 @@ function isWebLink(href: string): boolean {
 }
 
 .site-footer__link:hover {
-  color: var(--site-accent);
+  color: var(--site-accent-text);
 }
 
 .site-footer__link--primary {

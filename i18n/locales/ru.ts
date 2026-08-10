@@ -11,9 +11,16 @@ export default {
   menu: {
     open: 'Меню',
     close: 'Закрыть',
+    contacts: 'Контакты',
   },
   layout: {
     skipToContent: 'Перейти к содержимому',
+  },
+  themeSwitcher: {
+    dark: 'Тёмная тема',
+    light: 'Светлая тема',
+    switchToDark: 'Включить тёмную тему',
+    switchToLight: 'Включить светлую тему',
   },
   localeSwitcher: {
     label: 'Язык',

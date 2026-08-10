@@ -66,7 +66,7 @@ useSchemaOrg([
   >
     <div class="site-container projects-archive__inner">
       <div class="projects-archive__header">
-        <p class="text-label text-primary">
+        <p class="text-label text-accent">
           {{ t('projects.eyebrow') }}
         </p>
         <h1

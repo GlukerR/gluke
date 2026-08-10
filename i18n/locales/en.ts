@@ -16,6 +16,12 @@ export default {
   layout: {
     skipToContent: 'Skip to content',
   },
+  themeSwitcher: {
+    dark: 'Dark theme',
+    light: 'Light theme',
+    switchToDark: 'Switch to dark theme',
+    switchToLight: 'Switch to light theme',
+  },
   localeSwitcher: {
     label: 'Language',
     switchTo: 'Switch the site to {language}',

@@ -100,7 +100,7 @@ const hasLinks = computed(() => Boolean(props.previous ?? props.next))
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--site-accent);
+  color: var(--site-accent-text);
 }
 
 .project-pager__title {
