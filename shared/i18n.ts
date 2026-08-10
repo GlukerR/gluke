@@ -21,6 +21,9 @@ export const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 400
 /** Грубое определение страны на Vercel: единственный разрешённый источник гео-сигнала. */
 export const COUNTRY_HEADER = 'x-vercel-ip-country'
 
+/** Запасной сигнал: языковые предпочтения браузера. */
+export const ACCEPT_LANGUAGE_HEADER = 'accept-language'
+
 export const RUSSIAN_COUNTRY_CODE = 'RU'
 
 export interface SiteLocaleOption {
@@ -58,10 +61,57 @@ export function isLocaleCode(value: unknown): value is LocaleCode {
   return typeof value === 'string' && (LOCALE_CODES as readonly string[]).includes(value)
 }
 
+/** Россия — русский. Для любого другого или отсутствующего значения сигнала нет. */
+export function localeForCountry(country: string | undefined | null): LocaleCode | undefined {
+  return country?.toUpperCase() === RUSSIAN_COUNTRY_CODE ? RUSSIAN_LOCALE : undefined
+}
+
 /**
- * Бизнес-правило первичного выбора языка: Россия — русский, остальные страны — английский.
- * Страна пользователя нигде не сохраняется, используется только для этого решения.
+ * Разбор Accept-Language: теги сортируются по q и берётся первый поддерживаемый язык.
+ * Регион тега игнорируется: `ru-KZ` и `ru` ведут на одну и ту же локаль.
  */
-export function localeForCountry(country: string | undefined | null): LocaleCode {
-  return country?.toUpperCase() === RUSSIAN_COUNTRY_CODE ? RUSSIAN_LOCALE : DEFAULT_LOCALE
+export function localeForAcceptLanguage(header: string | undefined | null): LocaleCode | undefined {
+  if (!header) {
+    return undefined
+  }
+
+  const ranked = header
+    .split(',')
+    .map((part) => {
+      const [tag, ...parameters] = part.trim().split(';')
+      const quality = parameters
+        .map(parameter => parameter.trim())
+        .find(parameter => parameter.startsWith('q='))
+      const parsedQuality = quality ? Number.parseFloat(quality.slice(2)) : 1
+
+      return {
+        language: tag?.trim().toLowerCase().split('-')[0] ?? '',
+        quality: Number.isFinite(parsedQuality) ? parsedQuality : 0,
+      }
+    })
+    /* Теги с q=0 явно отвергнуты клиентом, а `*` не несёт предпочтения. */
+    .filter(entry => entry.quality > 0)
+    .sort((first, second) => second.quality - first.quality)
+
+  for (const entry of ranked) {
+    if (isLocaleCode(entry.language)) {
+      return entry.language
+    }
+  }
+
+  return undefined
+}
+
+/**
+ * Бизнес-правило первичного выбора языка: сначала страна, затем язык браузера,
+ * иначе локаль по умолчанию. Нужен второй сигнал, потому что гео-заголовка может не быть
+ * или IP определяется неверно. Ни страна, ни список языков нигде не сохраняются.
+ */
+export function localeForRequest(
+  country: string | undefined | null,
+  acceptLanguage: string | undefined | null,
+): LocaleCode {
+  return localeForCountry(country)
+    ?? localeForAcceptLanguage(acceptLanguage)
+    ?? DEFAULT_LOCALE
 }

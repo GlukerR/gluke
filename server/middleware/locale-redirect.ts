@@ -1,10 +1,11 @@
 import {
+  ACCEPT_LANGUAGE_HEADER,
   COUNTRY_HEADER,
   LOCALE_COOKIE_MAX_AGE,
   LOCALE_COOKIE_NAME,
   RUSSIAN_LOCALE,
   isLocaleCode,
-  localeForCountry,
+  localeForRequest,
 } from '#shared/i18n'
 import type { LocaleCode } from '#shared/i18n'
 
@@ -12,13 +13,14 @@ const ROOT_PATH = '/'
 const RUSSIAN_ROOT_PATH = '/ru'
 
 /**
- * Первичный выбор языка по стране выполняется ровно один раз — только для GET/HEAD корня.
+ * Первичный выбор языка выполняется ровно один раз — только для GET/HEAD корня.
+ * Порядок сигналов: cookie → страна → язык браузера → локаль по умолчанию.
  *
  * Прямые ссылки (`/projects/getic`, `/ru/projects/getic`) никогда не перенаправляются:
  * пользователь мог получить ссылку на нужном языке, и её нельзя ломать.
  *
- * Ручной выбор в cookie всегда приоритетнее страны. Страна пользователя нигде не сохраняется:
- * заголовок читается только для этого решения.
+ * Ручной выбор в cookie всегда приоритетнее автоопределения. Ни страна, ни список языков
+ * нигде не сохраняются: заголовки читаются только для этого решения.
  */
 export default defineEventHandler((event) => {
   const method = event.method
@@ -39,12 +41,15 @@ export default defineEventHandler((event) => {
   const storedLocale = isLocaleCode(cookieValue) ? cookieValue : undefined
 
   const locale: LocaleCode = storedLocale
-    ?? localeForCountry(getRequestHeader(event, COUNTRY_HEADER))
+    ?? localeForRequest(
+      getRequestHeader(event, COUNTRY_HEADER),
+      getRequestHeader(event, ACCEPT_LANGUAGE_HEADER),
+    )
 
   /* Ответ на корне персонализирован, поэтому общий CDN-кэш для него запрещён.
      Остальные маршруты сюда не попадают и своё кэширование сохраняют. */
   setResponseHeader(event, 'Cache-Control', 'private, no-store')
-  setResponseHeader(event, 'Vary', 'Cookie, X-Vercel-IP-Country')
+  setResponseHeader(event, 'Vary', 'Cookie, X-Vercel-IP-Country, Accept-Language')
 
   if (storedLocale !== locale) {
     setCookie(event, LOCALE_COOKIE_NAME, locale, {
