@@ -7,7 +7,7 @@ client: FPV FRAME
 industry: UAVs and FPV drones
 categories:
   - orgtech
-position: 6
+position: 11
 featured: true
 status: published
 navigation: false

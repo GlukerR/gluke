@@ -7,7 +7,7 @@ client: FPV FRAME
 industry: БПЛА и FPV-дроны
 categories:
   - orgtech
-position: 6
+position: 11
 featured: true
 status: published
 navigation: false

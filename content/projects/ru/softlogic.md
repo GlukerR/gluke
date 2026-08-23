@@ -7,7 +7,7 @@ client: SoftLogic
 industry: Системы видеоаналитики
 categories:
   - orgtech
-position: 11
+position: 6
 featured: true
 status: published
 navigation: false
