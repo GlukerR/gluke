@@ -1,0 +1,7 @@
+{
+  "framework": "nuxtjs",
+  "installCommand": "pnpm install",
+  "buildCommand": "pnpm build",
+  "outputDirectory": ".output",
+  "regions": ["fra1"]
+}
