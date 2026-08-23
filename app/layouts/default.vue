@@ -85,6 +85,7 @@ useSchemaOrg([
 
     <main
       id="main-content"
+      tabindex="-1"
       class="flex-1"
     >
       <slot />

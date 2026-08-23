@@ -42,8 +42,8 @@ function remember(code: LocaleCode): void {
           :lang="option.code"
           :aria-current="option.current ? 'true' : undefined"
           :aria-label="option.current
-            ? t('localeSwitcher.current', { language: option.name })
-            : t('localeSwitcher.switchTo', { language: option.name })"
+            ? t('localeSwitcher.current', { language: option.name, code: option.short })
+            : t('localeSwitcher.switchTo', { language: option.name, code: option.short })"
           class="locale-switcher__option text-label"
           :class="{ 'locale-switcher__option--current': option.current }"
           @click="remember(option.code)"

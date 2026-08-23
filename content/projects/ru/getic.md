@@ -5,24 +5,24 @@ title: 3D-каталог сетевого оборудования для Getic
 description: Более 50 оптимизированных 3D-моделей сетевого оборудования, каталожные материалы и продуктовые видео для международного дистрибьютора с офисами в Латвии и Германии.
 client: Getic
 industry: Сетевое оборудование и e-commerce
+categories:
+  - orgtech
 position: 1
 featured: true
 status: published
 navigation: false
-period: 2021 — апрель 2026
+period: 2021-2026
 engagement: completed
 clientUrl: https://www.getic.com/
 services:
-  - 3D-моделирование
-  - PBR-текстурирование
-  - Оптимизация для WebGL
-  - Продуктовая анимация
-deliverables:
-  - 50+ моделей сетевого оборудования
-  - GLB и FBX для веб-каталога
-  - PBR-текстуры
-  - Каталожные рендеры
-  - Продуктовые видео
+  - 3D-модели для веб-вьювера
+  - Продуктовые анимации
+  - Каталожные рендеры для продуктовых страниц
+  - Рендеры в интерьере
+about: |
+  Для компании Getic был выполнен комплекс работ по созданию и поддержке библиотеки 3D-моделей сетевого оборудования различных производителей. Проект включал моделирование продукции по техническим материалам и фотографиям, подготовку каталожных рендеров и оптимизацию моделей для использования на сайте компании.
+
+  Созданные модели использовались на сайте компании, в карточках товаров и рекламных материалах, помогая поддерживать единый визуальный стандарт всей продуктовой линейки.
 metrics:
   - value: 50+
     label: моделей для веб-каталога
@@ -35,12 +35,33 @@ cover:
   alt: Коллекция моделей сетевого оборудования на тёмном фоне
   width: 2880
   height: 1620
+model:
+  src: /media/projects/getic/mikrotik-lhg-60g.glb
+  alt: 'Интерактивная 3D-модель маршрутизатора MikroTik LHG 60G — вращайте и осматривайте устройство'
+  width: 2880
+  height: 1620
+  autoRotate: true
+  emissivePulse: 5
+  emissivePulseHz: 0.7
+  metalness: 0.88
+  diffuseLift: 30
+  rotation: 180
+  autoRotateSpeed: 1.2
+  environmentIntensity: 0.5
+  hemisphereLight: 0.5
+  keyLight: 0.8
+  fillLight: 0.4
+  zoomMin: 1.2
+  zoomMax: 1.7
 media:
-  - src: /media/projects/getic/mikrotik-router-neon.png
-    alt: Чёрный маршрутизатор MikroTik с рёбрами охлаждения на фоне сиреневых и розовых световых лент
+  - src: /media/projects/getic/rb5009-production.mp4
+    alt: Проморолик маршрутизатора MikroTik RB5009 с подписями, вращением и демонстрацией устройства с разных сторон
     width: 1920
-    height: 1080
-    kind: image
+    height: 1016
+    kind: video
+    autoplay: true
+    loop: true
+    poster: /media/projects/getic/mikrotik-router-neon.png
   - src: /media/projects/getic/hex-poe-router.png
     alt: Белый маршрутизатор MikroTik hEX PoE с пятью Ethernet-портами на белом фоне
     width: 1130
@@ -51,41 +72,62 @@ media:
     width: 1130
     height: 620
     kind: image
-  - src: /media/projects/getic/network-rack.jpg
-    alt: Серверная стойка с сетевым оборудованием и синими, серыми и жёлтыми патч-кордами
-    width: 1264
-    height: 522
-    kind: image
   - src: /media/projects/getic/network-cabinet-render.png
     alt: Настенный сетевой шкаф с патч-панелями и цветными коммутационными шнурами в офисном помещении
     width: 1750
     height: 850
-    kind: image
-  - src: /media/projects/getic/store-laptop.jpg
-    alt: Ноутбук на деревянном столе с открытым каталогом Ethernet-роутеров интернет-магазина Getic
-    width: 1264
-    height: 848
-    kind: image
-  - src: /media/projects/getic/router-underside.png
-    alt: Нижняя часть корпуса сетевого устройства с разъёмами питания и подключённым кабелем
-    width: 1680
-    height: 944
     kind: image
   - src: /media/projects/getic/router-animation-01.mp4
     alt: 3D-анимация подключения сетевых кабелей к роутеру
     width: 1280
     height: 1280
     kind: video
-  - src: /media/projects/getic/rb5009-production.mp4
-    alt: Проморолик маршрутизатора MikroTik RB5009 с подписями, вращением и демонстрацией устройства с разных сторон
-    width: 1920
-    height: 1016
-    kind: video
+    loop: true
+    triple: true
   - src: /media/projects/getic/router-animation-02.mp4
     alt: 3D-анимация интернет-кабеля, который закручивается в спираль и меняет цвета
-    width: 1710
-    height: 1710
+    width: 1280
+    height: 1280
     kind: video
+    loop: true
+    triple: true
+  - src: /media/projects/getic/router-animation-03.mp4
+    alt: 3D-анимация патч-кордов с разными типами коннекторов
+    width: 1280
+    height: 1280
+    kind: video
+    loop: true
+    triple: true
+  - src: /media/projects/getic/folder5-2.jpg
+    alt: Пять коммутаторов пастельных цветов на диагональных цветовых полосах
+    width: 1680
+    height: 945
+    kind: image
+    wide: true
+  - src: /media/projects/getic/behance-l009.jpg
+    alt: "Три коммутатора MikroTik на подиумах: красный, белый и чёрный"
+    width: 1400
+    height: 1400
+    kind: image
+    triple: true
+  - src: /media/projects/getic/crs309-51.jpg
+    alt: Коммутатор MikroTik CRS309 на мраморной поверхности с диагональным светом
+    width: 1400
+    height: 1400
+    kind: image
+    triple: true
+  - src: /media/projects/getic/crs312-61.jpg
+    alt: Коммутатор MikroTik CRS312 на деревянной полке с книгами в солнечном свете
+    width: 1400
+    height: 1400
+    kind: image
+    triple: true
+  - src: /media/projects/getic/mikrotik-router-neon.png
+    alt: Чёрный маршрутизатор MikroTik с рёбрами охлаждения на фоне сиреневых и розовых световых лент
+    width: 1920
+    height: 1080
+    kind: image
+    wide: true
 ---
 
 ## Задача
@@ -100,7 +142,7 @@ Getic — международный дистрибьютор сетевого �
 
 - моделирование корпусов, портов, разъёмов и элементов охлаждения;
 - PBR-текстурирование и настройка материалов;
-- оптимизация геометрии и текстур под WebGL, выгрузка в GLB и FBX;
+- оптимизация геометрии и текстур под WebGL, выгрузка в FBX;
 - каталожные рендеры для страниц товаров;
 - продуктовая анимация и промо-ролики.
 
@@ -110,4 +152,4 @@ Getic — международный дистрибьютор сетевого �
 
 Клиент получил библиотеку из 50+ моделей в согласованных форматах, каталожные изображения и видеоматериалы. Модели подготовлены для интерактивного просмотра в браузере, поэтому один и тот же ассет используется и в веб-каталоге, и в рендерах.
 
-Сотрудничество продолжалось с 2021 по апрель 2026 года.
+Сотрудничество продолжалось с 2021 по 2026.

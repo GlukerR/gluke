@@ -2,37 +2,36 @@
 locale: ru
 slug: wiederkraft
 title: Цифровой каталог оборудования WiederKraft
-description: Более 15 моделей автосервисного оборудования, каталожные рендеры, материалы для печати и продуктовый видеоролик.
+description: Более 20 моделей автосервисного оборудования, каталожные рендеры и материалы для печати.
 client: WiederKraft
 industry: Оборудование для автосервисов
+categories:
+  - industrial
 position: 3
 featured: true
 status: published
 navigation: false
-period: Серия проектов в течение года
+period: 2024-2026
 engagement: completed
 clientUrl: https://wiederkraft.ru/
 services:
-  - 3D-моделирование по чертежам и CAD
+  - Визуализация продукции по чертежам и CAD
   - Каталожная визуализация
-  - Подготовка материалов для печати
-  - Продуктовая анимация
-deliverables:
-  - 15+ моделей оборудования
-  - Каталожные рендеры
-  - TIFF-материалы высокого разрешения
-  - Рендеры для крупноформатной печати
-  - Продуктовый видеоролик
+  - Подготовка материалов для печати и билбордов
+about: |
+  Создание серии фотореалистичных 3D-рендеров промышленного оборудования для каталога и сайта компании WiederKraft, включая автоподъёмники и сопутствующую продукцию.
+
+  Получен единый комплект высококачественных визуализаций, позволяющий демонстрировать оборудование WiederKraft в каталоге и на сайте в максимально понятной и «чистой» форме.
 metrics:
-  - value: 15+
+  - value: 20+
     label: моделей оборудования
-  - value: около года
-    label: серия проектов
+  - value: 3
+    label: года сотрудничества
   - value: 300 DPI
     label: подготовка материалов для печати
 cover:
-  src: /media/projects/wiederkraft/service-garage-dark.jpg
-  alt: Автомобиль на подъёмнике Wiederkraft в тёмной сервисной зоне
+  src: /media/projects/wiederkraft/car-lift.jpg
+  alt: Автоподъёмник Wiederkraft
   width: 1264
   height: 848
 media:
@@ -41,20 +40,40 @@ media:
     width: 1264
     height: 848
     kind: image
+  - src: /media/projects/wiederkraft/tire-machine-blueprint.png
+    alt: 'Шиномонтажный станок на синем фоне: слева чертёжные проекции, справа фотореалистичная модель в цехе'
+    width: 1124
+    height: 600
+    kind: image
+  - src: /media/projects/wiederkraft/wdk521-render-01.png
+    alt: Рендер автоподъёмника WiederKraft WDK-521 на белом фоне (вариант 1)
+    width: 1262
+    height: 710
+    kind: image
   - src: /media/projects/wiederkraft/two-post-lift.png
     alt: Два двухстоечных подъёмника Wiederkraft серого и оранжевого цвета на белом фоне
     width: 1680
     height: 945
     kind: image
-  - src: /media/projects/wiederkraft/tire-machine-blueprint.png
-    alt: Шиномонтажный станок на синем фоне: слева чертёжные проекции, справа фотореалистичная модель в цехе
-    width: 1124
-    height: 600
-    kind: image
-  - src: /media/projects/wiederkraft/car-lift-overlay.png
-    alt: Стойка подъёмника Wiederkraft на фоне полупрозрачных силуэтов трёх автомобилей разного размера
+  - src: /media/projects/wiederkraft/wdk521-render-02.png
+    alt: Рендер автоподъёмника WiederKraft WDK-521 на белом фоне (вариант 2)
     width: 1680
     height: 945
+    kind: image
+  - src: /media/projects/wiederkraft/wdk521-render-06.png
+    alt: Рендер автоподъёмника WiederKraft WDK-521 на белом фоне (вариант 6)
+    width: 1680
+    height: 946
+    kind: image
+  - src: /media/projects/wiederkraft/wdk521-render-08.png
+    alt: Рендер автоподъёмника WiederKraft WDK-521 на белом фоне (вариант 8)
+    width: 1680
+    height: 946
+    kind: image
+  - src: /media/projects/wiederkraft/wdk521-render-10.png
+    alt: Рендер автоподъёмника WiederKraft WDK-521 на белом фоне (вариант 10)
+    width: 1680
+    height: 946
     kind: image
 ---
 
@@ -68,16 +87,13 @@ WiederKraft поставляет оборудование для автосер�
 
 Мы выполнили серию проектов для цифрового каталога:
 
-- моделирование 15+ единиц оборудования по чертежам и CAD-файлам;
+- моделирование 20+ единиц оборудования по чертежам и CAD-файлам;
 - каталожные рендеры на светлом фоне и сцены в сервисной зоне;
 - схематичные и чертёжные подачи для описания устройства;
-- подготовка TIFF-материалов 300 DPI для крупноформатной печати;
-- продуктовый видеоролик по оборудованию.
-
-Файл видеоролика пока не отобран для публикации на сайте, поэтому в галерее кейса он не показан.
+- подготовка TIFF-материалов 300 DPI для крупноформатной печати.
 
 ## Результат
 
 Клиент получил набор материалов, который закрывает и веб-каталог, и печатные носители: одна и та же модель используется для карточки товара, для каталога и для крупноформатной печати без повторного моделирования.
 
-Работа шла серией проектов в течение примерно года и на сегодня завершена.
+Сотрудничество продолжается с 2024 года.

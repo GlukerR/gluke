@@ -16,7 +16,6 @@ const props = withDefaults(
 const { t } = useI18n()
 const { project: projectPath } = useSiteRoutes()
 
-const titleId = computed(() => `project-${props.project.slug}`)
 const leadMetric = computed(() => props.project.metrics[0])
 const services = computed(() => props.project.services.slice(0, 2))
 </script>
@@ -24,7 +23,6 @@ const services = computed(() => props.project.services.slice(0, 2))
 <template>
   <NuxtLink
     :to="projectPath(project.slug)"
-    :aria-labelledby="titleId"
     class="project-card"
     :class="`project-card--${emphasis}`"
   >
@@ -51,7 +49,6 @@ const services = computed(() => props.project.services.slice(0, 2))
       </span>
 
       <h3
-        :id="titleId"
         class="text-heading project-card__title"
         :class="emphasis === 'lead' ? 'text-heading--md' : 'text-heading--sm'"
       >
@@ -76,16 +73,17 @@ const services = computed(() => props.project.services.slice(0, 2))
             {{ service }}
           </span>
         </span>
-
-        <span class="project-card__period text-body--sm">{{ project.period }}</span>
       </span>
 
       <span class="project-card__go text-label">
-        <span>{{ t('projects.card.view') }}</span>
-        <span
-          class="project-card__arrow"
-          aria-hidden="true"
-        >→</span>
+        <span class="project-card__period text-body--sm">{{ project.period }}</span>
+        <span class="project-card__go-link">
+          <span>{{ t('projects.card.view') }}</span>
+          <span
+            class="project-card__arrow"
+            aria-hidden="true"
+          >→</span>
+        </span>
       </span>
     </span>
   </NuxtLink>
@@ -121,7 +119,7 @@ const services = computed(() => props.project.services.slice(0, 2))
   width: 100%;
   height: 100%;
   object-fit: cover;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
   transition: transform 250ms ease;
 }
 
@@ -200,11 +198,20 @@ const services = computed(() => props.project.services.slice(0, 2))
   overflow-wrap: anywhere;
 }
 
+/* Годы и «СМОТРЕТЬ КЕЙС» в одной строке: годы слева, ссылка прижата вправо.
+   Так во всех карточках годы стоят напротив CTA и не прыгают по строкам. */
 .project-card__go {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  min-height: 44px;
+}
+
+.project-card__go-link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
   color: var(--site-accent-text);
 }
 

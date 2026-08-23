@@ -10,15 +10,12 @@ const { home } = useSiteRoutes()
   <NuxtLink
     :to="home()"
     class="site-logo"
+    :aria-label="props.label"
   >
-    <img
-      src="/media/brand/gluke-logo-white.svg"
-      :alt="props.label"
-      width="783"
-      height="250"
-      class="site-logo__image"
-      decoding="async"
-    >
+    <span
+      class="site-logo__mark"
+      aria-hidden="true"
+    />
   </NuxtLink>
 </template>
 
@@ -30,24 +27,29 @@ const { home } = useSiteRoutes()
   border-radius: var(--site-radius-sm);
 }
 
-.site-logo__image {
+/* Один монохромный белый SVG, подключённый как маска: силуэт логотипа
+   рисуется цветом из переменной. Тёмная тема — белый, светлая — фирменный
+   фиолетовый вместо прежнего чёрного. */
+.site-logo__mark {
+  display: inline-block;
   height: 24px;
-  width: auto;
+  aspect-ratio: 783 / 250;
+  background-color: var(--site-text);
+  -webkit-mask: url('/media/brand/gluke-logo-white.svg') no-repeat center / contain;
+  mask: url('/media/brand/gluke-logo-white.svg') no-repeat center / contain;
   transition: opacity 150ms ease;
 }
 
-/* Логотип — один монохромный белый SVG, подключённый как `<img>`.
-   Второго файла не появляется: в светлой теме тот же файл приводится к почти чёрному. */
-:root.light .site-logo__image {
-  filter: brightness(0);
+:root.light .site-logo__mark {
+  background-color: var(--site-accent);
 }
 
-.site-logo:hover .site-logo__image {
+.site-logo:hover .site-logo__mark {
   opacity: 0.75;
 }
 
 @media (min-width: 1024px) {
-  .site-logo__image {
+  .site-logo__mark {
     height: 30px;
   }
 }

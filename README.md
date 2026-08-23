@@ -21,6 +21,12 @@ Commercial portfolio website of the 3D product visualization studio GLUKE.
 pnpm install
 ```
 
+## Content
+
+Project cases live in `content/projects/{ru,en}/`. To add a new case, follow
+[CASE_TEMPLATE.md](./CASE_TEMPLATE.md) — it describes the frontmatter fields,
+media preparation rules and the publish checklist.
+
 ## Commands
 
 ```bash

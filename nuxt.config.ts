@@ -36,7 +36,10 @@ export default defineNuxtConfig({
   },
   content: {
     experimental: {
-      sqliteConnector: 'native',
+      /* better-sqlite3 (дефолтный коннектор) вместо node:sqlite: у native
+         на Windows dev-сервер терял таблицу _content_site при инкрементальной
+         пересборке (no such table), страницы отдавали 500. */
+      sqliteConnector: 'better-sqlite3',
     },
   },
   experimental: {
@@ -47,6 +50,26 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-07-29',
   typescript: {
     typeCheck: true,
+    /* На Windows пути к пакетам pnpm в node_modules/.pnpm записываются с регистром,
+       отличающимся от реальных папок на диске (D:/WORK/... vs D:/Work/...), из-за чего
+       vue-tsc падал с TS1149 (имя файла отличается только регистром). Проверка
+       бессмысленна на case-insensitive NTFS — отключаем. */
+    tsConfig: {
+      compilerOptions: {
+        forceConsistentCasingInFileNames: false,
+      },
+    },
+  },
+  /* Nitro генерирует tsconfig.server.json со своим дефолтом forceConsistentCasingInFileNames=true;
+     Nuxt не пробрасывает туда typescript.tsConfig, поэтому дублируем опцию. */
+  nitro: {
+    typescript: {
+      tsConfig: {
+        compilerOptions: {
+          forceConsistentCasingInFileNames: false,
+        },
+      },
+    },
   },
   eslint: {
     config: {

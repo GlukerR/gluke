@@ -24,8 +24,8 @@ export default {
   },
   localeSwitcher: {
     label: 'Язык',
-    switchTo: 'Переключить сайт на {language}',
-    current: 'Текущий язык: {language}',
+    switchTo: 'Переключить сайт на {language} ({code})',
+    current: 'Текущий язык: {language} ({code})',
   },
   footer: {
     sections: 'Разделы',
@@ -43,7 +43,7 @@ export default {
     services: {
       eyebrow: 'УСЛУГИ',
       title: 'От модели до готовых материалов',
-      proofLabel: 'Где применяли',
+      proofLabel: 'Компании:',
     },
     process: {
       eyebrow: 'ПРОЦЕСС',
@@ -65,6 +65,24 @@ export default {
     card: {
       view: 'Смотреть кейс',
     },
+    categories: {
+      back: 'Все профили',
+      card: {
+        view: 'Смотреть кейсы',
+      },
+      orgtech: {
+        title: 'Оргтехника и IT',
+        description: 'Сетевое оборудование, ПК и дроны.',
+      },
+      industrial: {
+        title: 'Промышленность',
+        description: 'Станки, котлы и сложное оборудование.',
+      },
+      furniture: {
+        title: 'Мебель и интерьеры',
+        description: 'Столы, мебель и товары для дома.',
+      },
+    },
   },
   project: {
     back: 'Вернуться к проектам',
@@ -75,11 +93,12 @@ export default {
     overviewSrTitle: 'Ключевые показатели проекта',
     scopeSrTitle: 'Состав работ по проекту',
     services: 'Услуги',
-    deliverables: 'Что подготовили',
+    deliverables: 'О проекте',
     gallery: 'Материалы проекта',
     media: {
       unsupported: 'Ваш браузер не воспроизводит это видео.',
       openFile: 'Открыть видеофайл',
+      rotate: 'Вращайте',
     },
     pager: {
       srTitle: 'Другие кейсы',
@@ -94,7 +113,12 @@ export default {
   seo: {
     homeTitle: '{site} — {tagline}',
     projectsTitle: 'Проекты — {site}',
-    projectTitle: '{title} — {client} — {site}',
+    projectsCategoryTitle: '{category} — {site}',
+    /* Имя клиента уже входит в заголовок большинства кейсов,
+       поэтому в title оно не дублируется. */
+    projectTitle: '{title} — {site}',
+    projectsDescription: 'Кейсы студии GLUKE: 3D-моделирование, каталожные рендеры, анимации и модели для веб-вьюверов.',
+    projectsCategoryDescription: '{category}: {description}',
   },
   errors: {
     siteContentUnavailable: 'Глобальный контент сайта недоступен для текущего языка',

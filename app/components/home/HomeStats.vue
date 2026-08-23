@@ -26,7 +26,13 @@ const { t } = useI18n()
           class="home-stats__item"
         >
           <dt class="home-stats__label text-body--sm">
-            {{ stat.label }}
+            {{ stat.label }}{{ stat.link ? ' ' : '' }}<a
+              v-if="stat.link"
+              :href="stat.link.href"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="home-stats__link"
+            >{{ stat.link.label }}</a>
           </dt>
           <dd class="home-stats__value text-heading">
             {{ stat.value }}
@@ -68,6 +74,16 @@ const { t } = useI18n()
 .home-stats__label {
   color: var(--site-text-muted);
   overflow-wrap: anywhere;
+}
+
+.home-stats__link {
+  color: var(--site-accent-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.home-stats__link:hover {
+  color: var(--site-accent-text-hover);
 }
 
 @media (min-width: 768px) {

@@ -8,11 +8,12 @@ const { data: projects } = await useAsyncData(
   computed(() => `home-featured-projects-${locale.value}`),
   () => queryLocalizedProjects(locale.value)
     .where('featured', '=', true)
-    .order('position', 'ASC')
-    .all(),
+    .all()
+    .then(items => items.sort((a, b) => a.position - b.position)),
 )
 
-const featuredProjects = computed(() => projects.value ?? [])
+/* На главной показываем только первые 4 проекта, остальные — в архиве /projects. */
+const featuredProjects = computed(() => (projects.value ?? []).slice(0, 4))
 const initialHeroProject = featuredProjects.value[0]
 
 if (!initialHeroProject) {
@@ -31,6 +32,14 @@ const pageTitle = computed(() => t('seo.homeTitle', {
   tagline: site.value.hero.title,
 }))
 
+const { toAbsolute } = useSiteUrls()
+const heroCoverUrl = computed(() => toAbsolute(heroProject.value.cover.src))
+
+/* Явный ImageObject обложки первого проекта: module nuxt-schema-org иначе
+   подставляет логотип студии как primaryImageOfPage. */
+/* Обложка первого проекта как главное изображение страницы: передаём URL строкой,
+   module nuxt-schema-org сам создаст ImageObject и не подставит логотип студии. */
+
 usePageSeo({
   title: pageTitle,
   description: () => site.value.hero.description,
@@ -45,17 +54,14 @@ useSchemaOrg([
     'name': () => pageTitle.value,
     'description': () => site.value.hero.description,
     'inLanguage': () => locale.value,
+    'primaryImageOfPage': () => heroCoverUrl.value,
   }),
 ])
 </script>
 
 <template>
   <div>
-    <HomeHero
-      :hero="site.hero"
-      :cover="heroProject.cover"
-      :cover-client="heroProject.client"
-    />
+    <HomeHero :hero="site.hero" />
 
     <HomeStats :stats="site.stats" />
 
@@ -71,7 +77,7 @@ useSchemaOrg([
       :pricing="site.pricing"
     />
 
-    <HomeContact
+    <SiteContact
       :cta="site.hero.primaryCta"
       :pricing="site.pricing"
       :contacts="site.contacts"

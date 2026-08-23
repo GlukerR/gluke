@@ -4,13 +4,19 @@ import type { ProjectsCollectionItem } from '@nuxt/content'
 const props = defineProps<{
   services: ProjectsCollectionItem['services']
   deliverables: ProjectsCollectionItem['deliverables']
+  about?: string
 }>()
 
 const { t } = useI18n()
 
 const hasServices = computed(() => props.services.length > 0)
-const hasDeliverables = computed(() => props.deliverables.length > 0)
-const hasContent = computed(() => hasServices.value || hasDeliverables.value)
+const hasAbout = computed(() => Boolean(props.about))
+const aboutParagraphs = computed(() => (props.about ?? '')
+  .split(/\n\s*\n/)
+  .map(p => p.trim())
+  .filter(Boolean))
+const hasDeliverables = computed(() => (props.deliverables?.length ?? 0) > 0)
+const hasContent = computed(() => hasServices.value || hasAbout.value || hasDeliverables.value)
 </script>
 
 <template>
@@ -46,7 +52,25 @@ const hasContent = computed(() => hasServices.value || hasDeliverables.value)
       </div>
 
       <div
-        v-if="hasDeliverables"
+        v-if="hasAbout"
+        class="project-scope__group"
+      >
+        <h3 class="text-heading text-heading--sm project-scope__heading">
+          {{ t('project.deliverables') }}
+        </h3>
+        <div class="project-scope__about">
+          <p
+            v-for="(paragraph, index) in aboutParagraphs"
+            :key="index"
+            class="text-body project-scope__about-paragraph"
+          >
+            {{ paragraph }}
+          </p>
+        </div>
+      </div>
+
+      <div
+        v-else-if="hasDeliverables"
         class="project-scope__group"
       >
         <h3 class="text-heading text-heading--sm project-scope__heading">
@@ -102,6 +126,17 @@ const hasContent = computed(() => hasServices.value || hasDeliverables.value)
 .project-scope__item {
   padding-block: 14px;
   border-bottom: var(--site-border);
+  color: var(--site-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.project-scope__about {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.project-scope__about-paragraph {
   color: var(--site-text-secondary);
   overflow-wrap: anywhere;
 }

@@ -6,8 +6,13 @@ const props = defineProps<{ site: SiteCollectionItem }>()
 
 const { t } = useI18n()
 const { navigation } = useSiteRoutes()
+const router = useRouter()
 
 const primaryCta = computed(() => props.site.hero.primaryCta)
+
+function navigationHref(item: (typeof siteNavigation)[number]): string {
+  return router.resolve(navigation(item)).href
+}
 </script>
 
 <template>
@@ -24,13 +29,12 @@ const primaryCta = computed(() => props.site.hero.primaryCta)
             v-for="item in siteNavigation"
             :key="item.labelKey"
           >
-            <NuxtLink
-              :to="navigation(item)"
-              aria-current-value="false"
+            <a
+              :href="navigationHref(item)"
               class="site-header__link text-body--sm"
             >
               {{ t(item.labelKey) }}
-            </NuxtLink>
+            </a>
           </li>
         </ul>
       </nav>

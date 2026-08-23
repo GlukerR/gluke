@@ -2,6 +2,7 @@
 .output
 .data
 .nuxt
+.nuxt-typecheck
 .nitro
 .cache
 dist
@@ -17,9 +18,6 @@ dist
 node_modules
 .pnpm-store
 .eslintcache
-
-# Raw source assets (read locally by scripts/sync-media.mjs)
-_incoming
 
 # Logs
 logs

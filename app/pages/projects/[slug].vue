@@ -16,9 +16,9 @@ const { data } = await useAsyncData(
     const [project, orderedProjects] = await Promise.all([
       queryLocalizedProject(locale.value, slug.value).first(),
       queryLocalizedProjects(locale.value)
-        .order('position', 'ASC')
-        .select('title', 'slug')
-        .all(),
+        .select('title', 'slug', 'position')
+        .all()
+        .then(items => items.sort((a, b) => a.position - b.position)),
     ])
 
     if (!project) {
@@ -37,8 +37,16 @@ const { data } = await useAsyncData(
 
     return {
       project,
-      previous: currentIndex > 0 ? orderedProjects[currentIndex - 1] ?? null : null,
-      next: currentIndex < orderedProjects.length - 1 ? orderedProjects[currentIndex + 1] ?? null : null,
+      /* Круговой переход в обе стороны: навигация никогда не обрывается.
+         С первого кейса «предыдущий» ведёт на последний, с последнего
+         «следующий» — на первый. Цель берётся из краёв упорядоченного
+         списка, поэтому при добавлении нового кейса кнопка сразу ведёт на него. */
+      previous: currentIndex > 0
+        ? orderedProjects[currentIndex - 1] ?? null
+        : orderedProjects[orderedProjects.length - 1] ?? null,
+      next: currentIndex < orderedProjects.length - 1
+        ? orderedProjects[currentIndex + 1] ?? null
+        : orderedProjects[0] ?? null,
     }
   },
 )
@@ -71,7 +79,6 @@ const project = computed(() => data.value?.project ?? initialData.project)
 
 const pageTitle = computed(() => t('seo.projectTitle', {
   title: project.value.title,
-  client: project.value.client,
   site: site.value.brand.name,
 }))
 const pageDescription = computed(() => project.value.description)
@@ -81,6 +88,9 @@ const { toAbsolute, toCanonical } = useSiteUrls()
 const canonicalUrl = computed(() => toCanonical(projectPath(project.value.slug)))
 const coverUrl = computed(() => toAbsolute(project.value.cover.src))
 const organizationId = computed(() => toAbsolute('#identity'))
+
+/* Обложка кейса как главное изображение страницы: передаём URL строкой,
+   module nuxt-schema-org сам создаст ImageObject и не подставит логотип студии. */
 
 usePageSeo({
   title: pageTitle,
@@ -99,6 +109,7 @@ useSchemaOrg([
     'name': () => pageTitle.value,
     'description': () => pageDescription.value,
     'inLanguage': () => locale.value,
+    'primaryImageOfPage': () => coverUrl.value,
   }),
   {
     '@id': () => `${canonicalUrl.value}#creativework`,
@@ -144,6 +155,7 @@ useSchemaOrg([
     <ProjectsProjectDetailScope
       :services="project.services"
       :deliverables="project.deliverables"
+      :about="project.about"
     />
 
     <ProjectsProjectMediaGallery
@@ -156,9 +168,11 @@ useSchemaOrg([
       :next="data.next"
     />
 
-    <ProjectsProjectContact
+    <SiteContact
       :cta="site.hero.primaryCta"
+      :pricing="site.pricing"
       :contacts="site.contacts"
+      :spacing="'project'"
     />
   </div>
 </template>

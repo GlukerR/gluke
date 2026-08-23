@@ -6,8 +6,12 @@ const props = defineProps<{ site: SiteCollectionItem }>()
 
 const { t } = useI18n()
 const { navigation } = useSiteRoutes()
+const router = useRouter()
 
-const primaryCta = computed(() => props.site.hero.primaryCta)
+function navigationHref(item: (typeof siteNavigation)[number]): string {
+  return router.resolve(navigation(item)).href
+}
+
 const primaryContact = computed(() => props.site.contacts.find(contact => contact.primary) ?? props.site.contacts[0])
 const secondaryContacts = computed(() => props.site.contacts.filter(contact => contact !== primaryContact.value))
 
@@ -44,13 +48,12 @@ function isWebLink(href: string): boolean {
               v-for="item in siteNavigation"
               :key="item.labelKey"
             >
-              <NuxtLink
-                :to="navigation(item)"
-                aria-current-value="false"
+              <a
+                :href="navigationHref(item)"
                 class="site-footer__link text-body--sm"
               >
                 {{ t(item.labelKey) }}
-              </NuxtLink>
+              </a>
             </li>
           </ul>
         </nav>
@@ -102,22 +105,6 @@ function isWebLink(href: string): boolean {
             </li>
           </ul>
         </div>
-      </div>
-
-      <div class="site-footer__cta">
-        <p class="text-heading text-heading--md text-highlighted">
-          {{ site.about.title }}
-        </p>
-        <UButton
-          :to="primaryCta.href"
-          target="_blank"
-          rel="noopener noreferrer"
-          color="primary"
-          size="lg"
-          class="site-footer__cta-button"
-        >
-          {{ primaryCta.label }}
-        </UButton>
       </div>
 
       <p class="text-body--sm text-dimmed site-footer__bottom">
@@ -175,19 +162,6 @@ function isWebLink(href: string): boolean {
   min-height: 48px;
 }
 
-.site-footer__cta {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  align-items: flex-start;
-  border-top: var(--site-border);
-  padding-top: clamp(32px, 4vw, 56px);
-}
-
-.site-footer__cta-button {
-  min-height: 48px;
-}
-
 .site-footer__bottom {
   border-top: var(--site-border);
   padding-top: 24px;
@@ -202,13 +176,6 @@ function isWebLink(href: string): boolean {
 @media (min-width: 1024px) {
   .site-footer__grid {
     grid-template-columns: 1.4fr 1fr 1fr 1.2fr;
-  }
-
-  .site-footer__cta {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: 32px;
   }
 }
 </style>

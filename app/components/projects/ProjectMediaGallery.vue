@@ -10,7 +10,7 @@ const props = defineProps<{
 
 const { t } = useI18n()
 
-type RowVariant = 'wide' | 'paired' | 'solo'
+type RowVariant = 'wide' | 'paired' | 'solo' | 'quad' | 'triple'
 
 interface GalleryEntry {
   item: ProjectMedia
@@ -26,6 +26,8 @@ interface GalleryRow {
 
 const WIDE_SIZES = '100vw lg:92vw xl:1400px'
 const PAIRED_SIZES = '100vw md:92vw lg:46vw xl:700px'
+const QUAD_SIZES = '100vw md:46vw lg:23vw xl:350px'
+const TRIPLE_SIZES = '100vw md:46vw lg:30vw xl:466px'
 const SOLO_SIZES = '100vw lg:900px'
 const SOLO_COMPACT_SIZES = '100vw lg:720px'
 
@@ -37,7 +39,23 @@ const SOLO_COMPACT_SIZES = '100vw lg:720px'
 function isWide(item: ProjectMedia): boolean {
   const ratio = item.width / item.height
 
-  return ratio >= 1.9 || (item.kind === 'video' && ratio >= 1.5)
+  /* Явный `wide: false` отменяет автоматическое растягивание (например,
+     у 16:9-видео, чтобы оно не вылезало на всю ширину). */
+  if (item.wide === false) {
+    return false
+  }
+
+  return Boolean(item.wide) || ratio >= 1.9 || (item.kind === 'video' && ratio >= 1.5)
+}
+
+/* Материал, помеченный `quad`, не может быть полноширинным. */
+function isQuad(item: ProjectMedia): boolean {
+  return Boolean(item.quad)
+}
+
+/* Материал для ряда из трёх на всю ширину (квадратные, не резать). */
+function isTriple(item: ProjectMedia): boolean {
+  return Boolean(item.triple)
 }
 
 /* Одиночный квадратный или вертикальный материал ограничивается сильнее,
@@ -71,12 +89,92 @@ const rows = computed<GalleryRow[]>(() => {
     })
   }
 
-  for (const item of props.media) {
+  /* Материалы, помеченные `quad`, собираются в ряды по четыре. */
+  function pushQuad(items: ProjectMedia[]) {
+    for (let i = 0; i < items.length; i += 4) {
+      const chunk = items.slice(i, i + 4)
+
+      result.push({
+        id: chunk.map(c => c.src).join('|'),
+        variant: 'quad',
+        compact: false,
+        entries: chunk.map(c => createEntry(c, QUAD_SIZES)),
+      })
+    }
+  }
+
+  /* Материалы, помеченные `triple`, собираются в ряды по три. */
+  function pushTriple(items: ProjectMedia[]) {
+    for (let i = 0; i < items.length; i += 3) {
+      const chunk = items.slice(i, i + 3)
+
+      result.push({
+        id: chunk.map(c => c.src).join('|'),
+        variant: 'triple',
+        compact: false,
+        entries: chunk.map(c => createEntry(c, TRIPLE_SIZES)),
+      })
+    }
+  }
+
+  /* Quad-элементы группируются непрерывно, пока не встретится другой тип. */
+  let quadBuffer: ProjectMedia[] = []
+
+  function flushQuad() {
+    if (quadBuffer.length > 0) {
+      pushQuad(quadBuffer)
+      quadBuffer = []
+    }
+  }
+
+  /* Triple-элементы группируются непрерывно, пока не встретится другой тип. */
+  let tripleBuffer: ProjectMedia[] = []
+
+  function flushTriple() {
+    if (tripleBuffer.length > 0) {
+      pushTriple(tripleBuffer)
+      tripleBuffer = []
+    }
+  }
+
+  for (const [index, item] of props.media.entries()) {
+    if (isQuad(item)) {
+      flushPending()
+      flushTriple()
+      quadBuffer.push(item)
+      continue
+    }
+
+    if (isTriple(item)) {
+      flushPending()
+      flushQuad()
+      tripleBuffer.push(item)
+      continue
+    }
+
+    flushQuad()
+    flushTriple()
+
+    /* Первый и последний материалы галереи всегда занимают всю ширину строки
+       сами по себе, независимо от пропорций: остальные группируются по прежним
+       правилам. Крайние полноширинные строки дают композиции рамку. */
+    const isEdge = index === 0 || index === props.media.length - 1
+
+    if (isEdge) {
+      flushPending()
+
+      result.push({
+        id: item.src,
+        variant: 'wide',
+        compact: false,
+        entries: [createEntry(item, WIDE_SIZES)],
+      })
+
+      continue
+    }
+
     if (isWide(item)) {
-      if (pending) {
-        pushSolo(pending)
-        pending = undefined
-      }
+      flushPending()
 
       result.push({
         id: item.src,
@@ -104,11 +202,18 @@ const rows = computed<GalleryRow[]>(() => {
     pending = item
   }
 
-  if (pending) {
-    pushSolo(pending)
-  }
+  flushQuad()
+  flushTriple()
+  flushPending()
 
   return result
+
+  function flushPending() {
+    if (pending) {
+      pushSolo(pending)
+      pending = undefined
+    }
+  }
 })
 </script>
 
@@ -178,8 +283,66 @@ const rows = computed<GalleryRow[]>(() => {
     align-items: start;
   }
 
+  /* Карточки пары растягиваются на одну высоту, а медиа заполняет фрейм
+     с обрезкой (cover): оба фрейма в паре всегда строго одной высоты. */
   .project-gallery__row--paired {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
+
+  .project-gallery__row--quad {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: stretch;
+  }
+
+  .project-gallery__row--triple {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    /* Квадратные материалы не растягиваются и не обрезаются: каждый
+       сохраняет свои пропорции, три в ряд на всю ширину. */
+    align-items: start;
+  }
+
+  .project-gallery__row--paired :deep(.project-media) {
+    height: 100%;
+  }
+
+  .project-gallery__row--paired :deep(.project-media__picture) {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .project-gallery__row--paired :deep(.project-media__picture .project-media__image) {
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .project-gallery__row--paired :deep(.project-media__video) {
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .project-gallery__row--quad :deep(.project-media) {
+    height: 100%;
+  }
+
+  .project-gallery__row--quad :deep(.project-media__picture) {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .project-gallery__row--quad :deep(.project-media__picture .project-media__image) {
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .project-gallery__row--quad :deep(.project-media__video) {
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .project-gallery__row--triple :deep(.project-media__picture) {
+    /* Пропорции сохраняются: квадрат остаётся квадратом. */
+    height: auto;
   }
 
   /* Одиночный материал не растягивается на всю ширину контейнера,

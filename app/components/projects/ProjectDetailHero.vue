@@ -5,12 +5,18 @@ const props = defineProps<{ project: ProjectsCollectionItem }>()
 
 const { t } = useI18n()
 
+/* 3D-вьювер грузится лениво: его чанк (three.js + draco wasm, ~0.7 МБ)
+   скачивается только на кейсах, где реально есть модель. На кейсах
+   с обложкой вместо модели лишний мегабайт не тратится. */
+const LazyModelViewer = defineAsyncComponent(() => import('~/components/projects/ProjectModelViewer.vue'))
+
 const clientLinkLabel = computed(() => t('project.clientLinkAria', { client: props.project.client }))
 </script>
 
 <template>
   <section
     class="project-hero"
+    :class="{ 'project-hero--model': !!project.model }"
     aria-labelledby="project-hero-title"
   >
     <div class="site-container project-hero__inner">
@@ -69,7 +75,36 @@ const clientLinkLabel = computed(() => t('project.clientLinkAria', { client: pro
       </div>
 
       <div class="project-hero__visual">
+        <!-- Живая 3D-модель вместо обложки: постером служит сама обложка,
+             модель плавно заменяет её после загрузки. -->
+        <LazyModelViewer
+          v-if="project.model"
+          :src="project.model.src"
+          :alt="project.model.alt"
+          :width="project.model.width"
+          :height="project.model.height"
+          :poster="project.cover.src"
+          :auto-rotate="project.model.autoRotate ?? true"
+          :emissive-pulse="project.model.emissivePulse"
+          :emissive-pulse-hz="project.model.emissivePulseHz"
+          :metalness="project.model.metalness"
+          :diffuse-lift="project.model.diffuseLift"
+          :rotation="project.model.rotation"
+          :auto-rotate-speed="project.model.autoRotateSpeed"
+          :environment-intensity="project.model.environmentIntensity"
+          :hemisphere-light="project.model.hemisphereLight"
+          :key-light="project.model.keyLight"
+          :fill-light="project.model.fillLight"
+          :zoom-min="project.model.zoomMin"
+          :zoom-max="project.model.zoomMax"
+          priority
+        />
+        <!-- Без `preload`: `<link rel=preload imagesrcset>` Chrome грузит с Low
+             приоритетом, и LCP-картинка ждёт весь JS/wasm. Достаточно eager-атрибута
+             и fetchpriority=high на самом img — он в SSR-HTML почти сразу после шапки
+             и качается первым. -->
         <NuxtPicture
+          v-else
           :src="project.cover.src"
           :alt="project.cover.alt"
           :width="project.cover.width"
@@ -78,7 +113,6 @@ const clientLinkLabel = computed(() => t('project.clientLinkAria', { client: pro
           format="avif,webp"
           loading="eager"
           decoding="async"
-          preload
           :img-attrs="{ class: 'project-hero__image', fetchpriority: 'high' }"
           class="project-hero__picture"
         />
@@ -191,6 +225,17 @@ const clientLinkLabel = computed(() => t('project.clientLinkAria', { client: pro
 .project-hero__caption {
   color: var(--site-text-muted);
   overflow-wrap: anywhere;
+}
+
+/* 3D-модель выходит за границы своей колонки: не даём ей создавать
+   горизонтальный скролл, а текст оставляем поверх модели, чтобы читался. */
+.project-hero--model {
+  overflow: clip;
+}
+
+.project-hero--model .project-hero__text {
+  position: relative;
+  z-index: 1;
 }
 
 @media (min-width: 1024px) {

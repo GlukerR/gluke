@@ -1,26 +1,29 @@
 ---
 locale: en
 slug: kiparis
-title: A continuous 3D pipeline for a furniture catalogue
+title: Continuous 3D pipeline for a furniture catalogue
 description: More than 100 models of upholstered and case furniture with a single visual standard and material options for the manufacturer's catalogue.
 client: Кипарис
 industry: Furniture manufacturing
+categories:
+  - furniture
 position: 2
 featured: true
 status: published
 navigation: false
-period: October 2023 — present
+period: 2023-2026
 engagement: active
 clientUrl: https://ki-paris.ru/
 services:
-  - Furniture 3D modeling
-  - Material and fabric setup
-  - Catalogue visualization
-deliverables:
-  - 100+ furniture models
-  - Catalogue camera angles
-  - Variants in different fabrics and colours
-  - High-resolution imagery
+  - Preparing assets for interior scenes
+  - Adapting models for the catalogue and website
+  - Optimization for use by other visualizers
+  - Furniture renders in multiple fabrics (6–8 options per model)
+  - High-resolution catalogue renders
+about: |
+  Development of a set of detailed 3D furniture models for use in interior visualizations, in the product catalogue and for handover to third-party visualizers.
+
+  The result is a ready-made set of universal 3D models used to create interior and catalogue visualizations without additional modeling.
 metrics:
   - value: 100+
     label: furniture models
@@ -34,6 +37,11 @@ cover:
   width: 1680
   height: 840
 media:
+  - src: /media/projects/kiparis/kiparis-cover.jpg
+    alt: An interior visualization of Kiparis furniture
+    width: 1680
+    height: 946
+    kind: image
   - src: /media/projects/kiparis/bedroom-interior.png
     alt: A bedroom with a double bed, pink-toned wall panels, wardrobes and a dressing table by the window
     width: 840
@@ -44,41 +52,52 @@ media:
     width: 1680
     height: 945
     kind: image
-  - src: /media/projects/kiparis/furniture-hardware.jpg
-    alt: Furniture hardware on a workshop table — runners, hinges, handles and fasteners next to a cabinet carcass
-    width: 1264
-    height: 848
-    kind: image
-  - src: /media/projects/kiparis/store-laptop.png
-    alt: A laptop on a desk showing the Kiparis furniture store website
-    width: 1264
-    height: 848
-    kind: image
   - src: /media/projects/kiparis/beige-sofa.jpg
     alt: A three-seat beige sofa with cushions on metal legs against a white background
     width: 1680
     height: 945
     kind: image
+  - src: /media/projects/kiparis/kiparis-sofa-burgundy.jpg
+    alt: A burgundy sofa with a wooden base and built-in side tables against a white background
+    width: 1680
+    height: 946
+    kind: image
+  - src: /media/projects/kiparis/kiparis-chest-of-drawers.jpg
+    alt: A beige chest of drawers with three drawers and brass handles against a white background
+    width: 1680
+    height: 1344
+    kind: image
+  - src: /media/projects/kiparis/kiparis-perla-03.jpg
+    alt: A Perla furniture model against a white background
+    width: 1680
+    height: 946
+    kind: image
+  - src: /media/projects/kiparis/kiparis-sofa-cutaway.jpg
+    alt: 'A sofa cutaway: the wooden frame, filling and spring block are visible against a white background'
+    width: 1680
+    height: 946
+    kind: image
+    wide: true
 ---
 
 ## The task
 
-The furniture manufacturer Kiparis needs a steady flow of visuals for its catalogue: new upholstered and case furniture models are released regularly, and every one of them has to look consistent in the shared listing.
+The Kiparis furniture manufacturer needed a steady stream of visuals for the catalogue: new models of upholstered and case furniture appear regularly, and each one has to match the rest of the listing.
 
-Upholstery options are a separate challenge: the same model is shown in several fabrics and colours.
+An additional challenge was the upholstery options: the same model is shown in several fabrics and colours.
 
 ## What GLUKE did
 
-We set up a continuous pipeline for producing catalogue assets:
+We set up a streamlined pipeline for producing catalogue assets:
 
 - modeling of upholstered and case furniture from the manufacturer's dimensions and references;
 - material and fabric setup, including 6–8 upholstery options for individual models;
-- a single set of camera angles, backgrounds and lighting across the whole catalogue;
-- interior scenes that show the furniture in context;
+- a single set of camera angles, backgrounds and lighting for the whole catalogue;
+- interior scenes to show furniture in context;
 - high-resolution image output.
 
 ## The result
 
-More than 100 furniture models have been produced during the engagement. The catalogue keeps growing within one visual standard: a new item sits alongside earlier releases without reshoots or rework.
+More than 100 furniture models have been produced over the course of the engagement. The catalogue keeps growing in one visual standard: a new item falls into line with the earlier ones without reshoots or rework.
 
-The engagement started in October 2023 and is ongoing.
+The engagement has been ongoing since 2023.

@@ -1,0 +1,20 @@
+{
+  // Корневой tsconfig для изолированного typecheck (scripts/typecheck.mjs).
+  // Повторяет ссылки из tsconfig.json, но на .nuxt-typecheck вместо .nuxt,
+  // чтобы проверка не задевала рабочие типы dev-сервера.
+  "files": [],
+  "references": [
+    {
+      "path": "./.nuxt-typecheck/tsconfig.app.json"
+    },
+    {
+      "path": "./.nuxt-typecheck/tsconfig.server.json"
+    },
+    {
+      "path": "./.nuxt-typecheck/tsconfig.shared.json"
+    },
+    {
+      "path": "./.nuxt-typecheck/tsconfig.node.json"
+    }
+  ]
+}

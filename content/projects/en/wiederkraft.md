@@ -1,38 +1,37 @@
 ---
 locale: en
 slug: wiederkraft
-title: A digital equipment catalogue for WiederKraft
-description: More than 15 models of car service equipment, catalogue renders, print-ready materials and a product video.
+title: Digital equipment catalogue for WiederKraft
+description: More than 20 models of car service equipment, catalogue renders and print-ready materials.
 client: WiederKraft
 industry: Car service equipment
+categories:
+  - industrial
 position: 3
 featured: true
 status: published
 navigation: false
-period: A series of projects over a year
+period: 2024-2026
 engagement: completed
 clientUrl: https://wiederkraft.ru/
 services:
-  - 3D modeling from drawings and CAD
+  - Product visualization from drawings and CAD
   - Catalogue visualization
-  - Print-ready material preparation
-  - Product animation
-deliverables:
-  - 15+ equipment models
-  - Catalogue renders
-  - High-resolution TIFF assets
-  - Renders for large-format printing
-  - Product video
+  - Print and billboard material preparation
+about: |
+  Series of photorealistic 3D renders of industrial equipment for the catalogue and website of WiederKraft, including car lifts and related products.
+
+  The client received a single set of high-quality visuals that present WiederKraft equipment in the catalogue and on the website in the clearest, "cleanest" possible form.
 metrics:
-  - value: 15+
+  - value: 20+
     label: equipment models
-  - value: about a year
-    label: a series of projects
+  - value: 3
+    label: years of collaboration
   - value: 300 DPI
     label: materials prepared for print
 cover:
-  src: /media/projects/wiederkraft/service-garage-dark.jpg
-  alt: A car on a Wiederkraft lift in a dark service bay
+  src: /media/projects/wiederkraft/car-lift.jpg
+  alt: Wiederkraft car lift
   width: 1264
   height: 848
 media:
@@ -41,20 +40,40 @@ media:
     width: 1264
     height: 848
     kind: image
+  - src: /media/projects/wiederkraft/tire-machine-blueprint.png
+    alt: 'A tyre changer on a blue background — technical projections on the left, a photoreal model in the workshop on the right'
+    width: 1124
+    height: 600
+    kind: image
+  - src: /media/projects/wiederkraft/wdk521-render-01.png
+    alt: A render of the WiederKraft WDK-521 car lift on a white background (variant 1)
+    width: 1262
+    height: 710
+    kind: image
   - src: /media/projects/wiederkraft/two-post-lift.png
     alt: Two Wiederkraft two-post lifts in grey and orange against a white background
     width: 1680
     height: 945
     kind: image
-  - src: /media/projects/wiederkraft/tire-machine-blueprint.png
-    alt: A tyre changer on a blue background — technical projections on the left, a photoreal model in the workshop on the right
-    width: 1124
-    height: 600
-    kind: image
-  - src: /media/projects/wiederkraft/car-lift-overlay.png
-    alt: A Wiederkraft lift post against translucent silhouettes of three cars of different sizes
+  - src: /media/projects/wiederkraft/wdk521-render-02.png
+    alt: A render of the WiederKraft WDK-521 car lift on a white background (variant 2)
     width: 1680
     height: 945
+    kind: image
+  - src: /media/projects/wiederkraft/wdk521-render-06.png
+    alt: A render of the WiederKraft WDK-521 car lift on a white background (variant 6)
+    width: 1680
+    height: 946
+    kind: image
+  - src: /media/projects/wiederkraft/wdk521-render-08.png
+    alt: A render of the WiederKraft WDK-521 car lift on a white background (variant 8)
+    width: 1680
+    height: 946
+    kind: image
+  - src: /media/projects/wiederkraft/wdk521-render-10.png
+    alt: A render of the WiederKraft WDK-521 car lift on a white background (variant 10)
+    width: 1680
+    height: 946
     kind: image
 ---
 
@@ -66,18 +85,15 @@ The source data consisted of drawings and CAD files of the equipment.
 
 ## What GLUKE did
 
-We delivered a series of projects for the digital catalogue:
+We completed a series of projects for the digital catalogue:
 
-- modeling of 15+ pieces of equipment from drawings and CAD files;
-- catalogue renders on a light background and scenes inside a service bay;
-- schematic and technical presentations that explain how the machines are built;
-- 300 DPI TIFF assets prepared for large-format printing;
-- a product video covering the equipment.
-
-The video file has not yet been selected for publication on the site, so it is not shown in the case gallery.
+- modeling of 20+ pieces of equipment from drawings and CAD files;
+- catalogue renders on a light background and scenes in a service bay;
+- schematic and blueprint-style presentations to explain how the equipment works;
+- TIFF assets at 300 DPI for large-format printing.
 
 ## The result
 
-The client received a set of materials that covers both the web catalogue and print: the same model is used for the product page, for the catalogue and for large-format printing without remodeling.
+The client received a set of assets that covers both the web catalogue and printed materials: the same model is used for the product card, the catalogue and large-format printing without re-modeling.
 
-The work ran as a series of projects over roughly a year and is now complete.
+The engagement ran from 2024 through 2026.

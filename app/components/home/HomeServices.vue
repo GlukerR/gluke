@@ -13,7 +13,7 @@ function formatIndex(index: number): string {
 <template>
   <section
     id="services"
-    class="site-section site-anchor"
+    class="site-section site-anchor home-services"
     aria-labelledby="home-services-title"
   >
     <div class="site-container home-services__inner">
@@ -44,10 +44,14 @@ function formatIndex(index: number): string {
             {{ service.description }}
           </p>
 
-          <p class="text-body--sm home-services__proof">
-            <span class="text-label home-services__proof-label">{{ t('home.services.proofLabel') }}</span>
-            <span>{{ service.proof }}</span>
-          </p>
+          <div class="home-services__proof">
+            <p class="text-label home-services__proof-label">
+              {{ t('home.services.proofLabel') }}
+            </p>
+            <p class="text-body--sm home-services__proof-value">
+              {{ service.proof }}
+            </p>
+          </div>
         </li>
       </ul>
     </div>
@@ -55,6 +59,12 @@ function formatIndex(index: number): string {
 </template>
 
 <style scoped>
+/* Услуги идут сразу после проектов — верхний отступ меньше стандартного,
+   чтобы секции стояли ближе друг к другу. */
+.home-services {
+  padding-top: calc(var(--site-section-space) * 0.5);
+}
+
 .home-services__inner {
   display: flex;
   flex-direction: column;
@@ -64,16 +74,20 @@ function formatIndex(index: number): string {
 .home-services__list {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  border-top: var(--site-border);
+  gap: clamp(16px, 2vw, 24px);
 }
 
+/* Каждая услуга — отдельный фрейм: рамка и подложка, чтобы разная высота
+   содержимого не «разъезжалась» между колонками. */
 .home-services__item {
   display: flex;
   flex-direction: column;
   gap: 10px;
   min-width: 0;
-  padding-block: clamp(24px, 3vw, 36px);
-  border-bottom: var(--site-border);
+  padding: clamp(20px, 2.5vw, 28px);
+  border: var(--site-border);
+  border-radius: var(--site-radius-md);
+  background-color: var(--site-surface);
 }
 
 .home-services__number {
@@ -91,11 +105,12 @@ function formatIndex(index: number): string {
   overflow-wrap: anywhere;
 }
 
+/* Подпись и список компаний — отдельными строками в одном блоке,
+   прижатом к низу карточки: так они выровнены напротив друг друга во всех карточках. */
 .home-services__proof {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 8px;
+  flex-direction: column;
+  gap: 6px;
   margin-top: auto;
   padding-top: 4px;
   color: var(--site-text-muted);
@@ -106,10 +121,20 @@ function formatIndex(index: number): string {
   color: var(--site-text-muted);
 }
 
+.home-services__proof-value {
+  color: var(--site-text-muted);
+}
+
 @media (min-width: 768px) {
   .home-services__list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: clamp(24px, 4vw, 64px);
+    column-gap: clamp(24px, 3vw, 48px);
+  }
+
+  /* Ровная высота под заголовок на две строки: описания и «Где применяли»
+     начинаются на одном уровне во всех карточках ряда. */
+  .home-services__title {
+    min-height: calc(2 * var(--type-h3) * var(--type-h3-leading));
   }
 }
 

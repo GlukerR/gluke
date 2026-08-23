@@ -12,14 +12,11 @@ hero:
   primaryCta:
     label: Discuss a project
     href: https://t.me/Gluke_art
-  secondaryCta:
-    label: See the projects
-    href: '#projects'
 
 about:
-  title: An external visualization team for manufacturers
+  title: 3D visualization studio for manufacturers
   description: We combine art direction with technical accuracy. We work with equipment, furniture and consumer goods — from the original drawings to finished assets for a website, catalogue, marketplace or presentation.
-  team: A core team of 2–3 specialists works on the projects. For larger tasks we scale the team to the required scope and deadlines.
+  team: Core team of 2–3 specialists works on the projects. For larger tasks we scale the team to the required scope and deadlines.
 
 contacts:
   - channel: telegram
@@ -39,44 +36,47 @@ contacts:
     primary: false
 
 pricing:
-  summary: The average project budget is around ₽30,000.
+  summary: The average project budget starts from €500.
   note: Smaller standalone tasks are quoted individually.
 
 stats:
   - value: 6 years
     label: of experience in 3D
-  - value: 300+
-    label: orders completed on Kwork
-  - value: 20+
-    label: commercial projects
-  - value: 50+
-    label: models for Getic
+  - value: 400+
+    label: orders completed
+  - value: 210+
+    label: open reviews on
+    link:
+      label: Kwork
+      href: https://kwork.ru/user/aleksandr_gluke
+  - value: 100+
+    label: models for web viewing
 
 services:
   - id: product-modeling
     title: 3D modeling of products and equipment
     description: Accurate models built from CAD data, drawings, dimensions, photographs or a physical sample.
-    proof: Getic, WiederKraft, HouseGuru
+    proof: Kiparis, WiederKraft, HouseGuru, AIR
   - id: catalog-visualization
     title: Catalogue visualization
-    description: A single set of angles, materials and lighting for a website, catalogue or marketplace.
-    proof: Kiparis, WiederKraft, HouseGuru
+    description: Single set of angles, materials and lighting for a website, catalogue or marketplace.
+    proof: HARDI, Alphatent, Bely Svet, FPV FRAME
   - id: product-animation
-    title: Animation and product videos
-    description: Showing how a product is built, connected, moved and what makes it different.
-    proof: Getic, WiederKraft, HouseGuru
+    title: Product animations
+    description: Showing how a product is built, connected, moves and what makes it different.
+    proof: Getic, M1 GROUP, Alphatent, HARDI
   - id: web-ready-models
-    title: 3D models for the web and real-time
-    description: Geometry, material and texture optimization for GLB, WebGL and interactive viewing.
-    proof: 50+ Getic models
+    title: 3D models for web viewers
+    description: Geometry, material and texture optimization for GLB, WebGL and interactive viewing. Models run in the web viewer on the client's website.
+    proof: Getic, SoftLogic, M1 GROUP, Wallcraft
   - id: exploded-views
     title: Exploded views
-    description: A clear look at the internal structure, the parts and the assembly order of a product.
-    proof: HouseGuru
+    description: Clear look at the internal structure, the parts and the assembly order of a product.
+    proof: HouseGuru, FPV FRAME
   - id: print-materials
-    title: Print-ready materials
+    title: Print materials
     description: High-resolution imagery prepared for catalogues, presentations and large-format printing.
-    proof: WiederKraft
+    proof: WiederKraft, Bely Svet
 
 process:
   - position: 1
@@ -103,5 +103,3 @@ audiences:
 proofLinks:
   - label: Kwork profile and public reviews
     href: https://kwork.ru/user/aleksandr_gluke
-  - label: Getic work on the client website
-    href: https://www.getic.com/

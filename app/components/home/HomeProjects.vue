@@ -6,6 +6,12 @@ defineProps<{ projects: ProjectsCollectionItem[] }>()
 const { t } = useI18n()
 
 const WIDE_SIZES = '100vw md:100vw lg:64vw xl:960px'
+
+/* Высокие карточки (индексы 1–2) тянутся на высоту широкого соседа: кадр
+   становится заметно выше 16:9, и object-fit:cover апскейлил бы картинку
+   по вертикали. Заявляем ширину с запасом (xl:960px), чтобы браузер выбрал
+   кандидата, чьей высоты хватает на высокий кадр без upscale. */
+const TALL_SIZES = '100vw md:50vw lg:64vw xl:960px'
 const NARROW_SIZES = '100vw md:50vw lg:32vw xl:480px'
 
 /* Узкие карточки стоят в паре с широкой и тянутся на её высоту, поэтому у них
@@ -40,7 +46,7 @@ function cardEmphasis(index: number) {
           <ProjectsProjectCard
             :project="project"
             :emphasis="cardEmphasis(index)"
-            :sizes="index === 0 || index === 3 ? WIDE_SIZES : NARROW_SIZES"
+            :sizes="index === 0 || index === 3 ? WIDE_SIZES : (TALL_INDEXES.has(index) ? TALL_SIZES : NARROW_SIZES)"
           />
         </li>
       </ul>
@@ -100,10 +106,6 @@ function cardEmphasis(index: number) {
 
   .home-projects__item:nth-child(4) {
     grid-column: span 8;
-  }
-
-  .home-projects__item:nth-child(n + 5) {
-    grid-column: span 6;
   }
 }
 </style>

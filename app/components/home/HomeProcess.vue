@@ -119,6 +119,12 @@ const orderedSteps = computed(() => [...props.steps].sort((a, b) => a.position -
     padding-top: 60px;
   }
 
+  /* Ровная высота под заголовок на две строки: описания всех шагов
+     начинаются на одном уровне и образуют отдельный выровненный блок. */
+  .home-process__title {
+    min-height: calc(2 * var(--type-h3) * var(--type-h3-leading));
+  }
+
   /* Связь между этапами: линия идёт от правого края кружка до левого края
      следующего, поэтому начинается за кружком и заходит в промежуток колонок. */
   .home-process__step:not(:last-child)::after {

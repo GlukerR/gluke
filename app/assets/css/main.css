@@ -4,17 +4,17 @@
 @theme static {
   --font-sans: 'Manrope', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', arial, sans-serif;
 
-  --color-brand-50: #f8ffe8;
-  --color-brand-100: #efffc9;
-  --color-brand-200: #e2ff9f;
-  --color-brand-300: #d8ff7a;
-  --color-brand-400: #cdff52;
-  --color-brand-500: #c6ff3d;
-  --color-brand-600: #a8e014;
-  --color-brand-700: #7fa80f;
-  --color-brand-800: #5f7c13;
-  --color-brand-900: #3f5210;
-  --color-brand-950: #202b07;
+  --color-brand-50: #f4f1f7;
+  --color-brand-100: #e8e2ef;
+  --color-brand-200: #d2c5e0;
+  --color-brand-300: #b5a1cc;
+  --color-brand-400: #9376b4;
+  --color-brand-500: #714b9d;
+  --color-brand-600: #63428a;
+  --color-brand-700: #513671;
+  --color-brand-800: #3f2a58;
+  --color-brand-900: #2d1e3f;
+  --color-brand-950: #1d1429;
 
   --radius-site-sm: 8px;
   --radius-site-md: 16px;
@@ -43,8 +43,10 @@
   --site-accent: var(--color-brand-500);
   --site-accent-hover: var(--color-brand-300);
   /* Фирменный цвет для мелкого текста, eyebrow, ссылок и outline фокуса.
-     В тёмной теме совпадает с заливкой, в светлой — тёмно-зелёный. */
-  --site-accent-text: var(--color-brand-500);
+     В тёмной теме акцентный текст осветлён до brand-400: brand-500 (#714b9d)
+     на #070707 даёт контраст ~3.0:1, что не проходит WCAG AA (4.5:1) для
+     текста; brand-400 (#9376b4) даёт ~5.3:1. В светлой — тёмно-фиолетовый. */
+  --site-accent-text: var(--color-brand-400);
   --site-accent-text-hover: var(--color-brand-300);
   --site-focus: var(--site-accent-text);
   --site-contrast-surface: #f1f1ec;
@@ -52,6 +54,9 @@
   /* Подложка для прозрачных PNG и видео остаётся тёмной в обеих темах:
      белые модели оборудования иначе теряются. */
   --site-media-canvas: #0f0f0f;
+  /* Подложка зацикленных видео-анимаций следует теме: тёмная в тёмной,
+     светлая в светлой (сама анимация может быть любого цвета). */
+  --site-media-canvas-loop: var(--site-bg);
 
   --site-content-max: 1600px;
   --site-gutter: clamp(20px, 4vw, 72px);
@@ -62,8 +67,9 @@
   --site-radius-lg: var(--radius-site-lg);
   --site-border: 1px solid var(--site-border-color);
 
-  /* Роли, одинаковые в обеих темах: панель CTA всегда залита фирменным зелёным. */
-  --site-accent-fg: #0a0a0a;
+  /* Роли, одинаковые в обеих темах: панель CTA всегда залита фирменным фиолетовым.
+     Текст на акцентных поверхностях — светлый: на #714b9d чёрный не читается. */
+  --site-accent-fg: #f5f5f1;
   --site-on-accent-surface: #070707;
   --site-on-accent-surface-hover: #171717;
   --site-on-accent-surface-text: #f5f5f1;
@@ -105,8 +111,8 @@
   --ui-text-toned: var(--site-text);
   --ui-text: var(--site-text);
   --ui-text-highlighted: var(--site-text);
-  /* `--ui-primary` в обеих темах остаётся кислотно-зелёным, поэтому текст
-     на solid-кнопках Nuxt UI всегда почти чёрный. */
+  /* `--ui-primary` в обеих темах остаётся фирменным фиолетовым, поэтому текст
+     на solid-кнопках Nuxt UI всегда светлый. */
   --ui-text-inverted: var(--site-accent-fg);
 }
 
@@ -128,7 +134,11 @@
   --site-accent-text-hover: var(--color-brand-950);
   --site-contrast-surface: #14150f;
   --site-contrast-text: #f5f5f1;
-  --site-media-canvas: #101010;
+  /* Светлая подложка под прозрачные PNG и видео: в светлой теме
+     изображения следуют общей палитре. Лёгкий drop-shadow на моделях
+     (добавлен ниже) не даёт белым 3D-моделям слиться с фоном. */
+  --site-media-canvas: var(--site-surface-raised);
+  --site-media-canvas-loop: var(--site-bg);
 }
 
 @layer base {

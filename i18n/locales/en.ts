@@ -24,8 +24,8 @@ export default {
   },
   localeSwitcher: {
     label: 'Language',
-    switchTo: 'Switch the site to {language}',
-    current: 'Current language: {language}',
+    switchTo: 'Switch the site to {language} ({code})',
+    current: 'Current language: {language} ({code})',
   },
   footer: {
     sections: 'Sections',
@@ -43,11 +43,11 @@ export default {
     services: {
       eyebrow: 'SERVICES',
       title: 'From the model to delivery-ready assets',
-      proofLabel: 'Where we applied it',
+      proofLabel: 'Companies:',
     },
     process: {
       eyebrow: 'PROCESS',
-      title: 'A clear path from source files to the result',
+      title: 'Clear path from source files to the result',
     },
     about: {
       eyebrow: 'STUDIO',
@@ -65,6 +65,24 @@ export default {
     card: {
       view: 'View case',
     },
+    categories: {
+      back: 'All profiles',
+      card: {
+        view: 'View cases',
+      },
+      orgtech: {
+        title: 'IT & office equipment',
+        description: 'Networking hardware, computers and drones.',
+      },
+      industrial: {
+        title: 'Industrial',
+        description: 'Machine tools, boilers and complex equipment.',
+      },
+      furniture: {
+        title: 'Furniture & interiors',
+        description: 'Tables, furniture and home goods.',
+      },
+    },
   },
   project: {
     back: 'Back to projects',
@@ -75,11 +93,12 @@ export default {
     overviewSrTitle: 'Key project figures',
     scopeSrTitle: 'Scope of work on the project',
     services: 'Services',
-    deliverables: 'What we delivered',
+    deliverables: 'About the project',
     gallery: 'Project materials',
     media: {
       unsupported: 'Your browser cannot play this video.',
       openFile: 'Open the video file',
+      rotate: 'Rotate',
     },
     pager: {
       srTitle: 'Other cases',
@@ -94,7 +113,12 @@ export default {
   seo: {
     homeTitle: '{site} — {tagline}',
     projectsTitle: 'Projects — {site}',
-    projectTitle: '{title} — {client} — {site}',
+    projectsCategoryTitle: '{category} — {site}',
+    /* The client name is already part of most case titles,
+       so it is not repeated in the title. */
+    projectTitle: '{title} — {site}',
+    projectsDescription: 'GLUKE case archive: 3D modeling, catalogue renders, animations and web-ready 3D models.',
+    projectsCategoryDescription: '{category}: {description}',
   },
   errors: {
     siteContentUnavailable: 'Site content is unavailable for the current language',

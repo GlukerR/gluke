@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import type { ProjectsCollectionItem, SiteCollectionItem } from '@nuxt/content'
+import type { SiteCollectionItem } from '@nuxt/content'
 
 const props = defineProps<{
   hero: SiteCollectionItem['hero']
-  cover: ProjectsCollectionItem['cover']
-  coverClient: string
 }>()
 
 const isExternal = computed(() => props.hero.primaryCta.href.startsWith('https://'))
@@ -43,36 +41,14 @@ const isExternal = computed(() => props.hero.primaryCta.href.startsWith('https:/
           >
             {{ hero.primaryCta.label }}
           </UButton>
-
-          <UButton
-            :to="hero.secondaryCta.href"
-            color="neutral"
-            variant="outline"
-            size="xl"
-            class="home-hero__cta"
-          >
-            {{ hero.secondaryCta.label }}
-          </UButton>
         </div>
       </div>
 
       <div class="home-hero__visual">
-        <NuxtPicture
-          :src="cover.src"
-          :alt="cover.alt"
-          :width="cover.width"
-          :height="cover.height"
-          sizes="100vw lg:60vw xl:1100px"
-          format="avif,webp"
-          loading="eager"
-          decoding="async"
-          preload
-          :img-attrs="{ class: 'home-hero__image', fetchpriority: 'high' }"
-          class="home-hero__picture"
+        <HomeGlukeLogo3D
+          src="/media/brand/radial-pneumatic-engine.glb"
+          class="home-hero__3d"
         />
-        <p class="text-label text-dimmed home-hero__caption">
-          {{ coverClient }}
-        </p>
       </div>
     </div>
   </section>
@@ -81,10 +57,16 @@ const isExternal = computed(() => props.hero.primaryCta.href.startsWith('https:/
 <style scoped>
 .home-hero {
   position: relative;
-  padding-block: clamp(48px, 7vw, 112px) clamp(56px, 8vw, 128px);
+  /* Высота hero задаёт диапазон скролла для раскрытия модели: пока секция
+     «приколота» к верху вьюпорта (180vh − 100vh = 80vh прокрутки), скролл
+     водит анимацией; только когда hero уезжает — листается остальной сайт.
+     Та же схема, что в референсе exploded-view, но короче — анимация
+     раскрывается быстрее, без длинной «пустой» прокрутки. */
+  height: 180vh;
   isolation: isolate;
-  /* `clip` keeps the decorative glow inside the section without creating a scroll container. */
-  overflow: clip;
+  /* Нельзя ставить overflow (hidden/clip/auto/scroll): sticky-стакан внутри
+     hero перестанет липнуть к верху вьюпорта, а скролл-анимация раскрытия
+     сломается. Свечение ограничено рамками своего псевдоэлемента. */
 }
 
 /* Single calm accent glow, built from the semantic accent token only. */
@@ -92,9 +74,9 @@ const isExternal = computed(() => props.hero.primaryCta.href.startsWith('https:/
   content: '';
   position: absolute;
   z-index: -1;
-  inset-block-start: -12%;
-  inset-inline-end: -10%;
-  width: min(760px, 90%);
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  width: min(760px, 100%);
   aspect-ratio: 1;
   border-radius: 50%;
   background: radial-gradient(
@@ -106,9 +88,15 @@ const isExternal = computed(() => props.hero.primaryCta.href.startsWith('https:/
 }
 
 .home-hero__inner {
+  /* Sticky-стакан на весь вьюпорт: hero держится на месте, пока модель
+     раскрывается, затем уезжает вместе с прокруткой. */
+  position: sticky;
+  top: 0;
+  height: 100vh;
   display: grid;
   gap: clamp(32px, 5vw, 56px);
   align-items: center;
+  padding-block: clamp(48px, 7vw, 112px);
 }
 
 .home-hero__text {
@@ -151,23 +139,20 @@ const isExternal = computed(() => props.hero.primaryCta.href.startsWith('https:/
   min-width: 0;
 }
 
-.home-hero__picture {
+.home-hero__3d {
   display: block;
-  overflow: hidden;
-  border: var(--site-border);
-  border-radius: var(--site-radius-lg);
-  background-color: var(--site-media-canvas);
 }
 
-.home-hero__picture :deep(.home-hero__image) {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
-}
+/* На десктопе колонка модели растягивается на всю высоту hero-секции:
+   фрейм рендера выходит вверх и вниз за границы текстовой колонки. */
+@media (min-width: 1024px) {
+  .home-hero__inner {
+    align-items: stretch;
+  }
 
-.home-hero__caption {
-  overflow-wrap: anywhere;
+  .home-hero__visual {
+    align-self: stretch;
+  }
 }
 
 @media (min-width: 640px) {
@@ -181,7 +166,7 @@ const isExternal = computed(() => props.hero.primaryCta.href.startsWith('https:/
   .home-hero__inner {
     /* The text column stays wide enough for the longest word of the title
        (`3D-визуализация`), the visual column stays clearly larger. */
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.3fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
     gap: clamp(40px, 4vw, 72px);
   }
 
@@ -190,10 +175,6 @@ const isExternal = computed(() => props.hero.primaryCta.href.startsWith('https:/
        narrower hero column instead of the full viewport. */
     font-size: clamp(2.75rem, 4vw, 3.75rem);
     max-width: 12em;
-  }
-
-  .home-hero__picture :deep(.home-hero__image) {
-    aspect-ratio: 16 / 10;
   }
 }
 </style>

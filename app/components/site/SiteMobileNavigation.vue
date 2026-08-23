@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { SiteCollectionItem } from '@nuxt/content'
+import type { RouteLocationRaw } from 'vue-router'
 import { siteNavigation } from '~/config/site-navigation'
 
 const props = defineProps<{ site: SiteCollectionItem }>()
@@ -8,6 +9,8 @@ const open = ref(false)
 const route = useRoute()
 const { t } = useI18n()
 const { navigation } = useSiteRoutes()
+const router = useRouter()
+const pendingNavigation = ref<RouteLocationRaw | null>(null)
 
 const primaryCta = computed(() => props.site.hero.primaryCta)
 const primaryContact = computed(() => props.site.contacts.find(contact => contact.primary) ?? props.site.contacts[0])
@@ -19,6 +22,19 @@ watch(() => route.fullPath, () => {
 
 function close() {
   open.value = false
+}
+
+function navigateFromMenu(item: (typeof siteNavigation)[number]) {
+  /* Let the slideover release its scroll lock before routing. */
+  pendingNavigation.value = navigation(item)
+  open.value = false
+}
+
+async function finishNavigation() {
+  if (!pendingNavigation.value) return
+  const target = pendingNavigation.value
+  pendingNavigation.value = null
+  await router.push(target)
 }
 </script>
 
@@ -34,6 +50,7 @@ function close() {
       header: 'justify-between gap-4',
       wrapper: 'min-w-0',
     }"
+    @after:leave="finishNavigation"
   >
     <UButton
       color="neutral"
@@ -69,14 +86,13 @@ function close() {
               v-for="item in siteNavigation"
               :key="item.labelKey"
             >
-              <NuxtLink
-                :to="navigation(item)"
-                aria-current-value="false"
+              <a
+                :href="router.resolve(navigation(item)).href"
                 class="site-mobile-link text-heading text-heading--sm"
-                @click="close"
+                @click.prevent="navigateFromMenu(item)"
               >
                 {{ t(item.labelKey) }}
-              </NuxtLink>
+              </a>
             </li>
           </ul>
         </nav>
