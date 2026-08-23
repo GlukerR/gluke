@@ -83,6 +83,14 @@ let lastPointerY = 0
 let canvasEl: HTMLCanvasElement | null = null
 const DRAG_SENSITIVITY = 0.01
 const TILT_LIMIT = (15 * Math.PI) / 180
+/* Тач-устройства: вертикальный свайп должен скроллить страницу, а не
+   вращать модель. Разделяем жесты по направлению — ось определяется по
+   доминирующей компоненте движения от точки касания. */
+const coarsePointer = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
+let dragAxis: 'x' | 'y' | null = null
+let gestureStartX = 0
+let gestureStartY = 0
+const GESTURE_LOCK_PX = 6
 /* Отложенный старт: three.js + декодер весят ~1.4 МБ и на главном потоке
    отнимают секунды у первого рендера (LCP/TBT). Инициализируем вьювер
    только когда браузер простаивает, но не позже 2.5 с. */
@@ -175,14 +183,23 @@ function onScroll() {
 
 function onPointerDown(e: PointerEvent) {
   dragging = true
+  dragAxis = null
+  gestureStartX = e.clientX
+  gestureStartY = e.clientY
   lastPointerX = e.clientX
   lastPointerY = e.clientY
-  try {
-    canvasEl?.setPointerCapture(e.pointerId)
-  }
-  catch {
-    /* Синтетические события (тесты/автоматизация) не имеют активного
-       указателя — capture не обязателен, drag работает и без него. */
+  /* На тач-устройствах capture не берём: он не мешает браузерному скроллу
+     (touch-action: pan-y), но на всякий случай не удерживаем указатель,
+     чтобы вертикальный свайп гарантированно достался странице. На десктопе
+     capture нужен — мышью можно уводить курсор за край canvas. */
+  if (!coarsePointer) {
+    try {
+      canvasEl?.setPointerCapture(e.pointerId)
+    }
+    catch {
+      /* Синтетические события (тесты/автоматизация) не имеют активного
+         указателя — capture не обязателен, drag работает и без него. */
+    }
   }
 }
 
@@ -192,10 +209,25 @@ function onPointerMove(e: PointerEvent) {
   const dy = e.clientY - lastPointerY
   lastPointerX = e.clientX
   lastPointerY = e.clientY
+
+  /* На тач-устройствах ось жеста фиксируем один раз по первой доминирующей
+     компоненте движения от точки касания: вертикальный свайп отдаём
+     браузеру (скролл страницы), вращаем модель только по горизонтали. */
+  if (coarsePointer) {
+    if (dragAxis === null) {
+      const adx = Math.abs(e.clientX - gestureStartX)
+      const ady = Math.abs(e.clientY - gestureStartY)
+      if (adx < GESTURE_LOCK_PX && ady < GESTURE_LOCK_PX) return
+      dragAxis = adx >= ady ? 'x' : 'y'
+    }
+    if (dragAxis === 'y') return
+  }
+
   /* Горизонталь — поворот вокруг оси модели. */
   pivot.rotation.y += dx * DRAG_SENSITIVITY
-  /* Вертикаль — наклон вперёд/назад в пределах ±15°. */
-  if (tiltPivot) {
+  /* Вертикаль — наклон вперёд/назад в пределах ±15° (только на десктопе,
+     где вертикальный жест не занят скроллом страницы). */
+  if (tiltPivot && !coarsePointer) {
     tiltPivot.rotation.x = Math.min(
       TILT_LIMIT,
       Math.max(-TILT_LIMIT, tiltPivot.rotation.x + dy * DRAG_SENSITIVITY),
@@ -205,6 +237,7 @@ function onPointerMove(e: PointerEvent) {
 
 function onPointerUp(e: PointerEvent) {
   dragging = false
+  dragAxis = null
   if (canvasEl?.hasPointerCapture(e.pointerId)) {
     canvasEl.releasePointerCapture(e.pointerId)
   }
@@ -501,6 +534,15 @@ onBeforeUnmount(() => {
   /* Жест на модели вращает её, а не скроллит страницу. */
   touch-action: none;
   cursor: grab;
+}
+
+/* На тач-устройствах (телефоны/планшеты) вертикальный свайп по модели
+   должен скроллить страницу, а не вращать модель: pan-y отдаёт вертикаль
+   браузеру, горизонталь по-прежнему обрабатывает вьювер. */
+@media (pointer: coarse) {
+  .gluke-3d :deep(canvas) {
+    touch-action: pan-y;
+  }
 }
 
 .gluke-3d :deep(canvas:active) {
