@@ -2,6 +2,7 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import type * as THREE from 'three'
 import { getViewerPose, saveViewerPose } from '~/utils/modelViewPose'
+import { applyTouchScrollPolicy, isCoarsePointer } from '~/utils/touchScroll'
 
 const props = withDefaults(
   defineProps<{
@@ -86,7 +87,7 @@ const TILT_LIMIT = (15 * Math.PI) / 180
 /* Тач-устройства: вертикальный свайп должен скроллить страницу, а не
    вращать модель. Разделяем жесты по направлению — ось определяется по
    доминирующей компоненте движения от точки касания. */
-const coarsePointer = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
+const coarsePointer = isCoarsePointer()
 let dragAxis: 'x' | 'y' | null = null
 let gestureStartX = 0
 let gestureStartY = 0
@@ -417,6 +418,10 @@ async function mount() {
 
     container.value.appendChild(renderer.domElement)
     canvasEl = renderer.domElement
+    /* На тач-устройствах вертикальный свайп по модели скроллит страницу
+       (touch-action: pan-y), горизонтальный — вращает модель. Общая логика
+       для всех вьюверов — utils/touchScroll. */
+    applyTouchScrollPolicy(canvasEl)
     /* Ручное вращение модели перетаскиванием. */
     canvasEl.addEventListener('pointerdown', onPointerDown)
     canvasEl.addEventListener('pointermove', onPointerMove)

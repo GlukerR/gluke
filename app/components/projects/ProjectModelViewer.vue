@@ -2,6 +2,7 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import type * as THREE from 'three'
 import { viewerCache } from '~/utils/modelViewerCache'
+import { applyTouchScrollPolicy } from '~/utils/touchScroll'
 import type { CachedViewer } from '~/utils/modelViewerCache'
 
 const props = withDefaults(
@@ -333,6 +334,12 @@ async function mountViewer() {
     camera.position.set(0, 1, 3)
 
     const controls = new OrbitControls(camera, renderer.domElement)
+    /* OrbitControls при connect() ставит inline `touch-action: none` — это
+       перекрывает CSS и на мобильных блокирует скролл страницы мимо модели
+       (вертикальный свайп крутил бы модель). Возвращаем вертикаль браузеру:
+       свайп вверх/вниз скроллит страницу, горизонтальный — вращает модель.
+       Общая логика для всех вьюверов — utils/touchScroll. */
+    applyTouchScrollPolicy(renderer.domElement)
     controls.enableDamping = true
     controls.dampingFactor = 0.08
     controls.autoRotate = props.autoRotate
@@ -574,8 +581,13 @@ onBeforeUnmount(() => {
   cursor: grab;
 }
 
-.model-viewer--ready :deep(canvas):active {
-  cursor: grabbing;
+/* На тач-устройствах вертикальный свайп по модели должен скроллить страницу,
+   а не вращать модель (fallback для CSS-правила; inline-стиль из
+   utils/touchScroll всё равно главный, т.к. OrbitControls ставит inline none). */
+@media (pointer: coarse) {
+  .model-viewer :deep(canvas) {
+    touch-action: pan-y;
+  }
 }
 
 .model-viewer--ready :deep(canvas):active {
