@@ -35,13 +35,13 @@ cover:
   width: 1080
   height: 608
 media:
-  - src: /media/projects/gelios/gelios-amerikano.jpg
-    alt: Amerikano table by Gelios Tables, catalogue render
+  - src: /media/projects/gelios/gelios-interior-2.jpg
+    alt: A Gelios Tables table in an interior, variant 2
     width: 1080
     height: 1080
     kind: image
-  - src: /media/projects/gelios/gelios-amsterdam.jpg
-    alt: Amsterdam table by Gelios Tables, catalogue render
+  - src: /media/projects/gelios/gelios-amerikano.jpg
+    alt: Amerikano table by Gelios Tables, catalogue render
     width: 1080
     height: 1080
     kind: image
@@ -65,11 +65,6 @@ media:
     width: 1080
     height: 1080
     kind: image
-  - src: /media/projects/gelios/gelios-tokio.jpg
-    alt: Tokio table by Gelios Tables, catalogue render
-    width: 1080
-    height: 1080
-    kind: image
   - src: /media/projects/gelios/gelios-fantom.jpg
     alt: Fantom table by Gelios Tables, catalogue render
     width: 1080
@@ -77,16 +72,6 @@ media:
     kind: image
   - src: /media/projects/gelios/gelios-interior-1.jpg
     alt: A Gelios Tables table in an interior, variant 1
-    width: 1080
-    height: 1080
-    kind: image
-  - src: /media/projects/gelios/gelios-interior-2.jpg
-    alt: A Gelios Tables table in an interior, variant 2
-    width: 1080
-    height: 1080
-    kind: image
-  - src: /media/projects/gelios/gelios-interior-3.jpg
-    alt: A Gelios Tables table in an interior, variant 3
     width: 1080
     height: 1080
     kind: image

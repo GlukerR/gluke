@@ -35,13 +35,13 @@ cover:
   width: 1080
   height: 608
 media:
-  - src: /media/projects/gelios/gelios-amerikano.jpg
-    alt: Стол «Американо» ГелиосСтолы, каталожный рендер
+  - src: /media/projects/gelios/gelios-interior-2.jpg
+    alt: Стол ГелиосСтолы в интерьере, вариант 2
     width: 1080
     height: 1080
     kind: image
-  - src: /media/projects/gelios/gelios-amsterdam.jpg
-    alt: Стол «Амстердам» ГелиосСтолы, каталожный рендер
+  - src: /media/projects/gelios/gelios-amerikano.jpg
+    alt: Стол «Американо» ГелиосСтолы, каталожный рендер
     width: 1080
     height: 1080
     kind: image
@@ -65,11 +65,6 @@ media:
     width: 1080
     height: 1080
     kind: image
-  - src: /media/projects/gelios/gelios-tokio.jpg
-    alt: Стол «Токио» ГелиосСтолы, каталожный рендер
-    width: 1080
-    height: 1080
-    kind: image
   - src: /media/projects/gelios/gelios-fantom.jpg
     alt: Стол «Фантом» ГелиосСтолы, каталожный рендер
     width: 1080
@@ -77,16 +72,6 @@ media:
     kind: image
   - src: /media/projects/gelios/gelios-interior-1.jpg
     alt: Стол ГелиосСтолы в интерьере, вариант 1
-    width: 1080
-    height: 1080
-    kind: image
-  - src: /media/projects/gelios/gelios-interior-2.jpg
-    alt: Стол ГелиосСтолы в интерьере, вариант 2
-    width: 1080
-    height: 1080
-    kind: image
-  - src: /media/projects/gelios/gelios-interior-3.jpg
-    alt: Стол ГелиосСтолы в интерьере, вариант 3
     width: 1080
     height: 1080
     kind: image
