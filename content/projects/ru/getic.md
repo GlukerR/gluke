@@ -72,6 +72,30 @@ media:
     width: 1130
     height: 620
     kind: image
+  - src: /media/projects/getic/getic-port-insert-animation.mp4
+    alt: 3D-анимация подключения сетевого кабеля к коммутатору MikroTik
+    width: 1280
+    height: 1280
+    kind: video
+    loop: true
+    triple: true
+    poster: /media/projects/getic/getic-port-insert-poster.jpg
+  - src: /media/projects/getic/getic-cable-coil-animation.mp4
+    alt: 3D-анимация сетевого кабеля, который закручивается в спираль
+    width: 1280
+    height: 1280
+    kind: video
+    loop: true
+    triple: true
+    poster: /media/projects/getic/getic-cable-coil-poster.jpg
+  - src: /media/projects/getic/getic-connector-types-animation.mp4
+    alt: 3D-анимация патч-кордов с разными типами коннекторов
+    width: 1280
+    height: 1280
+    kind: video
+    loop: true
+    triple: true
+    poster: /media/projects/getic/getic-connector-types-poster.jpg
   - src: /media/projects/getic/folder5-2.jpg
     alt: Пять коммутаторов пастельных цветов на диагональных цветовых полосах
     width: 1680

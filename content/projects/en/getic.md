@@ -72,6 +72,30 @@ media:
     width: 1130
     height: 620
     kind: image
+  - src: /media/projects/getic/getic-port-insert-animation.mp4
+    alt: A 3D animation of a network cable being plugged into a MikroTik switch
+    width: 1280
+    height: 1280
+    kind: video
+    loop: true
+    triple: true
+    poster: /media/projects/getic/getic-port-insert-poster.jpg
+  - src: /media/projects/getic/getic-cable-coil-animation.mp4
+    alt: A 3D animation of a network cable coiling into a spiral
+    width: 1280
+    height: 1280
+    kind: video
+    loop: true
+    triple: true
+    poster: /media/projects/getic/getic-cable-coil-poster.jpg
+  - src: /media/projects/getic/getic-connector-types-animation.mp4
+    alt: A 3D animation of patch cords with different connector types
+    width: 1280
+    height: 1280
+    kind: video
+    loop: true
+    triple: true
+    poster: /media/projects/getic/getic-connector-types-poster.jpg
   - src: /media/projects/getic/folder5-2.jpg
     alt: Five switches in pastel colours on diagonal colour bands
     width: 1680
