@@ -72,32 +72,6 @@ media:
     width: 1130
     height: 620
     kind: image
-  - src: /media/projects/getic/network-cabinet-render.png
-    alt: A wall-mounted network cabinet with patch panels and colour-coded patch cords in an office space
-    width: 1750
-    height: 850
-    kind: image
-  - src: /media/projects/getic/router-animation-01.mp4
-    alt: A 3D animation of network cables being connected to a router
-    width: 1280
-    height: 1280
-    kind: video
-    loop: true
-    triple: true
-  - src: /media/projects/getic/router-animation-02.mp4
-    alt: A 3D animation of an internet cable coiling into a spiral and changing colours
-    width: 1280
-    height: 1280
-    kind: video
-    loop: true
-    triple: true
-  - src: /media/projects/getic/router-animation-03.mp4
-    alt: A 3D animation of patch cords with different connector types
-    width: 1280
-    height: 1280
-    kind: video
-    loop: true
-    triple: true
   - src: /media/projects/getic/folder5-2.jpg
     alt: Five switches in pastel colours on diagonal colour bands
     width: 1680

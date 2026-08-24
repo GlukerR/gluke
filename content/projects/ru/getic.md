@@ -72,32 +72,6 @@ media:
     width: 1130
     height: 620
     kind: image
-  - src: /media/projects/getic/network-cabinet-render.png
-    alt: Настенный сетевой шкаф с патч-панелями и цветными коммутационными шнурами в офисном помещении
-    width: 1750
-    height: 850
-    kind: image
-  - src: /media/projects/getic/router-animation-01.mp4
-    alt: 3D-анимация подключения сетевых кабелей к роутеру
-    width: 1280
-    height: 1280
-    kind: video
-    loop: true
-    triple: true
-  - src: /media/projects/getic/router-animation-02.mp4
-    alt: 3D-анимация интернет-кабеля, который закручивается в спираль и меняет цвета
-    width: 1280
-    height: 1280
-    kind: video
-    loop: true
-    triple: true
-  - src: /media/projects/getic/router-animation-03.mp4
-    alt: 3D-анимация патч-кордов с разными типами коннекторов
-    width: 1280
-    height: 1280
-    kind: video
-    loop: true
-    triple: true
   - src: /media/projects/getic/folder5-2.jpg
     alt: Пять коммутаторов пастельных цветов на диагональных цветовых полосах
     width: 1680
