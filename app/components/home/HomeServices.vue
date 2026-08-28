@@ -4,6 +4,7 @@ import type { SiteCollectionItem } from '@nuxt/content'
 defineProps<{ services: SiteCollectionItem['services'] }>()
 
 const { t } = useI18n()
+const { project: projectPath } = useSiteRoutes()
 
 function formatIndex(index: number): string {
   return String(index + 1).padStart(2, '0')
@@ -49,7 +50,20 @@ function formatIndex(index: number): string {
               {{ t('home.services.proofLabel') }}
             </p>
             <p class="text-body--sm home-services__proof-value">
-              {{ service.proof }}
+              <template
+                v-for="(company, companyIndex) in service.proof"
+                :key="`${company.label}-${companyIndex}`"
+              >
+                <NuxtLink
+                  v-if="company.slug"
+                  :to="projectPath(company.slug)"
+                  class="home-services__proof-link"
+                >
+                  {{ company.label }}
+                </NuxtLink>
+                <span v-else>{{ company.label }}</span>
+                <span v-if="companyIndex < service.proof.length - 1">, </span>
+              </template>
             </p>
           </div>
         </li>
@@ -123,6 +137,16 @@ function formatIndex(index: number): string {
 
 .home-services__proof-value {
   color: var(--site-text-muted);
+}
+
+.home-services__proof-link {
+  color: var(--site-accent-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.home-services__proof-link:hover {
+  color: var(--site-accent-text-hover);
 }
 
 @media (min-width: 768px) {

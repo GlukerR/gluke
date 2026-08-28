@@ -63,11 +63,18 @@ const contactSchema = z.object({
   primary: z.boolean(),
 })
 
+/* Компания из блока «Где применяли»: `slug` добавляется, если по клиенту
+   есть кейс на сайте — тогда название становится ссылкой на кейс. */
+const proofCompanySchema = z.object({
+  label: z.string().min(1),
+  slug: z.string().min(1).optional(),
+})
+
 const serviceSchema = z.object({
   id: z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/),
   title: z.string().min(1),
   description: z.string().min(1),
-  proof: z.string().min(1),
+  proof: z.array(proofCompanySchema).min(1),
 })
 
 const processStepSchema = z.object({

@@ -56,7 +56,7 @@ export default {
       pricing: 'Pricing',
     },
     contact: {
-      title: 'Let us discuss your project',
+      title: 'Have products you need visualized?',
     },
   },
   projects: {

@@ -2,9 +2,9 @@
 locale: en
 slug: m1-group
 title: Marketplace content for M1 GROUP
-description: 'Complete set of assets for Wildberries and Ozon product cards: 3D models, catalogue renders, covers with dimensional typography, assembly videos and instructions.'
+description: 'Complete set of assets for Wildberries and Ozon product cards: 3D models and renders of toothbrushes and replacement heads (Oral-B compatible), catalogue renders of stainless steel furniture, covers with dimensional typography, assembly videos and instructions.'
 client: M1 GROUP
-industry: Furniture for marketplaces
+industry: Furniture and toothbrushes for marketplaces
 categories:
   - furniture
 position: 5
@@ -17,12 +17,12 @@ clientUrl: https://www.wildberries.ru/brands/12572044-m1-group
 services:
   - Covers with dimensional typography
   - Assembly animation and instructions
-  - 3D modeling from samples and drawings
-  - Catalogue visualization
+  - 3D models of toothbrushes, heads and furniture
+  - Renders for WB and Ozon product cards
 about: |
-  M1 GROUP makes stainless steel furniture and sells it through the Wildberries and Ozon marketplaces. We handle the full content cycle for product cards: 3D models, catalogue renders, covers with dimensional 3D lettering, assembly videos and assembly instructions.
+  M1 GROUP makes stainless steel furniture and toothbrushes with replacement heads compatible with Oral-B, and sells them through the Wildberries and Ozon marketplaces. We handle the full content cycle for product cards: 3D models and renders of toothbrushes and heads with accurate bristle geometry, catalogue renders of furniture, covers with dimensional 3D lettering, assembly videos and assembly instructions.
 
-  The finished set of assets helps products stand out in search results: a realistic stainless steel material, readable typography that accounts for the marketplaces' "blind zones", and clear assembly videos that reduce returns and customer questions.
+  The finished set of assets helps products stand out in search results: a realistic stainless steel material, an accurate bristle shape on replacement heads, readable typography that accounts for the marketplaces' "blind zones", and clear assembly videos that reduce returns and customer questions.
 metrics:
   - value: 100+
     label: renders and covers
@@ -36,22 +36,25 @@ cover:
   width: 1680
   height: 938
 media:
-  - src: /media/projects/m1-group/m1-photo-01.jpg
-    alt: A photo from the M1 GROUP project (variant 1)
-    width: 1000
-    height: 1000
+  - src: /media/projects/m1-group/m1-brush-heads-cover.jpg
+    alt: A cover for Oral-B compatible toothbrush replacement heads (4 heads, medium hardness, Classic)
+    width: 960
+    height: 1280
     kind: image
+    triple: true
   - src: /media/projects/m1-group/m1-frame-02.jpg
     alt: A frame from the M1 GROUP shelving unit assembly video (variant 2)
     width: 900
     height: 1200
     kind: image
+    triple: true
   - src: /media/projects/m1-group/m1-assembly-animation.mp4
     alt: Assembly video of an M1 GROUP stainless steel shelving unit
     width: 1280
     height: 1704
     kind: video
     loop: true
+    triple: true
   - src: /media/projects/m1-group/m1-frame-01.jpg
     alt: A frame from the M1 GROUP shelving unit assembly video
     width: 1680
@@ -71,13 +74,15 @@ media:
 
 ## The task
 
-M1 GROUP is a manufacturer of stainless steel furniture for Wildberries and Ozon. The product cards needed a full set of content: from 3D models and catalogue renders to typographic covers, assembly videos and instructions.
+M1 GROUP is a manufacturer of products for Wildberries and Ozon in two product lines: stainless steel furniture (tables, shelves, racks) and toothbrushes with replacement heads compatible with Oral-B. The product cards needed a full set of content: from 3D models and catalogue renders to typographic covers, assembly videos and instructions.
 
-The key requirements were a realistic stainless steel material and readable cover text that accounts for the marketplaces' "blind zones".
+The key requirements were an accurate bristle geometry for the replacement heads, a realistic stainless steel material and readable cover text that accounts for the marketplaces' "blind zones".
 
 ## What GLUKE did
 
-- 3D modeling of the products from samples, drawings and the client's source models;
+- a 3D model of the toothbrush and four replacement heads compatible with Oral-B: bristle tuft geometry, tip shapes, colour schemes (medium hardness, Classic);
+- renders of the heads in 4 colours with coloured indicator rings, plus a close-up re-render for the cover;
+- 3D modelling of the furniture from samples, drawings and the client's source models;
 - catalogue renders in interiors and on transparent backgrounds;
 - covers with dimensional 3D lettering to WB and Ozon requirements;
 - assembly videos and assembly instructions, configuration diagrams;
@@ -85,4 +90,4 @@ The key requirements were a realistic stainless steel material and readable cove
 
 ## The result
 
-The client received a set of assets that maintains one visual standard across the entire product line. The engagement has been ongoing since 2023: orders keep coming, and the content is updated together with new products.
+The client received a set of assets that maintains one visual standard across both product lines — from precise renders of replacement heads to realistic tables and racks. The engagement has been ongoing since 2023: orders keep coming, and the content is updated together with new products.

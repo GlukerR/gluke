@@ -7,8 +7,8 @@ brand:
 
 hero:
   eyebrow: GLUKE — 3D visualization studio
-  title: Technical 3D visualization of products
-  description: We turn drawings, CAD files and photographs into catalogue renders, animation and optimized 3D models for websites.
+  title: 3D content for manufacturers' catalogues
+  description: "We turn CAD, drawings and photographs into ready-to-use product visuals: catalogue renders, animation and WebGL models for a website, catalogue or marketplace."
   primaryCta:
     label: Discuss a project
     href: https://t.me/Gluke_art
@@ -50,33 +50,69 @@ stats:
       label: Kwork
       href: https://kwork.ru/user/aleksandr_gluke
   - value: 100+
-    label: models for web viewing
+    label: models for WebGL
 
 services:
   - id: product-modeling
     title: 3D modeling of products and equipment
     description: Accurate models built from CAD data, drawings, dimensions, photographs or a physical sample.
-    proof: Kiparis, WiederKraft, HouseGuru, AIR
+    proof:
+      - label: Kiparis
+        slug: kiparis
+      - label: WiederKraft
+        slug: wiederkraft
+      - label: HouseGuru
+        slug: house-guru
+      - label: AIR
   - id: catalog-visualization
     title: Catalogue visualization
     description: Single set of angles, materials and lighting for a website, catalogue or marketplace.
-    proof: HARDI, Alphatent, Bely Svet, FPV FRAME
+    proof:
+      - label: HARDI
+        slug: hardi
+      - label: Alphatent
+        slug: alphatent
+      - label: Bely Svet
+      - label: FPV FRAME
+        slug: fpv-frame
   - id: product-animation
     title: Product animations
     description: Showing how a product is built, connected, moves and what makes it different.
-    proof: Getic, M1 GROUP, Alphatent, HARDI
+    proof:
+      - label: Getic
+        slug: getic
+      - label: M1 GROUP
+        slug: m1-group
+      - label: Alphatent
+        slug: alphatent
+      - label: HARDI
+        slug: hardi
   - id: web-ready-models
     title: 3D models for web viewers
     description: Geometry, material and texture optimization for GLB, WebGL and interactive viewing. Models run in the web viewer on the client's website.
-    proof: Getic, SoftLogic, M1 GROUP, Wallcraft
+    proof:
+      - label: Getic
+        slug: getic
+      - label: SoftLogic
+        slug: softlogic
+      - label: M1 GROUP
+        slug: m1-group
+      - label: Wallcraft
   - id: exploded-views
     title: Exploded views
     description: Clear look at the internal structure, the parts and the assembly order of a product.
-    proof: HouseGuru, FPV FRAME
+    proof:
+      - label: HouseGuru
+        slug: house-guru
+      - label: FPV FRAME
+        slug: fpv-frame
   - id: print-materials
     title: Print materials
     description: High-resolution imagery prepared for catalogues, presentations and large-format printing.
-    proof: WiederKraft, Bely Svet
+    proof:
+      - label: WiederKraft
+        slug: wiederkraft
+      - label: Bely Svet
 
 process:
   - position: 1

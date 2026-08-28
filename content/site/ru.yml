@@ -7,8 +7,8 @@ brand:
 
 hero:
   eyebrow: GLUKE — студия 3D-визуализации
-  title: Техническая 3D-визуализация продукции
-  description: Превращаем чертежи, CAD-файлы и фотографии в каталожные рендеры, анимацию и оптимизированные 3D-модели для сайтов.
+  title: 3D-контент для каталогов производителей
+  description: "Превращаем CAD, чертежи и фотографии в готовый визуальный контент продукции: каталожные рендеры, анимацию и WebGL-модели для сайта, каталога или маркетплейса."
   primaryCta:
     label: Обсудить проект
     href: https://t.me/Gluke_art
@@ -50,33 +50,69 @@ stats:
       label: Kwork
       href: https://kwork.ru/user/aleksandr_gluke
   - value: 100+
-    label: моделей для web просмотра
+    label: моделей для WebGL
 
 services:
   - id: product-modeling
     title: 3D-моделирование продукции и оборудования
     description: Создание точных моделей по CAD, чертежам, размерам, фотографиям или физическому образцу.
-    proof: Kiparis, WiederKraft, HouseGuru, АИР
+    proof:
+      - label: Kiparis
+        slug: kiparis
+      - label: WiederKraft
+        slug: wiederkraft
+      - label: HouseGuru
+        slug: house-guru
+      - label: АИР
   - id: catalog-visualization
     title: Каталожная визуализация
     description: Единый набор ракурсов, материалов и освещения для сайта, каталога или маркетплейса.
-    proof: HARDI, Alphatent, Белый свет, FPV FRAME
+    proof:
+      - label: HARDI
+        slug: hardi
+      - label: Alphatent
+        slug: alphatent
+      - label: Белый свет
+      - label: FPV FRAME
+        slug: fpv-frame
   - id: product-animation
     title: Продуктовые анимации
     description: Демонстрация устройства, подключения, движения и преимуществ продукта.
-    proof: Getic, M1 GROUP, Alphatent, HARDI
+    proof:
+      - label: Getic
+        slug: getic
+      - label: M1 GROUP
+        slug: m1-group
+      - label: Alphatent
+        slug: alphatent
+      - label: HARDI
+        slug: hardi
   - id: web-ready-models
     title: 3D-модели для веб-вьюверов
     description: Оптимизация геометрии, материалов и текстур для GLB, WebGL и интерактивного просмотра. Модели запускаются в веб-вьювере на сайте клиента.
-    proof: Getic, SoftLogic, M1 GROUP, Wallcraft
+    proof:
+      - label: Getic
+        slug: getic
+      - label: SoftLogic
+        slug: softlogic
+      - label: M1 GROUP
+        slug: m1-group
+      - label: Wallcraft
   - id: exploded-views
     title: Взрыв-схемы
     description: Наглядное представление внутреннего устройства, деталей и порядка сборки продукта.
-    proof: HouseGuru, FPV FRAME
+    proof:
+      - label: HouseGuru
+        slug: house-guru
+      - label: FPV FRAME
+        slug: fpv-frame
   - id: print-materials
     title: Материалы для печати
     description: Подготовка изображений высокого разрешения для каталогов, презентаций и крупноформатной печати.
-    proof: WiederKraft, Белый свет
+    proof:
+      - label: WiederKraft
+        slug: wiederkraft
+      - label: Белый свет
 
 process:
   - position: 1
