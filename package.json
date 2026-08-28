@@ -9,8 +9,8 @@
   },
   "scripts": {
     "dev": "nuxt dev",
-    "build": "node scripts/build.mjs",
-    "generate": "nuxt generate",
+    "build": "node scripts/nuxt-run.mjs build",
+    "generate": "node scripts/nuxt-run.mjs generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
