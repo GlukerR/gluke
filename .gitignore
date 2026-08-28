@@ -2,6 +2,7 @@
 .output
 .data
 .nuxt
+.nuxt-build
 .nuxt-typecheck
 .nitro
 .cache

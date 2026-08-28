@@ -42,6 +42,11 @@ export default defineNuxtConfig({
       sqliteConnector: 'better-sqlite3',
     },
   },
+  /* Production-сборка (scripts/build.mjs) идёт в отдельный каталог `.nuxt-build`:
+     dev-сервер держит свои шаблоны в `.nuxt`, и общий каталог приводил к тому,
+     что dev-шаблоны (createRequire из @nuxt/icon) протекали в прод-бандл и
+     ломали prerender на Windows. Dev и typecheck (`.nuxt-typecheck`) не меняются. */
+  buildDir: import.meta.env.NUXT_BUILD_DIR || '.nuxt',
   experimental: {
     /* Типизированные маршруты нужны локализованным ссылкам: имя маршрута и его
        параметры проверяются компилятором вместо ручной сборки путей строками. */
