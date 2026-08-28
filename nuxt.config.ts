@@ -15,6 +15,12 @@ export default defineNuxtConfig({
   ],
   $development: {
     devtools: { enabled: true },
+    /* vue-tsc-вотчер в dev (typeCheck: true) держит полную TS-программу в
+       воркер-потоке: замедляет холодный старт на ~15–20 с и копит память
+       при каждой правке (см. run.md «Dev server memory bloat»). Проверка
+       типов в dev не теряется: изолированный `pnpm typecheck` и CI-джоб
+       гоняют vue-tsc отдельно; для build typeCheck остаётся включённым. */
+    typescript: { typeCheck: false },
   },
   devtools: { enabled: false },
   css: ['~/assets/css/main.css'],
@@ -62,6 +68,21 @@ export default defineNuxtConfig({
           forceConsistentCasingInFileNames: false,
         },
       },
+    },
+  },
+  vite: {
+    /* Тяжёлые lazy-зависимости (three и его загрузчики) пребандлим при старте
+       dev-сервера: без include первый заход на страницу с 3D-моделью триггерил
+       on-demand-оптимизацию и перезагрузку страницы. optimizeDeps — только
+       для dev, на production-сборку не влияет. */
+    optimizeDeps: {
+      include: [
+        'three',
+        'three/examples/jsm/controls/OrbitControls.js',
+        'three/examples/jsm/environments/RoomEnvironment.js',
+        'three/examples/jsm/loaders/DRACOLoader.js',
+        'three/examples/jsm/loaders/GLTFLoader.js',
+      ],
     },
   },
   typescript: {
