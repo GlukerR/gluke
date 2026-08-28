@@ -17,7 +17,7 @@ export default defineNuxtConfig({
     devtools: { enabled: true },
     /* vue-tsc-вотчер в dev (typeCheck: true) держит полную TS-программу в
        воркер-потоке: замедляет холодный старт на ~15–20 с и копит память
-       при каждой правке (см. run.md «Dev server memory bloat»). Проверка
+       при каждой правке (см. docs/run.md «Dev server memory bloat»). Проверка
        типов в dev не теряется: изолированный `pnpm typecheck` и CI-джоб
        гоняют vue-tsc отдельно; для build typeCheck остаётся включённым. */
     typescript: { typeCheck: false },
