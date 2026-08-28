@@ -50,3 +50,25 @@ jobs:
       # проект по tsconfig.typecheck.json (см. scripts/typecheck.mjs).
       - name: Run typecheck
         run: pnpm typecheck
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Полная production-сборка (ровно то, что запускает Vercel): `nuxt build`
+      # вместе с prerender (sitemap/robots). На Linux prerender работает без
+      # Windows-ограничений, поэтому здесь проверяется весь конвейер.
+      - name: Run production build
+        run: pnpm build
