@@ -3,6 +3,7 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import type * as THREE from 'three'
 import { getViewerPose, saveViewerPose } from '~/utils/modelViewPose'
 import { applyTouchScrollPolicy, isCoarsePointer } from '~/utils/touchScroll'
+import { getGlukeViewer, setGlukeViewer } from '~/utils/glukeLogo3dCache'
 
 const props = withDefaults(
   defineProps<{
@@ -290,6 +291,82 @@ function stopLoop() {
   animFrame = 0
 }
 
+/* Общая часть показа: цепляет канвас к контейнеру, вешает слушатели и
+   запускает рендер-цикл. Вызывается и после полной загрузки (mount), и при
+   повторном показе из кэша (restore) — поведение одинаковое. */
+function attachViewer() {
+  if (!container.value || !renderer) return
+  /* В пути полной загрузки (mount) канвас ещё не присвоен — берём его из
+     рендерера; в пути из кэша (restore) он уже восстановлен. */
+  canvasEl ??= renderer.domElement
+  if (!canvasEl) return
+
+  heroEl = container.value.closest('.home-hero')
+
+  container.value.appendChild(canvasEl)
+  /* На тач-устройствах вертикальный свайп по модели скроллит страницу
+     (touch-action: pan-y), горизонтальный — вращает модель. Общая логика
+     для всех вьюверов — utils/touchScroll. */
+  applyTouchScrollPolicy(canvasEl)
+  /* Ручное вращение модели перетаскиванием. */
+  canvasEl.addEventListener('pointerdown', onPointerDown)
+  canvasEl.addEventListener('pointermove', onPointerMove)
+  canvasEl.addEventListener('pointerup', onPointerUp)
+  canvasEl.addEventListener('pointercancel', onPointerUp)
+
+  resize()
+  resizeObs = new ResizeObserver(resize)
+  resizeObs.observe(container.value)
+
+  window.addEventListener('scroll', onScroll, { passive: true })
+  onScroll()
+  progressCurrent = progressTarget
+  progress.value = progressCurrent
+
+  markReady()
+  startLoop()
+}
+
+/* Снимает канвас с DOM и гасит слушатели, но НЕ выгружает вьювер: он
+   остаётся в кэше (utils/glukeLogo3dCache) до конца сессии — при следующем
+   показе (смена языка, возврат на главную) цепляется без перезагрузки. */
+function detachViewer() {
+  stopLoop()
+  resizeObs?.disconnect()
+  resizeObs = undefined
+  window.removeEventListener('scroll', onScroll)
+  if (canvasEl) {
+    canvasEl.removeEventListener('pointerdown', onPointerDown)
+    canvasEl.removeEventListener('pointermove', onPointerMove)
+    canvasEl.removeEventListener('pointerup', onPointerUp)
+    canvasEl.removeEventListener('pointercancel', onPointerUp)
+    if (canvasEl.parentElement === container.value) {
+      canvasEl.remove()
+    }
+  }
+}
+
+/* Повторный показ: вьювер уже загружен (смена языка / возврат на главную) —
+   достаём из кэша и цепляем канвас сразу. Отложенный старт не нужен: грузить
+   нечего, канвас появляется без моргания. Поза модели (поворот/наклон) уже
+   живёт в самом pivot — восстанавливать ничего не нужно. */
+function restore() {
+  const cached = getGlukeViewer()
+  if (!cached || !container.value) return
+
+  renderer = cached.renderer
+  scene = cached.scene
+  camera = cached.camera
+  pivot = cached.pivot
+  tiltPivot = cached.tiltPivot
+  mixer = cached.mixer
+  action = cached.action
+  fitOpen = cached.fitOpen
+  canvasEl = cached.canvas
+
+  attachViewer()
+}
+
 async function mount() {
   if (!container.value || disposed) return
 
@@ -414,31 +491,22 @@ async function mount() {
     }
 
     /* ── Start ─────────────────────────────────────────────────────────── */
-    heroEl = container.value.closest('.home-hero')
+    /* Кэшируем готовый вьювер до цепляния канваса: смена языка перемонтирует
+       компонент, и повторный показ подхватит ту же модель без перезагрузки
+       GLB и без чёрного моргания. */
+    setGlukeViewer({
+      renderer: rendererInstance,
+      scene: sceneInstance,
+      camera: cameraInstance,
+      pivot: pivotInstance,
+      tiltPivot: tiltPivotInstance,
+      mixer,
+      action,
+      fitOpen,
+      canvas: rendererInstance.domElement,
+    })
 
-    container.value.appendChild(renderer.domElement)
-    canvasEl = renderer.domElement
-    /* На тач-устройствах вертикальный свайп по модели скроллит страницу
-       (touch-action: pan-y), горизонтальный — вращает модель. Общая логика
-       для всех вьюверов — utils/touchScroll. */
-    applyTouchScrollPolicy(canvasEl)
-    /* Ручное вращение модели перетаскиванием. */
-    canvasEl.addEventListener('pointerdown', onPointerDown)
-    canvasEl.addEventListener('pointermove', onPointerMove)
-    canvasEl.addEventListener('pointerup', onPointerUp)
-    canvasEl.addEventListener('pointercancel', onPointerUp)
-
-    resize()
-    resizeObs = new ResizeObserver(resize)
-    resizeObs.observe(container.value)
-
-    window.addEventListener('scroll', onScroll, { passive: true })
-    onScroll()
-    progressCurrent = progressTarget
-    progress.value = progressCurrent
-
-    markReady()
-    startLoop()
+    attachViewer()
   }
   catch (err) {
     if (!disposed) {
@@ -449,9 +517,16 @@ async function mount() {
 }
 
 onMounted(() => {
-  /* Вьювер стартует в простой браузера: текст героя и LCP рендерятся без
-     конкуренции за главный поток. requestIdleCallback — где есть; иначе
-     setTimeout с тем же таймаутом. */
+  /* Вьювер уже загружен (смена языка, возврат на главную) — показываем
+     сразу, без отложенного старта: канвас цепляется мгновенно, модель не
+     моргает. */
+  if (getGlukeViewer()) {
+    restore()
+    return
+  }
+  /* Первый показ: вьювер стартует в простой браузера — текст героя и LCP
+     рендерятся без конкуренции за главный поток. requestIdleCallback — где
+     есть; иначе setTimeout с тем же таймаутом. */
   if ('requestIdleCallback' in window) {
     idleId = window.requestIdleCallback(mount, { timeout: IDLE_TIMEOUT })
   }
@@ -481,15 +556,10 @@ onBeforeUnmount(() => {
     })
   }
   disposed = true
-  stopLoop()
-  resizeObs?.disconnect()
-  renderer?.dispose()
-  mixer?.stopAllAction()
-  window.removeEventListener('scroll', onScroll)
-  canvasEl?.removeEventListener('pointerdown', onPointerDown)
-  canvasEl?.removeEventListener('pointermove', onPointerMove)
-  canvasEl?.removeEventListener('pointerup', onPointerUp)
-  canvasEl?.removeEventListener('pointercancel', onPointerUp)
+  /* Вьювер не выгружаем — он живёт в кэше (utils/glukeLogo3dCache) до конца
+     сессии: смена языка / возврат на главную покажут ту же модель без
+     перезагрузки. Снимаем только канвас, слушатели и рендер-цикл. */
+  detachViewer()
 })
 </script>
 
