@@ -71,7 +71,7 @@ onMounted(() => {
 
   videoObserver = new IntersectionObserver(
     (entries) => {
-      if (entries.some((entry) => entry.isIntersecting)) {
+      if (entries.some(entry => entry.isIntersecting)) {
         videoReady.value = true
         videoObserver?.disconnect()
       }
@@ -129,13 +129,13 @@ onMounted(() => {
          чтобы посветить им под скроллом. -->
     <video
       v-if="isLoop && !isAutoplayVideo"
+      ref="videoEl"
       :src="item.src"
       :aria-label="item.alt"
       :width="item.width"
       :height="item.height"
       :poster="videoReady ? undefined : (item.poster ?? undefined)"
       :style="{ aspectRatio: `${item.width} / ${item.height}` }"
-      ref="videoEl"
       class="project-media__video project-media__video--loop"
       :autoplay="videoReady"
       muted
@@ -151,11 +151,11 @@ onMounted(() => {
          До подхода к вьюпорту — свой постер и preload="none". -->
     <video
       v-else-if="isAutoplayVideo"
+      ref="videoEl"
       :aria-label="item.alt"
       :width="item.width"
       :height="item.height"
       :poster="videoReady ? undefined : (item.poster ?? undefined)"
-      ref="videoEl"
       class="project-media__video project-media__video--autoplay"
       :autoplay="videoReady"
       muted

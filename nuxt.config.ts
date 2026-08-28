@@ -48,6 +48,17 @@ export default defineNuxtConfig({
     typedPages: true,
   },
   compatibilityDate: '2026-07-29',
+  /* Nitro генерирует tsconfig.server.json со своим дефолтом forceConsistentCasingInFileNames=true;
+     Nuxt не пробрасывает туда typescript.tsConfig, поэтому дублируем опцию. */
+  nitro: {
+    typescript: {
+      tsConfig: {
+        compilerOptions: {
+          forceConsistentCasingInFileNames: false,
+        },
+      },
+    },
+  },
   typescript: {
     typeCheck: true,
     /* На Windows пути к пакетам pnpm в node_modules/.pnpm записываются с регистром,
@@ -57,17 +68,6 @@ export default defineNuxtConfig({
     tsConfig: {
       compilerOptions: {
         forceConsistentCasingInFileNames: false,
-      },
-    },
-  },
-  /* Nitro генерирует tsconfig.server.json со своим дефолтом forceConsistentCasingInFileNames=true;
-     Nuxt не пробрасывает туда typescript.tsConfig, поэтому дублируем опцию. */
-  nitro: {
-    typescript: {
-      tsConfig: {
-        compilerOptions: {
-          forceConsistentCasingInFileNames: false,
-        },
       },
     },
   },

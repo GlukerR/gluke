@@ -57,7 +57,7 @@ const categoryCover = (category: ProjectCategory) => {
   const preferred = publishedProjects.value.find(project => project.slug === CATEGORY_COVERS[category])
   if (preferred) return preferred.cover
   return publishedProjects.value.find(project => project.categories?.includes(category))?.cover
-  ?? initialLeadProject.cover
+    ?? initialLeadProject.cover
 }
 
 const categoryCards = computed(() =>

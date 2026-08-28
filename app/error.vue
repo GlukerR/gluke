@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { NuxtError } from '#app'
 
-const props = defineProps<{ error: NuxtError }>()
-
 import { LOCALE_COOKIE_MAX_AGE, LOCALE_COOKIE_NAME } from '#shared/i18n'
+
+const props = defineProps<{ error: NuxtError }>()
 
 /* Nuxt кладёт в объект ошибки 404 запрошенный URL, но в типах H3Error его нет —
    поле опционально расширяется здесь, а не через any. */
@@ -44,25 +44,27 @@ const unprefixedPath = computed(() => {
   return rest || '/'
 })
 
-const copy = computed(() => isRussian.value ? {
-  lang: 'ru-RU',
-  codeLabel: 'ОШИБКА 404',
-  title: 'Страница не найдена',
-  text: 'Возможно, ссылка устарела или страница переехала. Начните с главной — там всё на месте.',
-  action: 'На главную',
-  projectsAction: 'Смотреть проекты',
-  serverTitle: 'Что-то пошло не так',
-  serverText: 'Попробуйте обновить страницу или вернуться на главную.',
-} : {
-  lang: 'en-US',
-  codeLabel: 'ERROR 404',
-  title: 'Page not found',
-  text: 'The link may be outdated or the page may have moved. Start from the home page — everything is there.',
-  action: 'Back to home',
-  projectsAction: 'View projects',
-  serverTitle: 'Something went wrong',
-  serverText: 'Try refreshing the page or go back to the home page.',
-})
+const copy = computed(() => isRussian.value
+  ? {
+      lang: 'ru-RU',
+      codeLabel: 'ОШИБКА 404',
+      title: 'Страница не найдена',
+      text: 'Возможно, ссылка устарела или страница переехала. Начните с главной — там всё на месте.',
+      action: 'На главную',
+      projectsAction: 'Смотреть проекты',
+      serverTitle: 'Что-то пошло не так',
+      serverText: 'Попробуйте обновить страницу или вернуться на главную.',
+    }
+  : {
+      lang: 'en-US',
+      codeLabel: 'ERROR 404',
+      title: 'Page not found',
+      text: 'The link may be outdated or the page may have moved. Start from the home page — everything is there.',
+      action: 'Back to home',
+      projectsAction: 'View projects',
+      serverTitle: 'Something went wrong',
+      serverText: 'Try refreshing the page or go back to the home page.',
+    })
 
 const is404 = computed(() => props.error.statusCode === 404)
 
@@ -104,12 +106,6 @@ function goHome() {
      Error-страница существует только при ошибке, поэтому правило действует
      только на ней: на проде этого элемента нет, и на обычных страницах
      DevTools продолжает работать как обычно. -->
-<style>
-nuxt-error-overlay {
-  display: none !important;
-}
-</style>
-
 <template>
   <div class="bg-default text-default error-page">
     <nav
@@ -185,6 +181,12 @@ nuxt-error-overlay {
   </div>
 </template>
 
+<style>
+nuxt-error-overlay {
+  display: none !important;
+}
+</style>
+
 <style scoped>
 /* Страница ошибки рендерится вне layout, поэтому каркас собирается здесь:
    полная высота экрана, фон из ролей темы, контент по центру. */
@@ -233,7 +235,6 @@ nuxt-error-overlay {
     background-color: var(--site-surface-raised);
   }
 }
-
 
 .error-page__inner {
   display: flex;
