@@ -1,8 +1,16 @@
 <script setup lang="ts">
+import type { HomeService } from '~/utils/home-services'
+
 const site = useSiteContent()
 const locale = useCurrentLocale()
 const { t } = useI18n()
 const { home } = useSiteRoutes()
+
+/* Граница между сгенерированными типами контента и явным типом услуги:
+   приведение через unknown гарантирует сборку даже если сгенерированные типы
+   (production-сборка, Vercel) отстают от схемы и описывают proof как string[].
+   Данные на рантайме при этом всегда объекты { label, slug? }. */
+const services = computed(() => site.value.services as unknown as HomeService[])
 
 const { data: projects } = await useAsyncData(
   computed(() => `home-featured-projects-${locale.value}`),
@@ -67,7 +75,7 @@ useSchemaOrg([
 
     <HomeProjects :projects="featuredProjects" />
 
-    <HomeServices :services="site.services" />
+    <HomeServices :services="services" />
 
     <HomeProcess :steps="site.process" />
 

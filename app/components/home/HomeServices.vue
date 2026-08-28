@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { SiteCollectionItem } from '@nuxt/content'
+import type { HomeService } from '~/utils/home-services'
 
-defineProps<{ services: SiteCollectionItem['services'] }>()
+defineProps<{ services: HomeService[] }>()
 
 const { t } = useI18n()
 const { project: projectPath } = useSiteRoutes()

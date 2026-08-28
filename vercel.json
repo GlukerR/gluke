@@ -1,7 +1,7 @@
 {
   "framework": "nuxtjs",
   "installCommand": "pnpm install",
-  "buildCommand": "pnpm build",
+  "buildCommand": "rm -rf node_modules/.cache/nuxt && pnpm build",
   "outputDirectory": ".output",
   "regions": ["fra1"]
 }
