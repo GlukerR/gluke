@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "nuxt dev",
+    "restart:dev": "node scripts/restart-dev.mjs",
     "build": "node scripts/nuxt-run.mjs build",
     "generate": "node scripts/nuxt-run.mjs generate",
     "preview": "nuxt preview",
