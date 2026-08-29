@@ -42,7 +42,7 @@ export default {
     },
     services: {
       eyebrow: 'УСЛУГИ',
-      title: 'От модели до готовых материалов',
+      title: 'Что мы можем сделать для вашего продукта',
       proofLabel: 'Компании:',
     },
     process: {

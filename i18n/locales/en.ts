@@ -42,7 +42,7 @@ export default {
     },
     services: {
       eyebrow: 'SERVICES',
-      title: 'From the model to delivery-ready assets',
+      title: 'What we can do for your product',
       proofLabel: 'Companies:',
     },
     process: {

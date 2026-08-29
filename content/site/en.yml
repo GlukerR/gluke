@@ -54,8 +54,8 @@ stats:
 
 services:
   - id: product-modeling
-    title: 3D modeling of products and equipment
-    description: Accurate models built from CAD data, drawings, dimensions, photographs or a physical sample.
+    title: 3D model
+    description: We build an accurate model from CAD, drawings, photographs or a physical sample.
     proof:
       - label: Kiparis
         slug: kiparis
@@ -65,8 +65,8 @@ services:
         slug: house-guru
       - label: AIR
   - id: catalog-visualization
-    title: Catalogue visualization
-    description: Single set of angles, materials and lighting for a website, catalogue or marketplace.
+    title: Catalogue images
+    description: One visual style for a website, catalogue and marketplaces.
     proof:
       - label: HARDI
         slug: hardi
@@ -76,8 +76,8 @@ services:
       - label: FPV FRAME
         slug: fpv-frame
   - id: product-animation
-    title: Product animations
-    description: Showing how a product is built, connected, moves and what makes it different.
+    title: Animation
+    description: We show how a product works, is assembled or what makes it stand out.
     proof:
       - label: Getic
         slug: getic
@@ -88,8 +88,8 @@ services:
       - label: HARDI
         slug: hardi
   - id: web-ready-models
-    title: 3D models for web viewers
-    description: Geometry, material and texture optimization for GLB, WebGL and interactive viewing. Models run in the web viewer on the client's website.
+    title: Interactive 3D model
+    description: An optimized GLB prepared for a WebGL viewer and your website.
     proof:
       - label: Getic
         slug: getic
@@ -99,8 +99,8 @@ services:
         slug: m1-group
       - label: Wallcraft
   - id: exploded-views
-    title: Exploded views
-    description: Clear look at the internal structure, the parts and the assembly order of a product.
+    title: Exploded view
+    description: We show the internal structure and parts of a product.
     proof:
       - label: HouseGuru
         slug: house-guru
@@ -108,7 +108,7 @@ services:
         slug: fpv-frame
   - id: print-materials
     title: Print materials
-    description: High-resolution imagery prepared for catalogues, presentations and large-format printing.
+    description: High-resolution images for catalogues, presentations and printed materials.
     proof:
       - label: WiederKraft
         slug: wiederkraft
