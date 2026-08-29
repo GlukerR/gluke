@@ -63,7 +63,6 @@ services:
         slug: wiederkraft
       - label: HouseGuru
         slug: house-guru
-      - label: АИР
   - id: catalog-visualization
     title: Каталожные изображения
     description: Единый визуальный стиль для сайта, каталога и маркетплейсов.
@@ -72,7 +71,8 @@ services:
         slug: hardi
       - label: Alphatent
         slug: alphatent
-      - label: Белый свет
+      - label: M1 GROUP
+        slug: m1-group
       - label: FPV FRAME
         slug: fpv-frame
   - id: product-animation
@@ -97,7 +97,6 @@ services:
         slug: softlogic
       - label: M1 GROUP
         slug: m1-group
-      - label: Wallcraft
   - id: exploded-views
     title: Взрыв-схема
     description: Покажем внутреннее устройство и состав изделия.
@@ -114,7 +113,10 @@ services:
     proof:
       - label: WiederKraft
         slug: wiederkraft
-      - label: Белый свет
+      - label: KERMI
+        slug: klivet
+      - label: Kiparis
+        slug: kiparis
 
 process:
   - position: 1

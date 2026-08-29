@@ -63,7 +63,6 @@ services:
         slug: wiederkraft
       - label: HouseGuru
         slug: house-guru
-      - label: AIR
   - id: catalog-visualization
     title: Catalogue images
     description: One visual style for a website, catalogue and marketplaces.
@@ -72,7 +71,8 @@ services:
         slug: hardi
       - label: Alphatent
         slug: alphatent
-      - label: Bely Svet
+      - label: M1 GROUP
+        slug: m1-group
       - label: FPV FRAME
         slug: fpv-frame
   - id: product-animation
@@ -97,7 +97,6 @@ services:
         slug: softlogic
       - label: M1 GROUP
         slug: m1-group
-      - label: Wallcraft
   - id: exploded-views
     title: Exploded view
     description: We show the internal structure and parts of a product.
@@ -114,7 +113,10 @@ services:
     proof:
       - label: WiederKraft
         slug: wiederkraft
-      - label: Bely Svet
+      - label: KERMI
+        slug: klivet
+      - label: Kiparis
+        slug: kiparis
 
 process:
   - position: 1
