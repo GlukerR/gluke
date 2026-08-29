@@ -106,6 +106,8 @@ services:
         slug: house-guru
       - label: FPV FRAME
         slug: fpv-frame
+      - label: Prime Box
+        slug: prime-box
   - id: print-materials
     title: Материалы для печати
     description: Изображения высокого разрешения для каталогов, презентаций и печатной продукции.
