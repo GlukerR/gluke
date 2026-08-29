@@ -6,12 +6,9 @@ const localeHead = useLocaleHead()
 useHead(() => ({
   htmlAttrs: localeHead.value.htmlAttrs,
   link: [
-    /* Фавиконки: SVG для современных браузеров, PNG-фолбэки, apple-touch-icon
-       для iOS (иконка на главном экране). favicon.ico — контейнер 16/32/48. */
+    /* Фавикон: единственная SVG-иконка (белая монограмма G). Прочие PNG/ICO
+       и apple-touch-icon удалены, чтобы браузер не тянул их лишний раз. */
     { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
-    { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32x32.png' },
-    { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/favicon-16x16.png' },
-    { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
     ...localeHead.value.link,
   ],
   meta: localeHead.value.meta,
