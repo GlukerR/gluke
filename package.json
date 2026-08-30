@@ -17,6 +17,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "typecheck": "node scripts/typecheck.mjs",
+    "indexnow": "node scripts/indexnow.mjs",
     "check": "pnpm lint && pnpm typecheck && pnpm build"
   },
   "dependencies": {

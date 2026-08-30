@@ -72,3 +72,22 @@ jobs:
       # Windows-ограничений, поэтому здесь проверяется весь конвейер.
       - name: Run production build
         run: pnpm build
+
+  indexnow:
+    name: IndexNow ping
+    # Пингуем только на push в master (не на PR) и после успешной сборки.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: [lint, typecheck, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Дать Vercel-деплою несколько секунд форы, чтобы в момент пинга боты
+      # уже застали свежую версию. Engine и так заново переобходят URL чуть позже.
+      - name: Wait for deploy
+        run: sleep 90
+
+      - name: Ping IndexNow
+        env:
+          NUXT_SITE_URL: https://gluke.ru
+        run: node scripts/indexnow.mjs

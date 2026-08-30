@@ -1,0 +1,38 @@
+# GLUKE — 3D content for business
+
+> 3D-студия GLUKE создаёт 3D-модели, изображения, анимацию и интерактивные 3D-визуализации продукции — по чертежам, CAD-файлам и фотографиям. Работаем с производителями оборудования, мебели, электроники и товаров для маркетплейсов: каталожные изображения, продуктовые анимации, взрыв-схемы, GLB/WebGL-модели и материалы для печати.
+
+## Main pages
+
+- [Home (EN)](https://gluke.ru/): 3D content for business — services, cases, process.
+- [Home (RU)](https://gluke.ru/ru): главная — услуги, кейсы, процесс.
+- [Projects (EN)](https://gluke.ru/projects): all case studies.
+- [Projects (RU)](https://gluke.ru/ru/projects): все кейсы.
+- [About / process](https://gluke.ru/): студийный блок о GLUKE на главной.
+
+## Services
+
+We offer: 3D modelling of products and equipment; catalogue rendering in a consistent visual style; product animation (assembly, device, features); interactive 3D models (optimized GLB for WebGL viewer and website); exploded views of internal device and composition; high-resolution materials for printing, presentations and catalogues.
+
+## Projects (case studies)
+
+- [Getic](https://gluke.ru/projects/getic): 50+ models, WebGL catalogue, renders and animation, 2021–2026.
+- [Kiparis](https://gluke.ru/projects/kiparis): 100+ furniture models, 6–8 fabric variants, long-term production.
+- [WiederKraft](https://gluke.ru/projects/wiederkraft): industrial equipment — CAD to catalogue renders to print.
+- [HouseGuru](https://gluke.ru/projects/house-guru): 30+ products, modelling from samples, exploded views, packaging.
+- [M1 GROUP](https://gluke.ru/projects/m1-group): 100+ renders/covers, 14+ AR models, assembly videos (WB/Ozon).
+- [SoftLogic](https://gluke.ru/projects/softlogic): HP/LP, GLB, WebGL, 360° animation, complex equipment.
+- [Prime Box](https://gluke.ru/projects/prime-box): 4 cases, 13 views, 2 colours, exploded view.
+- [Sibmaster](https://gluke.ru/projects/sibmaster): 4 boilers, cutaways, internal device, combustion animation.
+- [Gelios tables](https://gluke.ru/projects/gelios-tables): 8+ models, catalogue + interiors.
+- [Nitrogen](https://gluke.ru/projects/nitrogen): non-standard agri equipment, drawings/samples, technical views.
+- [FPV FRAME](https://gluke.ru/projects/fpv-frame): 4 frames, 20+ renders, exploded views, modelling from scratch.
+- [Alphatent](https://gluke.ru/projects/alphatent): 17 models, animation, fabric simulation, 6+ configurations.
+- [Velesgard](https://gluke.ru/projects/velesgard): 3D animation of industrial objects, 6+ objects, 8 months.
+- [Cascadia](https://gluke.ru/projects/cascadia): UE5, 3 residential complexes, 17 000 objects after Revit, 80 FPS, dynamic weather.
+- [HARDI](https://gluke.ru/projects/hardi): 60+ models, 500+ renders, 8 videos, technical renders, instructions.
+- [KERMI / Klivet](https://gluke.ru/projects/klivet): 7 radiators, 10 RAL variants, 2–6 tube rows, interiors.
+
+## Contact forms on main page
+
+Gluke accepts project briefs through the contact form on the home page.
