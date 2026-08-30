@@ -11,7 +11,11 @@ useHead(() => ({
     { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
     ...localeHead.value.link,
   ],
-  meta: localeHead.value.meta,
+  meta: [
+    /* Проверка прав на сайт в Яндекс.Вебмастере. */
+    { name: 'yandex-verification', content: '820eb76ffe56a5df' },
+    ...localeHead.value.meta,
+  ],
 }))
 </script>
 
