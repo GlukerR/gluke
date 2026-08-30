@@ -5,14 +5,14 @@ defineProps<{ projects: ProjectsCollectionItem[] }>()
 
 const { t } = useI18n()
 
-const WIDE_SIZES = '100vw md:100vw lg:64vw xl:960px'
+const WIDE_SIZES = '100vw md:100vw lg:64vw xl:920px'
 
 /* Высокие карточки (индексы 1–2) тянутся на высоту широкого соседа: кадр
    становится заметно выше 16:9, и object-fit:cover апскейлил бы картинку
-   по вертикали. Заявляем ширину с запасом (xl:960px), чтобы браузер выбрал
+   по вертикали. Заявляем ширину с запасом (xl:920px), чтобы браузер выбрал
    кандидата, чьей высоты хватает на высокий кадр без upscale. */
-const TALL_SIZES = '100vw md:50vw lg:64vw xl:960px'
-const NARROW_SIZES = '100vw md:50vw lg:32vw xl:480px'
+const TALL_SIZES = '100vw md:50vw lg:64vw xl:920px'
+const NARROW_SIZES = '100vw md:50vw lg:32vw xl:440px'
 
 /* Узкие карточки стоят в паре с широкой и тянутся на её высоту, поэтому у них
    вертикальная обложка: лишняя высота уходит в фотографию, а не в пустоту. */
