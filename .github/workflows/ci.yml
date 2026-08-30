@@ -73,21 +73,25 @@ jobs:
       - name: Run production build
         run: pnpm build
 
-  indexnow:
-    name: IndexNow ping
-    # Пингуем только на push в master (не на PR) и после успешной сборки.
+  postdeploy:
+    name: Deploy domain + IndexNow
+    # Только на push в master (не на PR) и после успешной сборки. Полностью
+    # автономно: ждёт свежий релиз, перекидывает на него gluke.ru, пинает IndexNow.
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs: [lint, typecheck, build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      # Дать Vercel-деплою несколько секунд форы, чтобы в момент пинга боты
-      # уже застали свежую версию. Engine и так заново переобходят URL чуть позже.
-      - name: Wait for deploy
-        run: sleep 90
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
 
-      - name: Ping IndexNow
+      - name: Post-deploy (alias gluke.ru + IndexNow)
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: prj_2itGawiyIK0VOXWtACJiwvau2Pvk
+          TEAM_ID: team_zQkaayXq4up4bienpia7ZJOH
+          GITHUB_SHA: ${{ github.sha }}
           NUXT_SITE_URL: https://gluke.ru
-        run: node scripts/indexnow.mjs
+        run: node scripts/postdeploy.mjs
