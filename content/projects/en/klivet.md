@@ -13,7 +13,7 @@ status: published
 navigation: false
 period: "2026"
 engagement: completed
-clientUrl: https://kermi.com/
+clientUrl: https://www.kermi.com/ru/ru/
 services:
   - Radiator 3D modeling from drawings
   - Catalogue renders in RAL colours

@@ -1,8 +1,8 @@
 ---
 locale: en
 slug: getic
-title: 3D catalogue of networking hardware for Getic
-description: More than 50 optimized 3D models of networking hardware, catalogue assets and product videos for an international distributor with offices in Latvia and Germany.
+title: 3D catalogue of MikroTik networking hardware for Getic
+description: More than 50 optimized 3D models of MikroTik hardware for an interactive catalogue, catalogue assets and product videos for an international distributor with offices in Latvia and Germany.
 client: Getic
 industry: Networking hardware and e-commerce
 categories:
@@ -20,9 +20,11 @@ services:
   - Catalogue renders for product pages
   - Renders in interior scenes
 about: |
-  Getic commissioned a comprehensive set of work to create and maintain a library of 3D models of networking hardware from various manufacturers. The project covered product modeling from technical materials and photographs, catalogue renders and optimization of the models for use on the company website.
+  Getic is an international distributor of MikroTik networking hardware. For its catalogue we built and maintained a library of 3D models: modeling from technical materials and photographs, PBR texturing, catalogue renders and optimization for interactive viewing directly in the browser.
 
-  The models were used on the company website, in product cards and in marketing materials, helping to maintain a consistent visual standard across the entire product line.
+  Every item was delivered through a single pipeline: eight files per model — FBX plus the map set (normal, metallic/roughness, height and emissive for the indicator lights) — in two geometry versions, a heavy one for catalogue renders and a lightweight one for mobile traffic, where model weight decides everything. Textures were compressed for the client's engine: JPEG 2k/4k, DXT5 for the normal maps. That way every new item was picked up by the catalogue without manual work.
+
+  The models live in a 3D viewer on the product pages of the client's public catalogue and are used at the same time for catalogue renders and marketing materials: one and the same asset covers both web and print, which keeps the whole product line to a single visual standard. A separate strand of work covered short animations of the cable products — plugging a cable into a switch port, a cable coiling into a spiral, a run through the connector types.
 metrics:
   - value: 50+
     label: models for the web catalogue
@@ -139,15 +141,21 @@ The source data consisted of drawings, dimensions and photographs of the real de
 We created more than 50 models of networking hardware and prepared them for use on the web:
 
 - modeling of housings, ports, connectors and cooling elements;
-- PBR texturing and material setup;
-- geometry and texture optimization for WebGL, exported to FBX;
+- PBR texturing: normal, metallic/roughness, height and emissive maps for the indicator lights;
+- a single delivery pipeline — eight files per model (FBX plus the map set), so every new item is picked up by the engine without manual work;
+- two geometry versions for different jobs: a heavy one for catalogue renders and a lightweight one for mobile traffic, where model weight decides everything;
+- texture compression for the engine: JPEG 2k/4k, DXT5 for the normal maps;
 - catalogue renders for the product pages;
 - product animation and promo videos.
+
+A separate strand of work covered short animations of the cable products for their catalogue cards: plugging a cable into a switch port, a cable coiling into a spiral, a run through the connector types.
 
 Integrating the models into the CMS and into the Three.js viewer was handled by the client's team. GLUKE did not develop the Getic website and did not build the 3D viewer itself.
 
 ## The result
 
 The client received a library of 50+ models in the agreed formats, catalogue imagery and video assets. The models are prepared for interactive viewing in the browser, so the same asset serves both the web catalogue and the renders.
+
+The catalogue with the 3D viewer on its product pages is publicly available — [getic.ru/shop/mikrotik](https://www.getic.ru/shop/mikrotik).
 
 The engagement ran from 2021 through 2026.

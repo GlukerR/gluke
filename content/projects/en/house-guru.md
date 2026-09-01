@@ -2,7 +2,7 @@
 locale: en
 slug: house-guru
 title: HouseGuru product visualization for marketplaces
-description: 'More than 30 visuals of household products: modeling from a physical sample, catalogue scenes, exploded views and packaging artwork.'
+description: 'More than 30 visuals of household products: modeling from a physical sample, catalogue scenes, exploded views and packaging renders.'
 client: HouseGuru
 industry: Household goods
 categories:
@@ -15,11 +15,13 @@ period: 2024-2025
 engagement: completed
 services:
   - Exploded views
-  - Packaging artwork preparation
+  - Packaging visualization
   - 3D modeling from a physical sample
   - Catalogue visualization
 about: |
   Visualization of complex consumer products (mops). We revealed the internal mechanisms: rotating heads, the sprayer system, the reservoirs and the operation of the internal valve through exploded views.
+
+  The models were built from the physical samples the client sent us: about three days from sample to finished renders. The packaging was modeled and rendered from the same sample and the client's artwork.
 
   A clear demonstration of the advantages hidden under the plastic housing and impossible to show with photography.
 metrics:

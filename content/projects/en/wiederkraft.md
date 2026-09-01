@@ -11,8 +11,8 @@ position: 3
 featured: true
 status: published
 navigation: false
-period: 2024-2025
-engagement: completed
+period: 2024-2026
+engagement: active
 clientUrl: https://wiederkraft.ru/
 services:
   - Product visualization from drawings and CAD
@@ -25,8 +25,8 @@ about: |
 metrics:
   - value: 20+
     label: equipment models
-  - value: 1.5 years
-    label: of collaboration
+  - value: "3"
+    label: years of collaboration
   - value: 300 DPI
     label: materials prepared for print
 cover:
