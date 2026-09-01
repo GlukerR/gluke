@@ -194,6 +194,8 @@ useSchemaOrg([
       />
     </template>
 
+    <ProjectsProjectDetailStory :project="project" />
+
     <ProjectsProjectMediaGallery
       :media="project.media"
       :fallback-video-poster="project.cover.src"

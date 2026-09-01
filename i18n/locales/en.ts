@@ -109,6 +109,7 @@ export default {
     clientLinkAria: 'Visit the {client} website',
     overviewSrTitle: 'Key project figures',
     scopeSrTitle: 'Scope of work on the project',
+    storySrTitle: 'The project in detail',
     services: 'Services',
     deliverables: 'About the project',
     gallery: 'Project materials',
