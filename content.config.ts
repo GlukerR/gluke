@@ -28,11 +28,17 @@ const mediaSchema = visualSchema.extend({
   loop: z.boolean().optional(),
   /* Видео с автозапуском: играет само, звук выключен, контролы видны сразу. */
   autoplay: z.boolean().optional(),
+  /* Автоплей-видео без контролов вообще: чистая зацикленная анимация без UI
+     (никаких значков звука/паузы), muted + loop + autoplay. */
+  bare: z.boolean().optional(),
   /* Стартовая секунда: видео начинает играть не с 0:00, а с этой точки,
      чтобы соседние ролики в галерее не стартовали синхронно. */
   startAt: z.number().min(0).optional(),
   /* Явный полноширинный материал (например, финальная картинка галереи). */
   wide: z.boolean().optional(),
+  /* Одиночный материал отдельной строкой (например, квадратный ролик в подборке,
+     который не должен вставать в пару с горизонтальным и обрезаться). */
+  solo: z.boolean().optional(),
   /* Компактный материал для ряда из четырёх (например, видео с тремя картинками рядом). */
   quad: z.boolean().optional(),
   /* Материал для ряда из трёх на всю ширину (квадратные картинки, не резать). */
@@ -91,10 +97,14 @@ export default defineContentConfig({
       schema: z.object({
         locale: localeSchema,
         slug: slugSchema,
+        /* Тип представления кейса: `case` — полноценная страница (B2B, услуги,
+           метрики, «О проекте»), `showcase` — компактная (видео/галерея по клику,
+           для синематиков и гейм-реди). По умолчанию `case`. */
+        type: z.enum(['case', 'showcase']).optional(),
         client: z.string().min(1),
         industry: z.string().min(1),
         /* Профили, к которым относится кейс (массив — кейс может быть в двух сразу). */
-        categories: z.array(z.enum(['orgtech', 'industrial', 'furniture', 'gameready'])).optional(),
+        categories: z.array(z.enum(['orgtech', 'industrial', 'furniture', 'exteriors', 'cinematics', 'gameready'])).optional(),
         position: z.number().int().positive(),
         featured: z.boolean(),
         status: z.enum(['draft', 'review', 'published']),
@@ -107,6 +117,10 @@ export default defineContentConfig({
         deliverables: z.array(z.string().min(1)).optional(),
         about: z.string().min(1).optional(),
         cover: visualSchema,
+        /* Картинка в шапке кейса: по умолчанию совпадает с `cover` (карточкой
+           категории), но может быть отдельной — когда на хабе проектов стоит
+           одна заставка, а в самом кейсе хочется показать другую. */
+        hero: visualSchema.optional(),
         /* 3D-модель вместо обложки в hero кейса; постером вьювера служит сама обложка.
            Визуальные параметры вьювера — каждая модель может переопределять
            дефолты компонента (в скобках — значения по умолчанию). */
