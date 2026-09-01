@@ -4,6 +4,7 @@ import type { SiteCollectionItem } from '@nuxt/content'
 const props = defineProps<{ faq: SiteCollectionItem['faq'] }>()
 
 const { t } = useI18n()
+const { project: projectPath } = useSiteRoutes()
 </script>
 
 <template>
@@ -31,6 +32,25 @@ const { t } = useI18n()
 
           <p class="text-body--sm home-faq__answer">
             {{ item.answer }}
+          </p>
+
+          <p
+            v-if="item.cases?.length"
+            class="text-body--sm home-faq__cases"
+          >
+            <span class="text-label home-faq__cases-label">{{ t('home.faq.casesLabel') }}</span>
+            <template
+              v-for="(caseLink, caseIndex) in item.cases"
+              :key="caseLink.slug"
+            >
+              <NuxtLink
+                :to="projectPath(caseLink.slug)"
+                class="home-faq__cases-link"
+              >
+                {{ caseLink.label }}
+              </NuxtLink>
+              <span v-if="caseIndex < item.cases.length - 1">, </span>
+            </template>
           </p>
         </details>
       </div>
@@ -92,8 +112,30 @@ const { t } = useI18n()
 }
 
 .home-faq__answer {
-  padding-block-end: clamp(16px, 2vw, 24px);
   max-width: 62ch;
   color: var(--site-text-secondary);
+}
+
+.home-faq__cases {
+  margin-block-start: 8px;
+  color: var(--site-text-secondary);
+}
+
+.home-faq__cases-label {
+  margin-inline-end: 8px;
+}
+
+.home-faq__cases-link {
+  color: var(--site-accent-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.home-faq__cases-link:hover {
+  color: var(--site-accent-text-hover);
+}
+
+.home-faq__item > :last-child {
+  padding-block-end: clamp(16px, 2vw, 24px);
 }
 </style>

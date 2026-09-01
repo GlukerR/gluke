@@ -52,6 +52,7 @@ export default {
     faq: {
       eyebrow: 'ВОПРОСЫ И ОТВЕТЫ',
       title: 'Частые вопросы о 3D-визуализации',
+      casesLabel: 'Кейсы:',
     },
     about: {
       eyebrow: 'О СТУДИИ',

@@ -83,6 +83,13 @@ const serviceSchema = z.object({
   proof: z.array(proofCompanySchema).min(1),
 })
 
+/* Кейс, на который ссылается ответ в FAQ: `slug` обязателен, потому что
+   название всегда становится ссылкой на страницу кейса. */
+const faqCaseSchema = z.object({
+  label: z.string().min(1),
+  slug: slugSchema,
+})
+
 const processStepSchema = z.object({
   position: z.number().int().positive(),
   title: z.string().min(1),
@@ -191,6 +198,8 @@ export default defineContentConfig({
         faq: z.array(z.object({
           question: z.string().min(1),
           answer: z.string().min(1),
+          /* Кейсы, подтверждающие ответ: выводятся ссылками под текстом. */
+          cases: z.array(faqCaseSchema).min(1).optional(),
         })).min(1),
         process: z.array(processStepSchema).min(1),
         audiences: z.array(z.string().min(1)).min(1),

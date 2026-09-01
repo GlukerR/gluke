@@ -67,17 +67,23 @@ const serviceSchema = computed(() => services.value.map(service => ({
   'provider': { '@id': organizationId.value },
 })))
 
-/* FAQPage соответствует видимому блоку «Вопросы и ответы» на этой странице. */
+/* FAQPage соответствует видимому блоку «Вопросы и ответы» на этой странице:
+   ссылки на кейсы дописываются в текст ответа, чтобы разметка совпадала
+   с тем, что видит пользователь. */
 const faqSchema = computed(() => ({
   '@type': 'FAQPage',
-  'mainEntity': site.value.faq.map(item => ({
-    '@type': 'Question',
-    'name': item.question,
-    'acceptedAnswer': {
-      '@type': 'Answer',
-      'text': item.answer,
-    },
-  })),
+  'mainEntity': site.value.faq.map((item) => {
+    const cases = item.cases?.map(caseLink => caseLink.label).join(', ')
+
+    return {
+      '@type': 'Question',
+      'name': item.question,
+      'acceptedAnswer': {
+        '@type': 'Answer',
+        'text': cases ? `${item.answer} ${t('home.faq.casesLabel')} ${cases}` : item.answer,
+      },
+    }
+  }),
 }))
 
 useSchemaOrg([

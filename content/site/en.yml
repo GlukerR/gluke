@@ -126,11 +126,21 @@ faq:
   - question: What formats do you deliver?
     answer: High-resolution images for web, catalogues and print; video for websites and marketplaces; GLB models for WebGL viewers.
   - question: Do you work with marketplaces (WB, Ozon)?
-    answer: Yes — catalogue images, AR/3D models and assembly videos for WB and Ozon. For M1 GROUP alone we produced 100+ renders and 14 AR models.
+    answer: Yes — catalogue images, 3D models and assembly videos for WB and Ozon. For M1 GROUP alone we produced 100+ renders and product card covers.
+    cases:
+      - label: M1 GROUP
+        slug: m1-group
+      - label: HouseGuru
+        slug: house-guru
   - question: Do you do animation and video?
-    answer: Yes: product animations, cinematics and advertising films. Scenes are built in Unreal Engine — from device animations to full advertising creatives.
+    answer: Yes — product animations, cinematics and advertising films. Scenes are built in Unreal Engine — from device animations to full advertising creatives.
   - question: Can I order an interactive 3D model for my website?
-    answer: Yes — we prepare an optimized GLB and integrate it into a product page or catalogue with a WebGL viewer (see Getic and SoftLogic cases).
+    answer: Yes — we prepare an optimized GLB and integrate it into a product page or catalogue with a WebGL viewer.
+    cases:
+      - label: Getic
+        slug: getic
+      - label: SoftLogic
+        slug: softlogic
 
 process:
   - position: 1
