@@ -36,8 +36,8 @@ cover:
   width: 1680
   height: 945
 media:
-  - src: /media/projects/sibmaster/sib-kotel-4.png
-    alt: Автоматический котёл СибМастер с насосной станцией, каталожный рендер
+  - src: /media/projects/sibmaster/sib-kotel-3.png
+    alt: Котёл СибМастер, технический разрез с внутренним устройством
     width: 1680
     height: 1680
     kind: image
@@ -46,8 +46,8 @@ media:
     width: 1680
     height: 1680
     kind: image
-  - src: /media/projects/sibmaster/sib-kotel-3.png
-    alt: Котёл СибМастер, технический разрез с внутренним устройством
+  - src: /media/projects/sibmaster/sib-kotel-4.png
+    alt: Автоматический котёл СибМастер с насосной станцией, каталожный рендер
     width: 1680
     height: 1680
     kind: image

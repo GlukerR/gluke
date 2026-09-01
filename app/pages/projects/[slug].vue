@@ -77,6 +77,10 @@ watch(data, (value) => {
    переходного рендера, реальный 404 обрабатывается watch выше. */
 const project = computed(() => data.value?.project ?? initialData.project)
 
+/* Showcase (синематики/гейм-реди): компактная страница без метрик,
+   «Услуг» и «О проекте» — акцент на видео/галерее по клику. */
+const isShowcase = computed(() => project.value.type === 'showcase')
+
 const pageTitle = computed(() => t('seo.projectTitle', {
   title: project.value.title,
   site: site.value.brand.name,
@@ -148,19 +152,27 @@ useSchemaOrg([
       </NuxtLink>
     </div>
 
-    <ProjectsProjectDetailHero :project="project" />
-
-    <ProjectsProjectDetailOverview :metrics="project.metrics" />
-
-    <ProjectsProjectDetailScope
-      :services="project.services"
-      :deliverables="project.deliverables"
-      :about="project.about"
+    <ProjectsProjectShowcaseHero
+      v-if="isShowcase"
+      :project="project"
     />
+
+    <template v-else>
+      <ProjectsProjectDetailHero :project="project" />
+
+      <ProjectsProjectDetailOverview :metrics="project.metrics" />
+
+      <ProjectsProjectDetailScope
+        :services="project.services"
+        :deliverables="project.deliverables"
+        :about="project.about"
+      />
+    </template>
 
     <ProjectsProjectMediaGallery
       :media="project.media"
       :fallback-video-poster="project.cover.src"
+      :grid="isShowcase"
     />
 
     <ProjectsProjectPager

@@ -6,7 +6,7 @@ description: "Интерактивная 3D-среда жилого компле
 client: Каскад
 industry: Интерактивные презентации недвижимости
 categories:
-  - furniture
+  - exteriors
 position: 14
 featured: false
 status: published

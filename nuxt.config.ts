@@ -48,6 +48,14 @@ export default defineNuxtConfig({
       sqliteConnector: 'better-sqlite3',
     },
   },
+  /* Яндекс.Метрика подключается только если задан публичный ID счётчика
+     (NUXT_PUBLIC_YM_ID) — см. app/plugins/yandex-metrika.client.ts.
+     Без переменной скрипт Метрики на сайт не грузится вообще. */
+  runtimeConfig: {
+    public: {
+      yandexMetrikaId: '',
+    },
+  },
   /* Production-сборка (scripts/nuxt-run.mjs) идёт в отдельный каталог `.nuxt-build`:
      dev-сервер держит свои шаблоны в `.nuxt`, и общий каталог приводил к тому,
      что dev-шаблоны (createRequire из @nuxt/icon) протекали в прод-бандл и

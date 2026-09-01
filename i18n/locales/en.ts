@@ -82,6 +82,18 @@ export default {
         title: 'Furniture & interiors',
         description: 'Tables, furniture and home goods.',
       },
+      exteriors: {
+        title: 'Exteriors',
+        description: 'Architecture and exterior visualizations.',
+      },
+      cinematics: {
+        title: 'Cinematics',
+        description: 'Trailers, videos and advertising cinematics.',
+      },
+      gameready: {
+        title: 'Game-ready models',
+        description: 'Game-ready models and real-time assets.',
+      },
     },
   },
   project: {

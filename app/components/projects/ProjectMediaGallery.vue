@@ -3,10 +3,20 @@ import type { ProjectsCollectionItem } from '@nuxt/content'
 
 type ProjectMedia = ProjectsCollectionItem['media'][number]
 
-const props = defineProps<{
-  media: ProjectsCollectionItem['media']
-  fallbackVideoPoster: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    media: ProjectsCollectionItem['media']
+    fallbackVideoPoster: string
+    /* Сеточный режим для showcase-страниц (синематики/гейм-реди):
+       горизонтальные видео идут по 2 в ряд, вертикальные собираются
+       флагами `triple`/`quad`; правило «первый/последний на всю ширину»
+       и авторастягивание видео отключены. */
+    grid?: boolean
+  }>(),
+  {
+    grid: false,
+  },
+)
 
 const { t } = useI18n()
 
@@ -39,6 +49,12 @@ const SOLO_COMPACT_SIZES = '100vw lg:720px'
 function isWide(item: ProjectMedia): boolean {
   const ratio = item.width / item.height
 
+  /* В сеточном режиме ширина только по явному флагу: горизонтальные видео
+     без `wide` по умолчанию встают парами (по 2 в ряд). */
+  if (props.grid) {
+    return Boolean(item.wide)
+  }
+
   /* Явный `wide: false` отменяет автоматическое растягивание (например,
      у 16:9-видео, чтобы оно не вылезало на всю ширину). */
   if (item.wide === false) {
@@ -51,6 +67,12 @@ function isWide(item: ProjectMedia): boolean {
 /* Материал, помеченный `quad`, не может быть полноширинным. */
 function isQuad(item: ProjectMedia): boolean {
   return Boolean(item.quad)
+}
+
+/* Одиночный материал отдельной строкой: не встаёт в пару, не растягивается
+   на всю ширину (например, квадратный ролик в подборке). */
+function isSolo(item: ProjectMedia): boolean {
+  return Boolean(item.solo)
 }
 
 /* Материал для ряда из трёх на всю ширину (квадратные, не резать). */
@@ -138,6 +160,14 @@ const rows = computed<GalleryRow[]>(() => {
   }
 
   for (const [index, item] of props.media.entries()) {
+    if (isSolo(item)) {
+      flushPending()
+      flushQuad()
+      flushTriple()
+      pushSolo(item)
+      continue
+    }
+
     if (isQuad(item)) {
       flushPending()
       flushTriple()
@@ -156,9 +186,10 @@ const rows = computed<GalleryRow[]>(() => {
     flushTriple()
 
     /* Первый и последний материалы галереи всегда занимают всю ширину строки
-       сами по себе, независимо от пропорций: остальные группируются по прежним
-       правилам. Крайние полноширинные строки дают композиции рамку. */
-    const isEdge = index === 0 || index === props.media.length - 1
+       сами по себе (кроме сеточного режима, а также явного wide: false —
+       отключает и это принудительное растяжение): остальные группируются
+       по прежним правилам. Крайние полноширинные строки дают композиции рамку. */
+    const isEdge = !props.grid && item.wide !== false && (index === 0 || index === props.media.length - 1)
 
     if (isEdge) {
       flushPending()

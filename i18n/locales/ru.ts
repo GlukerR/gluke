@@ -82,6 +82,18 @@ export default {
         title: 'Мебель и интерьеры',
         description: 'Столы, мебель и товары для дома.',
       },
+      exteriors: {
+        title: 'Экстерьеры',
+        description: 'Архитектура и экстерьерные визуализации.',
+      },
+      cinematics: {
+        title: 'Синематики',
+        description: 'Трейлеры, ролики и рекламные синематики.',
+      },
+      gameready: {
+        title: 'Гейм-реди модели',
+        description: 'Game-ready модели и real-time ассеты.',
+      },
     },
   },
   project: {

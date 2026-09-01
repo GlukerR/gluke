@@ -69,11 +69,27 @@ onMounted(() => {
      которые лежат далеко под скроллом, отнимая полосу у LCP-картинки hero. */
   const marginPx = Math.max(800, Math.round(window.innerHeight * 1.2))
 
+  /* Один наблюдатель на всё время жизни элемента:
+     - первое пересечение включает загрузку (videoReady → preload);
+     - автоплей-ролики играют только пока галерея рядом с вьюпортом:
+       ушла из зоны — пауза, вернулась — снова играет. Без этого
+       накопившиеся под скроллом ролики молотили бы декодер вечно
+       и грузили процессор/батарею на мобильных. */
   videoObserver = new IntersectionObserver(
     (entries) => {
-      if (entries.some(entry => entry.isIntersecting)) {
-        videoReady.value = true
-        videoObserver?.disconnect()
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          videoReady.value = true
+
+          const video = videoEl.value
+
+          if (video && (isLoop.value || isAutoplayVideo.value)) {
+            video.play().catch(() => {})
+          }
+        }
+        else if (isAutoplayVideo.value) {
+          videoEl.value?.pause()
+        }
       }
     },
     { rootMargin: `${marginPx}px 0px` },
@@ -145,9 +161,10 @@ onMounted(() => {
       @loadedmetadata="seekToStart"
     />
 
-    <!-- Видео с автозапуском: играет само, звук изначально выключен,
-         но контролы видны сразу — значок выключенного звука на месте.
-         С флагом `loop` сразу же запускается заново после окончания.
+    <!-- Видео с автозапуском: играет само, звук выключен. По умолчанию
+         контролы видны (значок выключенного звука на месте); флаг `bare`
+         убирает их совсем — чистая автозацикленная анимация без UI.
+         Всегда зациклено: после окончания сразу запускается заново.
          До подхода к вьюпорту — свой постер и preload="none". -->
     <video
       v-else-if="isAutoplayVideo"
@@ -159,10 +176,10 @@ onMounted(() => {
       class="project-media__video project-media__video--autoplay"
       :autoplay="videoReady"
       muted
-      controls
+      :controls="!item.bare"
+      loop
       playsinline
       :preload="videoReady ? 'auto' : 'none'"
-      :loop="Boolean(item.loop)"
       @loadedmetadata="seekToStart"
     >
       <source
@@ -184,6 +201,7 @@ onMounted(() => {
       :poster="posterSrc"
       class="project-media__video"
       controls
+      loop
       playsinline
       :preload="videoReady ? 'metadata' : 'none'"
     >

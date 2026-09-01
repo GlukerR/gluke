@@ -32,41 +32,41 @@ metrics:
     label: months on the project
 cover:
   src: /media/projects/velesgard/cover.jpg
-  alt: Velesgard animation — final frame: industrial objects around the VELESGARD wordmark
+  alt: "Velesgard animation — final frame: industrial objects around the VELESGARD wordmark"
   width: 1680
   height: 945
 media:
   - src: /media/projects/velesgard/sec-04.jpg
-    alt: Velesgard animation — frame at 4 seconds
+    alt: "Velesgard animation — frame at 4 seconds"
     width: 1680
     height: 945
     kind: image
   - src: /media/projects/velesgard/velesgard-anim.mp4
-    alt: Velesgard painting animation — a colored ribbon travels across grey industrial objects
+    alt: "Velesgard painting animation — a colored ribbon travels across grey industrial objects"
     width: 960
     height: 540
     kind: video
     loop: true
     wide: false
   - src: /media/projects/velesgard/velesgard-logo.mp4
-    alt: Animated Velesgard logo — the WG sign emerging from liquid
+    alt: "Animated Velesgard logo — the WG sign emerging from liquid"
     width: 960
     height: 540
     kind: video
     loop: true
     wide: false
   - src: /media/projects/velesgard/sec-03.jpg
-    alt: Velesgard animation — frame at 3 seconds
+    alt: "Velesgard animation — frame at 3 seconds"
     width: 1680
     height: 945
     kind: image
   - src: /media/projects/velesgard/sec-08.jpg
-    alt: Velesgard animation — frame at 8 seconds
+    alt: "Velesgard animation — frame at 8 seconds"
     width: 1680
     height: 945
     kind: image
   - src: /media/projects/velesgard/sec-09.jpg
-    alt: Velesgard animation — frame at 9 seconds
+    alt: "Velesgard animation — frame at 9 seconds"
     width: 1680
     height: 945
     kind: image

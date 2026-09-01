@@ -2,8 +2,11 @@
 import type { ProjectsCollectionItem } from '@nuxt/content'
 
 const props = defineProps<{
-  category: 'orgtech' | 'industrial' | 'furniture'
+  category: 'orgtech' | 'industrial' | 'furniture' | 'exteriors' | 'cinematics' | 'gameready'
   cover: ProjectsCollectionItem['cover']
+  /* Прямая ссылка вместо промежуточной сетки категории: для категорий-коллекций
+     (например «Синематики») карточка ведёт сразу на страницу с материалами. */
+  to?: string
 }>()
 
 const { t } = useI18n()
@@ -17,7 +20,7 @@ const description = computed(() => t(`projects.categories.${props.category}.desc
 
 <template>
   <NuxtLink
-    :to="localePath({ name: 'projects', query: { category } })"
+    :to="to ?? localePath({ name: 'projects', query: { category } })"
     class="category-card"
   >
     <span class="category-card__media">

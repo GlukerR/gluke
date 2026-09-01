@@ -36,8 +36,8 @@ cover:
   width: 1680
   height: 945
 media:
-  - src: /media/projects/sibmaster/sib-kotel-4.png
-    alt: SibMaster automatic boiler with pumping station, catalogue render
+  - src: /media/projects/sibmaster/sib-kotel-3.png
+    alt: SibMaster boiler, technical cutaway showing the internal structure
     width: 1680
     height: 1680
     kind: image
@@ -46,8 +46,8 @@ media:
     width: 1680
     height: 1680
     kind: image
-  - src: /media/projects/sibmaster/sib-kotel-3.png
-    alt: SibMaster boiler, technical cutaway showing the internal structure
+  - src: /media/projects/sibmaster/sib-kotel-4.png
+    alt: SibMaster automatic boiler with pumping station, catalogue render
     width: 1680
     height: 1680
     kind: image

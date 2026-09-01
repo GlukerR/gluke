@@ -32,41 +32,41 @@ metrics:
     label: месяцев работы над проектом
 cover:
   src: /media/projects/velesgard/cover.jpg
-  alt: Анимация Велесгард — финальный кадр: промышленные объекты вокруг логотипа ВЕЛЕСГАРД
+  alt: "Анимация Велесгард — финальный кадр: промышленные объекты вокруг логотипа ВЕЛЕСГАРД"
   width: 1680
   height: 945
 media:
   - src: /media/projects/velesgard/sec-04.jpg
-    alt: Анимация Велесгард — кадр на 4-й секунде
+    alt: "Анимация Велесгард — кадр на 4-й секунде"
     width: 1680
     height: 945
     kind: image
   - src: /media/projects/velesgard/velesgard-anim.mp4
-    alt: Анимация раскрашивания Велесгард — цветная лента проходит по серым промышленным объектам
+    alt: "Анимация раскрашивания Велесгард — цветная лента проходит по серым промышленным объектам"
     width: 960
     height: 540
     kind: video
     loop: true
     wide: false
   - src: /media/projects/velesgard/velesgard-logo.mp4
-    alt: Анимированный логотип Велесгард — знак WG, проявляющийся из жидкости
+    alt: "Анимированный логотип Велесгард — знак WG, проявляющийся из жидкости"
     width: 960
     height: 540
     kind: video
     loop: true
     wide: false
   - src: /media/projects/velesgard/sec-03.jpg
-    alt: Анимация Велесгард — кадр на 3-й секунде
+    alt: "Анимация Велесгард — кадр на 3-й секунде"
     width: 1680
     height: 945
     kind: image
   - src: /media/projects/velesgard/sec-08.jpg
-    alt: Анимация Велесгард — кадр на 8-й секунде
+    alt: "Анимация Велесгард — кадр на 8-й секунде"
     width: 1680
     height: 945
     kind: image
   - src: /media/projects/velesgard/sec-09.jpg
-    alt: Анимация Велесгард — кадр на 9-й секунде
+    alt: "Анимация Велесгард — кадр на 9-й секунде"
     width: 1680
     height: 945
     kind: image

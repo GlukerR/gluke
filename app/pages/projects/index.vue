@@ -6,10 +6,10 @@ const { projects: projectsPath, project: projectPath } = useSiteRoutes()
 const { toAbsolute } = useSiteUrls()
 const route = useRoute()
 
-type ProjectCategory = 'orgtech' | 'industrial' | 'furniture' | 'gameready'
+type ProjectCategory = 'orgtech' | 'industrial' | 'furniture' | 'exteriors' | 'cinematics' | 'gameready'
 
 /* Профили, показываемые на хабе (gameready появится, когда появятся кейсы). */
-const CATEGORIES = ['orgtech', 'industrial', 'furniture'] as const
+const CATEGORIES = ['orgtech', 'industrial', 'furniture', 'exteriors', 'cinematics'] as const
 
 const { data: projects } = await useAsyncData(
   computed(() => `projects-archive-${locale.value}`),
@@ -50,6 +50,8 @@ const CATEGORY_COVERS: Record<ProjectCategory, string> = {
   orgtech: 'prime-box',
   industrial: 'sibmaster',
   furniture: 'gelios-tables',
+  exteriors: 'cascadia',
+  cinematics: 'dynomine',
   gameready: '',
 }
 
@@ -60,6 +62,8 @@ const categoryCover = (category: ProjectCategory) => {
     ?? initialLeadProject.cover
 }
 
+/* Все категории ведут на сетку своих кейсов (?category=…): у «Синематиков»
+   она же показывает отдельные серии (SWMD, DYNOMINE) рядом с подборкой. */
 const categoryCards = computed(() =>
   CATEGORIES.map(category => ({
     category,

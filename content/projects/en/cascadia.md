@@ -6,7 +6,7 @@ description: "An interactive 3D environment of a residential complex in Unreal E
 client: Cascadia
 industry: Interactive real estate presentations
 categories:
-  - furniture
+  - exteriors
 position: 14
 featured: false
 status: published
