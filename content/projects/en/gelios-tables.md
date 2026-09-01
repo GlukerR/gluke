@@ -81,7 +81,7 @@ media:
 
 Gelios Tables is a Novosibirsk furniture manufacturer that needed 3D table models and renders for the company's catalogue and website. The source data consisted of drawings, photographs and physical furniture samples.
 
-## What GLUKE did
+## The work
 
 - detailed 3D table models from drawings and samples;
 - accurate transfer of the construction, materials and hardware;

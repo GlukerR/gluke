@@ -191,13 +191,13 @@ media:
     caption: 'Shop Expanse: mobile game advertising video'
 ---
 
-## Task
+## The task
 
 SVMD (Overskor) is a motion-creative studio for mobile games. The task was to create 30-second advertising videos in Unreal Engine: from scene assembly and still frames to the final render with 2D elements and sounds.
 
 The client provided game assets, storyboard briefs and references; the whole 3D cycle was on us: materials, lighting, camera and character animation, VFX.
 
-## What GLUKE did
+## The work
 
 - the full creative cycle: scene assembly → still frames → animatic → revisions → final render;
 - materials and lighting setup, camera and character animation;
@@ -205,6 +205,6 @@ The client provided game assets, storyboard briefs and references; the whole 3D 
 - resizes for every format: 16:9, 9:16, 4:5, 1:1;
 - final assembly with 2D elements and sounds.
 
-## Result
+## The result
 
 17 videos for 6 games over a year and a half of steady cooperation: War Robots, Grunt Rush, Archery Clash, MAS-169, StickmanSniper, Shop Expanse. The works passed the NDA period and were published with the client's permission.

@@ -73,11 +73,11 @@ media:
     kind: image
 ---
 
-## Task
+## The task
 
 Build a virtual 3D scene of the Garden City cottage village in Unreal Engine: place fachwerk houses per the master plan, show streets, fences, garden plots and landscaping, and produce urgent renders for the project presentation.
 
-## What GLUKE did
+## The work
 
 - 3D scene of the whole village of ~70 plots: territory, roads with curbs and straight driveways;
 - a drainage system: a ditch with a pipe under the pavement, runoff away from the plots;
@@ -88,6 +88,6 @@ Build a virtual 3D scene of the Garden City cottage village in Unreal Engine: pl
 - by the water — a pier and a cruise boat (seated to its waterline);
 - urgent renders for the presentation and the exhibition: village plan from above, street views, a river view, house visualizations.
 
-## Result
+## The result
 
 A complete interactive village scene in Unreal Engine plus a package of presentation renders approved by the client.

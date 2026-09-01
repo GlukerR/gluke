@@ -109,9 +109,9 @@ export default {
     clientLinkAria: 'Перейти на сайт клиента {client}',
     overviewSrTitle: 'Ключевые показатели проекта',
     scopeSrTitle: 'Состав работ по проекту',
-    storySrTitle: 'Подробно о проекте',
+    story: 'Подробнее о проекте',
     services: 'Услуги',
-    deliverables: 'О проекте',
+    deliverables: 'Что входило',
     gallery: 'Материалы проекта',
     media: {
       unsupported: 'Ваш браузер не воспроизводит это видео.',

@@ -83,7 +83,7 @@ WiederKraft supplies equipment for car service centres: lifts, tyre changers and
 
 The source data consisted of drawings and CAD files of the equipment.
 
-## What GLUKE did
+## The work
 
 We completed a series of projects for the digital catalogue:
 

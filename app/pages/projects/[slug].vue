@@ -187,10 +187,11 @@ useSchemaOrg([
 
       <ProjectsProjectDetailOverview :metrics="project.metrics" />
 
+      <!-- `about` намеренно не передаётся: это сжатый пересказ секции
+           «Задача», а она теперь выводится в блоке «Подробнее о проекте». -->
       <ProjectsProjectDetailScope
         :services="project.services"
         :deliverables="project.deliverables"
-        :about="project.about"
       />
     </template>
 

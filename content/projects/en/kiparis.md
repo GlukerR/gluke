@@ -86,7 +86,7 @@ The Kiparis furniture manufacturer needed a steady stream of visuals for the cat
 
 An additional challenge was the upholstery options: the same model is shown in several fabrics and colours.
 
-## What GLUKE did
+## The work
 
 We set up a streamlined pipeline for producing catalogue assets:
 

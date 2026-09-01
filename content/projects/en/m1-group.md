@@ -78,7 +78,7 @@ M1 GROUP is a manufacturer of products for Wildberries and Ozon in two product l
 
 The key requirements were an accurate bristle geometry for the replacement heads, a realistic stainless steel material and readable cover text that accounts for the marketplaces' "blind zones".
 
-## What GLUKE did
+## The work
 
 - a 3D model of the toothbrush and four replacement heads compatible with Oral-B: bristle tuft geometry, tip shapes, colour schemes (medium hardness, Classic);
 - renders of the heads in 4 colours with coloured indicator rings, plus a close-up re-render for the cover;

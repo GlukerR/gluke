@@ -73,11 +73,11 @@ media:
     wide: true
 ---
 
-## Task
+## The task
 
 Produce a 3D visualization of the distribution center complex for a management presentation: model the grounds and 5 warehouses from blueprints and photos, roads and asphalt with markings, landscaping, fencing, street lights and a checkpoint; prepare a bird's-eye view, night renders, callouts with government agency logos and a presentation slide.
 
-## What GLUKE did
+## The work
 
 - modeled the grounds and 5 warehouses — multi-temperature, trading and freezer — from blueprints and photos;
 - asphalt with markings in front of the loading docks, driveways and parking, landscaping, fencing, street lights and a checkpoint;
@@ -87,6 +87,6 @@ Produce a 3D visualization of the distribution center complex for a management p
 - callouts with government agency logos (Customs, Rosselkhoznadzor) in a unified style and a presentation slide;
 - a series of paid revisions based on management feedback (greenery, naming, callout plates).
 
-## Result
+## The result
 
 A complete 3D model of the distribution center with its grounds plus presentation materials: many angles from one model, a bird's-eye view, night renders, callouts and a slide. The renders were used in the project presentation to management.

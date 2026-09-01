@@ -72,11 +72,11 @@ media:
     kind: image
 ---
 
-## Task
+## The task
 
 Velesgard LLC (Smolensk) supplies paints and coatings for industrial facilities: bridges, ships, storage tanks, plants. Their new website needed two animations: an animated logo for the homepage and a video that clearly shows their supply directions — painting grey industrial objects in brand colors.
 
-## What GLUKE did
+## The work
 
 - animated logo: the mark emerging from liquid (Water Logo template), reworked for the WG sign, looped, versions compressed to fit the website (3–10 MB);
 - sourcing and purchasing 3D models on cgtrader across the client's industries: a bridge, an oil platform, a tanker, storage tanks, an oil refinery, a harbor crane;
@@ -85,6 +85,6 @@ Velesgard LLC (Smolensk) supplies paints and coatings for industrial facilities:
 - several rounds of revisions on materials (metal instead of "plastic"), background and logo readability;
 - high-resolution renders and all source files handed over.
 
-## Result
+## The result
 
-The client received two animations: a logo now live on their website homepage and a 3D video painting industrial objects in brand colors. The project was completed under contract No. 10 (October 2023 — May 2024).
+The client received two animations: a logo now live on their website homepage and a 3D video painting industrial objects in brand colors. The work ran from October 2023 to May 2024.

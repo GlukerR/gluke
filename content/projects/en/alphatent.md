@@ -69,11 +69,11 @@ media:
     kind: image
 ---
 
-## Task
+## The task
 
 Alphatent is a Russian manufacturer of folding canopy tents for events and rental. They needed a 3D model of a 3×3 m tent with an opening/closing animation — something competitors don't have, since they all use real video. Later the project grew into a series of tent models in different sizes and configurations for their website catalog.
 
-## What GLUKE did
+## The work
 
 - modeled the aluminum frame from the physical sample: profiles, telescopic legs, accordion roof, foot pads, locking buttons;
 - a series of 3×3 and 6×4 tent models in different configurations — with windows, with the logo, with a pagoda roof;
@@ -82,6 +82,6 @@ Alphatent is a Russian manufacturer of folding canopy tents for events and renta
 - a variant with the logo printed on the tent;
 - 17 catalog renders for the website: different sizes and configurations, three angles each.
 
-## Result
+## The result
 
 The client got a full 3D opening animation of the tent — something competitors don't offer — a series of models in different configurations and a set of renders for their catalog. The frame model was approved by the manufacturer on structural accuracy.

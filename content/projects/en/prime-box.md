@@ -82,7 +82,7 @@ Prime Box is a Russian manufacturer of computer cases. The client needed catalog
 
 Four models were handed over for the work — Q3, Q9, Z5 and Z14 — with fans and the source data.
 
-## What GLUKE did
+## The work
 
 - four full 3D models of the Q3, Q9, Z5, Z14 cases with fans and accurate materials;
 - renders of all camera angles in two colours (white/black) on white and transparent backgrounds;
@@ -92,4 +92,4 @@ Four models were handed over for the work — Q3, Q9, Z5 and Z14 — with fans a
 
 ## The result
 
-The client received a set of catalogue renders of four cases for the website and product cards in one consistent style. The work was performed under contract No. 20/05 of 20.05.2024 and is complete.
+The client received a set of catalogue renders of four cases for the website and product cards in one consistent style. The project was completed in 2024.

@@ -92,7 +92,7 @@ Nitrogen is a Barnaul manufacturer of liquid fertilizer equipment: mixing units 
 
 The source data consisted of technical documentation, drawings and equipment samples.
 
-## What GLUKE did
+## The work
 
 - detailed 3D models of the equipment: funnels, dispenser, production line, storage systems;
 - accurate transfer of the constructions and materials from drawings and samples;

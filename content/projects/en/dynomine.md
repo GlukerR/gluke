@@ -160,11 +160,11 @@ media:
     caption: 'app design: miner cards and stats'
 ---
 
-## Task
+## The task
 
 DYNOMINE is a crypto company in the mining (ASIC) field. For ASIC advertising they needed an animatable dinosaur skeleton: the original high-poly model without a rig had to be retopologized, unwrapped, painted and fitted with a skeleton, then advertising videos had to be assembled next to copies of the ASIC miners.
 
-## What GLUKE did
+## The work
 
 - retopology, UVs, painting and the dinosaur skeleton;
 - purchasing and adapting an animation pack, retargeting, first animations;
@@ -172,6 +172,6 @@ DYNOMINE is a crypto company in the mining (ASIC) field. For ASIC advertising th
 - animated loading screens with the glowing DYNOMINE AI logo;
 - assembling videos and screens in Unreal (sequencer), rendering for the website.
 
-## Result
+## The result
 
 The work was accepted by the client's art director: the Unreal project (sequencer), the After Effects project, the dinosaur model with a rig and animation pack, and renders were handed over.

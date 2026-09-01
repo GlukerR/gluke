@@ -95,7 +95,7 @@ SoftLogic is a Russian manufacturer of neural network analysis systems: video an
 
 Such hardware is hard to present with regular photography — the accuracy of ports, indicators and the overall enclosure shape matters. The client needed a set of assets for the catalogue and website: clean catalogue renders, a rotation animation and 3D models for interactive viewing.
 
-## What GLUKE did
+## The work
 
 We completed the full cycle of work on both devices:
 

@@ -136,7 +136,7 @@ Getic is an international distributor of networking hardware with offices in Lat
 
 The source data consisted of drawings, dimensions and photographs of the real devices.
 
-## What GLUKE did
+## The work
 
 We created more than 50 models of networking hardware and prepared them for use on the web:
 

@@ -73,15 +73,15 @@ media:
     caption: '"Naivety" — personal 3D animation'
 ---
 
-## Task
+## The task
 
 A fan-made Alan Wake 2 trailer: to capture the game's atmosphere — rainy night New York, fog, silhouettes and the signature red billboard.
 
-## What GLUKE did
+## The work
 
 - scene assembly and camera animation in Unreal Engine;
 - lighting, fog and atmospheric effects.
 
-## Result
+## The result
 
 A trailer built in Unreal Engine and published on YouTube.

@@ -85,7 +85,7 @@ HouseGuru sells household products through marketplaces. The product pages neede
 
 The source data consisted of physical product samples.
 
-## What GLUKE did
+## The work
 
 We produced more than 30 visuals:
 

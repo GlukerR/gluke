@@ -81,11 +81,11 @@ media:
     loop: true
 ---
 
-## Task
+## The task
 
 A residential complex needed an interactive real-time 3D environment in Unreal Engine 5: buyers were supposed to explore the territory and buildings in real time, with changing time of day, weather and seasons. The scene arrived raw from the client — 17,000 objects after importing from Revit, unoptimized, with no materials set up.
 
-## What GLUKE did
+## The work
 
 - cleaning 17,000 empty objects from the scene after the Revit import;
 - PBR material setup for buildings, landscape and glass (Parallax Windows);
@@ -95,6 +95,6 @@ A residential complex needed an interactive real-time 3D environment in Unreal E
 - real-time optimization: Virtual Textures, master materials via instances, World Partition, 80 FPS target;
 - Blueprint systems for dynamic weather and time of day.
 
-## Result
+## The result
 
 A working UE5 environment with dynamic weather and time of day, dressed surroundings for three residential complexes and stable performance. Development was paused before release.

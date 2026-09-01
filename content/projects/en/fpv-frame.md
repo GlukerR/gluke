@@ -91,7 +91,7 @@ media:
 
 FPV FRAME sells FPV drones and components through its own website. The product cards required accurate 3D models of the frames from drawings and photographs: perfectly identical camera angles for every model so the catalogue looks uniform.
 
-## What GLUKE did
+## The work
 
 - four frame models built from scratch from drawings and photos (Tyoshcha, Vobla, Driada, Kashchey);
 - a set of five camera angles per frame: above-front, front, below-front, full top;

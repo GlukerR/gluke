@@ -81,7 +81,7 @@ media:
 
 Klivet LLC (Moscow) makes tubular radiators under the KERMI brand. Their catalogue required accurate 3D models of the radiators (Kermi/tubog analogues) and mounting hardware, with catalogue renders in various RAL colours.
 
-## What GLUKE did
+## The work
 
 - 3D modeling of six radiators of the RRN/RRV lines: 2–6 tube rows, 300–1500 mm heights;
 - modeling of the KLK mounting bracket;

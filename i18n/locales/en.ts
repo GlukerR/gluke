@@ -109,9 +109,9 @@ export default {
     clientLinkAria: 'Visit the {client} website',
     overviewSrTitle: 'Key project figures',
     scopeSrTitle: 'Scope of work on the project',
-    storySrTitle: 'The project in detail',
+    story: 'The project in detail',
     services: 'Services',
-    deliverables: 'About the project',
+    deliverables: 'What was delivered',
     gallery: 'Project materials',
     media: {
       unsupported: 'Your browser cannot play this video.',

@@ -74,7 +74,7 @@ SibMaster produces automatic heating boilers and block-modular boiler houses. Th
 
 The source data consisted of drawings, photographs and technical documentation.
 
-## What GLUKE did
+## The work
 
 - four detailed 3D boiler models from drawings and photos;
 - detailed modeling of the hardware: hopper with vibrator, sensors, control cabinet with cables;
@@ -85,4 +85,4 @@ The source data consisted of drawings, photographs and technical documentation.
 
 ## The result
 
-The client received a set of 3D assets for the catalogue and sales: models, cutaways and an animation that clearly explain to buyers how an automatic boiler works. The engagement ran under contract in 2024–2026 and is complete.
+The client received a set of 3D assets for the catalogue and sales: models, cutaways and an animation that clearly explain to buyers how an automatic boiler works. The engagement ran from 2024 to 2026 and is complete.

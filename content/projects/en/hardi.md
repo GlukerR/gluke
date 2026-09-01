@@ -110,11 +110,11 @@ media:
     kind: image
 ---
 
-## Task
+## The task
 
 HARDI is a Russian manufacturer of furniture hardware: drawer slides, gas lifts, hinges, soft-close mechanisms and sliding systems. Their website needed detailed 3D renders and videos showing product advantages: the mechanism design, part precision and material quality — in a way photography cannot.
 
-## What GLUKE did
+## The work
 
 - 3D modeling of drawer slides (ball-bearing, soft-close, push-to-open) and gas lifts from scratch, 60+ furniture hardware models;
 - technical renders with translucent housings: visible 7th-precision-class balls, springs, safety rings;
@@ -124,6 +124,6 @@ HARDI is a Russian manufacturer of furniture hardware: drawer slides, gas lifts,
 - a door assembly video guide for the Premium hanging system — the full cycle from measuring to installation with narration;
 - logo animation for the videos.
 
-## Result
+## The result
 
 The client got a complete 3D catalog of hardware: models, catalog renders and advantage videos that reveal the internal construction in a way photography cannot. The cooperation has been ongoing since 2023.
