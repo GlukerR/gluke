@@ -18,10 +18,6 @@ services:
   - Product visualization from drawings and CAD
   - Catalogue visualization
   - Print and billboard material preparation
-about: |
-  Series of photorealistic 3D renders of industrial equipment for the catalogue and website of WiederKraft, including car lifts and related products.
-
-  The client received a single set of high-quality visuals that present WiederKraft equipment in the catalogue and on the website in the clearest, "cleanest" possible form.
 metrics:
   - value: 20+
     label: equipment models
@@ -94,4 +90,4 @@ We completed a series of projects for the digital catalogue:
 
 ## The result
 
-The client received a set of assets that covers both the web catalogue and printed materials: the same model is used for the product card, the catalogue and large-format printing without re-modeling.
+A single set of assets covers both the web catalogue and print: the same model goes into the product card, the catalogue and large-format printing without re-modeling.

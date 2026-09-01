@@ -20,10 +20,6 @@ services:
   - Optimization for use by other visualizers
   - Furniture renders in multiple fabrics (6–8 options per model)
   - High-resolution catalogue renders
-about: |
-  Development of a set of detailed 3D furniture models for use in interior visualizations, in the product catalogue and for handover to third-party visualizers.
-
-  The result is a ready-made set of universal 3D models used to create interior and catalogue visualizations without additional modeling.
 metrics:
   - value: 100+
     label: furniture models

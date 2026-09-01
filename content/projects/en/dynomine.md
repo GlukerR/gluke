@@ -24,12 +24,6 @@ deliverables:
   - ASIC models with aged metal, 360° turntables
   - Logo video with the name laser-burned onto the case
   - 12 video plates with pixel transitions and QR codes
-about: |
-  Creation of a series of 3D advertising materials for DYNOMINE: from modeling and rigging the dinosaur and ASIC miners to animation, advertising scenes and videos in Unreal Engine.
-
-  I prepared an animatable dinosaur: retopology, UVs, a rig and a set of animations. I created and refined three ASIC miner models, including building the Avalon A1346 from scratch.
-
-  Based on these models I assembled advertising scenes and videos in Unreal Engine, plus a series of branded video plates and graphics in After Effects.
 metrics:
   - value: "3"
     label: ASIC models
@@ -168,7 +162,7 @@ DYNOMINE is a crypto company in the mining (ASIC) field. For ASIC advertising th
 
 - retopology, UVs, painting and the dinosaur skeleton;
 - purchasing and adapting an animation pack, retargeting, first animations;
-- ASIC models: aged metal, realistic surface, 360° turntable;
+- the ASIC miner models, including the Avalon A1346 built from scratch: aged metal, realistic surface, 360° turntable;
 - animated loading screens with the glowing DYNOMINE AI logo;
 - assembling videos and screens in Unreal (sequencer), rendering for the website.
 

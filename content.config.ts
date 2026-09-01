@@ -122,7 +122,6 @@ export default defineContentConfig({
         clientUrl: z.string().url().optional(),
         services: z.array(z.string().min(1)).min(1),
         deliverables: z.array(z.string().min(1)).optional(),
-        about: z.string().min(1).optional(),
         cover: visualSchema,
         /* Картинка в шапке кейса: по умолчанию совпадает с `cover` (карточкой
            категории), но может быть отдельной — когда на хабе проектов стоит

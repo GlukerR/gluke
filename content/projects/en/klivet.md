@@ -1,7 +1,7 @@
 ---
 locale: en
 slug: klivet
-title: 3D models and renders of KERMI tubular radiators
+title: 3D models and renders of KERMI radiators
 description: '15 models of KERMI radiators — tubular RRN/RRV and panel FKO/FTV/FTU: catalogue renders in RAL colours and white, interior scenes and packaging renders.'
 client: Klivet (KERMI)
 industry: Heating equipment
@@ -19,10 +19,6 @@ services:
   - Catalogue renders in RAL colours
   - Interior radiator renders
   - Packaging renders
-about: |-
-  For Klivet LLC (the KERMI brand) we created a series of 3D radiator models — analogues of Kermi/tubog — together with the mounting hardware.
-
-  Fifteen positions were modeled: ten tubular radiators of the RRN/RRV lines with 2–6 tube rows and heights from 300 to 1500 mm, and five FKO/FTV/FTU panel radiators, plus the KLK mounting bracket. The catalogue renders follow one shot list — front and rear elevation, side, three-quarter left and right, the connection node, the thermostatic valve and the ventilation insert.
 metrics:
   - value: "15"
     label: radiator models
@@ -80,16 +76,17 @@ media:
 
 ## The task
 
-Klivet LLC (Moscow) makes tubular radiators under the KERMI brand. Their catalogue required accurate 3D models of the radiators (Kermi/tubog analogues) and mounting hardware, with catalogue renders in various RAL colours.
+Klivet LLC (Moscow) makes heating radiators under the KERMI brand. Their catalogue required accurate 3D models of the radiators (Kermi/tubog analogues) and mounting hardware, plus consistent renders of the whole range — in RAL colours, in white and in interiors.
 
 ## The work
 
-- 3D modeling of six radiators of the RRN/RRV lines: 2–6 tube rows, 300–1500 mm heights;
+- 3D modeling of ten tubular radiators of the RRN/RRV lines: 2–6 tube rows, 300–1500 mm heights;
+- 3D modeling of five FKO/FTV/FTU panel radiators, including the ventilation inserts;
 - modeling of the KLK mounting bracket;
-- catalogue renders in RAL colours;
-- interior renders of the radiators in rooms;
-- showing the design differences between the RRN and RRV lines.
+- catalogue renders in RAL colours and in white;
+- one shot list per item: front and rear elevation, side, three-quarter left and right, the connection node and the thermostatic valve;
+- interior scenes and packaging renders.
 
 ## The result
 
-The client received 7 models and 10 renders of the radiators and mounting hardware for the catalogue.
+15 models and more than fifty catalogue renders cover both ranges, tubular and panel. Because every item follows the same shot list, a new position joins the catalogue alongside the existing ones without a reshoot.

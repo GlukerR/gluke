@@ -17,10 +17,6 @@ clientUrl: https://prime-box.ru/
 services:
   - Catalogue renders for the website and product cards
   - Exploded views
-about: |
-  Prime Box is a Russian manufacturer of computer cases (LLC PBI). We built four full 3D models of cases from the Q and Z series — Q3, Q9, Z5, Z14 — with fans and accurate materials and colours.
-
-  We prepared catalogue renders of all camera angles in two colours — white and black — on white and transparent backgrounds, including exploded views of the case structure. The style was aligned with the assets on the client's website and brought to one consistent standard.
 metrics:
   - value: "4"
     label: full 3D case models
@@ -78,7 +74,7 @@ media:
 
 ## The task
 
-Prime Box is a Russian manufacturer of computer cases. The client needed catalogue renders of the cases for the website and product cards: all camera angles, in two colours, in one consistent style with the existing assets on the website.
+Prime Box is a Russian manufacturer of computer cases, PBI LLC. The website already had product cards in place, so the new imagery had to slot into the existing layout with no visible seam between the old and new assets.
 
 Four models were handed over for the work — Q3, Q9, Z5 and Z14 — with fans and the source data.
 
@@ -92,4 +88,4 @@ Four models were handed over for the work — Q3, Q9, Z5 and Z14 — with fans a
 
 ## The result
 
-The client received a set of catalogue renders of four cases for the website and product cards in one consistent style.
+Four cases were shot in one consistent style — the renders went onto the website and into the product cards next to the existing assets with no visible seam.

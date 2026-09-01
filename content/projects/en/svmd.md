@@ -23,8 +23,6 @@ deliverables:
   - 30-second motion creatives
   - Still frames and animatics for approval
   - "Videos in all formats: 16:9, 9:16, 4:5, 1:1"
-about: |
-  A series of advertising videos for mobile games produced for SVMD (Overskor). Over the course of the work we delivered 17 creatives for 6 games, including War Robots, Grunt Rush, Archery Clash, MAS-169, StickmanSniper and Shop Expanse. For several creatives we built different versions of scenes, mechanics and gameplay situations.
 metrics:
   - value: "17"
     label: motion creatives
@@ -207,4 +205,4 @@ The client provided game assets, storyboard briefs and references; the whole 3D 
 
 ## The result
 
-The videos ran for War Robots, Grunt Rush, Archery Clash, MAS-169, StickmanSniper and Shop Expanse. The works passed the NDA period and were published with the client's permission.
+The videos ran for War Robots, Grunt Rush, Archery Clash, MAS-169, StickmanSniper and Shop Expanse — from stills and animatics through to the final render in every placement format.

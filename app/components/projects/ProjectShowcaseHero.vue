@@ -30,16 +30,6 @@ const heroVisual = computed(() => props.project.hero ?? props.project.cover)
         <p class="text-body showcase-hero__description">
           {{ project.description }}
         </p>
-
-        <!-- Короткий текст «О проекте»: у серийных кейсов (SWMD, DYNOMINE)
-             даёт контекст — клиент, период, что делали. Показывается только
-             если поле заполнено. -->
-        <div
-          v-if="project.about"
-          class="text-body--sm showcase-hero__about"
-        >
-          {{ project.about }}
-        </div>
       </div>
 
       <div class="showcase-hero__visual">
@@ -103,12 +93,6 @@ const heroVisual = computed(() => props.project.hero ?? props.project.cover)
 .showcase-hero__description {
   max-width: 56ch;
   color: var(--site-text-secondary);
-}
-
-.showcase-hero__about {
-  max-width: 56ch;
-  color: var(--site-text-secondary);
-  white-space: pre-line;
 }
 
 .showcase-hero__visual {

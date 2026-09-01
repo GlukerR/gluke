@@ -19,10 +19,6 @@ services:
   - Cloth simulation
   - 3D modeling from a physical sample
   - Catalog visualization
-about: |
-  A series of 3D models of Alphatent folding canopy tents — 3×3 and 6×4 m — with an opening animation and cloth simulation, plus a set of catalog renders of all configurations for the website.
-
-  The frame was modeled from the physical sample: aluminum profiles, telescopic legs, an accordion roof, foot pads and locking buttons. The fabric — polyester — was simulated with physically accurate folds in Marvelous Designer. For the catalog, renders of tents in different sizes and configurations were prepared: with windows, with the logo, in three angles.
 metrics:
   - value: "18"
     label: catalogue renders
@@ -84,4 +80,4 @@ Alphatent is a Russian manufacturer of folding canopy tents for events and renta
 
 ## The result
 
-The client got a full 3D opening animation of the tent — something competitors don't offer — a series of models in different configurations and a set of renders for their catalog. The frame model was approved by the manufacturer on structural accuracy.
+A full 3D opening animation of the tent — something competitors do not offer — a series of models in different configurations and a set of renders for their catalog. The frame model was approved by the manufacturer on structural accuracy.

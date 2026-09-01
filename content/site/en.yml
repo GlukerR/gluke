@@ -119,8 +119,8 @@ services:
         slug: kiparis
 
 faq:
-  - question: How much does a 3D model cost?
-    answer: The average project budget starts from €500. Small one-off tasks are quoted individually — send us a brief and we will give you an exact price for your task.
+  - question: How long does the work take?
+    answer: A single model with catalogue renders takes a few days. A series for a catalogue or an animation is scoped by volume — we give you the timeline together with the quote, before the work starts.
   - question: What materials do you need to get started?
     answer: Drawings, CAD files, photographs or a physical sample. We work with whatever you have — from source files to a finished model.
   - question: What formats do you deliver?

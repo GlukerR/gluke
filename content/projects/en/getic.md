@@ -19,12 +19,6 @@ services:
   - Product animations
   - Catalogue renders for product pages
   - Renders in interior scenes
-about: |
-  Getic is an international distributor of MikroTik networking hardware. For its catalogue we built and maintained a library of 3D models: modeling from technical materials and photographs, PBR texturing, catalogue renders and optimization for interactive viewing directly in the browser.
-
-  Every item was delivered through a single pipeline: eight files per model — FBX plus the map set (normal, metallic/roughness, height and emissive for the indicator lights) — in two geometry versions, a heavy one for catalogue renders and a lightweight one for mobile traffic, where model weight decides everything. Textures were compressed for the client's engine: JPEG 2k/4k, DXT5 for the normal maps. That way every new item was picked up by the catalogue without manual work.
-
-  The models live in a 3D viewer on the product pages of the client's public catalogue and are used at the same time for catalogue renders and marketing materials: one and the same asset covers both web and print, which keeps the whole product line to a single visual standard. A separate strand of work covered short animations of the cable products — plugging a cable into a switch port, a cable coiling into a spiral, a run through the connector types.
 metrics:
   - value: 50+
     label: models for the web catalogue
@@ -132,7 +126,7 @@ media:
 
 ## The task
 
-Getic is an international distributor of networking hardware with offices in Latvia and Germany. The catalogue needed consistent assets across the whole hardware line: models that could be shown in an interactive viewer on the website, catalogue imagery and video for the product pages.
+Getic is an international distributor of MikroTik hardware with offices in Latvia and Germany. The library was not built for a one-off shoot but for a catalogue that keeps growing: every new item has to join the existing row and open in the viewer right on its product page.
 
 The source data consisted of drawings, dimensions and photographs of the real devices.
 
@@ -154,6 +148,6 @@ Integrating the models into the CMS and into the Three.js viewer was handled by 
 
 ## The result
 
-The client received a library of 50+ models in the agreed formats, catalogue imagery and video assets. The models are prepared for interactive viewing in the browser, so the same asset serves both the web catalogue and the renders.
+A library of 50+ models in the agreed formats, catalogue imagery and video assets. The models are prepared for interactive viewing in the browser, so the same asset serves both the web catalogue and the renders.
 
 The catalogue with the 3D viewer on its product pages is publicly available — [getic.ru/shop/mikrotik](https://www.getic.ru/shop/mikrotik).

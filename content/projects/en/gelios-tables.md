@@ -18,10 +18,6 @@ services:
   - Furniture 3D modeling from drawings and samples
   - Furniture renders in interiors
   - Catalogue product renders
-about: |
-  Gelios Tables is a Novosibirsk furniture manufacturer: tables, sofas, armchairs. From drawings, photographs and samples we built detailed 3D models of the tables and prepared renders for the company's catalogue and website, including furniture visualizations in interiors.
-
-  The models accurately convey the construction, materials and hardware of each model. The interior renders show how the furniture looks in a real setting, helping buyers imagine it in their own space.
 metrics:
   - value: 8+
     label: table models
@@ -90,4 +86,4 @@ Gelios Tables is a Novosibirsk furniture manufacturer that needed 3D table model
 
 ## The result
 
-The client received a set of 3D models and renders for the catalogue and sales: catalogue imagery of every model and interior visualizations that help buyers picture the furniture in a real setting.
+The catalogue is covered end to end: imagery of every model plus interior scenes that let buyers picture the furniture in their own home.

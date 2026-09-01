@@ -19,10 +19,6 @@ services:
   - 3D building modeling
   - Product animation
   - 3D asset sourcing and adaptation
-about: |
-  A comprehensive project for Velesgard LLC: an animated logo for the website homepage and a 3D animation in which a colored ribbon paints grey industrial objects in the company's brand colors.
-
-  For the animation, 3D models were sourced and purchased on cgtrader across the client's industries: a bridge, an oil platform, a tanker, storage tanks, an oil refinery and a harbor crane. In the finale the buildings form a semicircle around the logo outline with the VELESGARD wordmark.
 metrics:
   - value: "2"
     label: "animations: logo and 3D painting"
@@ -87,4 +83,4 @@ Velesgard LLC (Smolensk) supplies paints and coatings for industrial facilities:
 
 ## The result
 
-The client received two animations: a logo now live on their website homepage and a 3D video painting industrial objects in brand colors.
+Two animations: a logo now live on the client's website homepage and a 3D video painting industrial objects in brand colours.

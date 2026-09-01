@@ -20,12 +20,6 @@ services:
   - Furniture hardware 3D modeling
   - Catalog visualization
   - Technical renders
-about: |
-  The full 3D workflow for furniture hardware manufacturer HARDI: modeling drawer slides, gas lifts, hinges, soft-close mechanisms and sliding systems, plus catalog renders, technical presentations with translucent housings and product advantage videos.
-
-  The key goal was to show product advantages: the internal mechanism design, part precision and material quality. This was achieved with cross-sections, translucent housings revealing the balls and springs, highlighted accent details, slide extension animation and full videos with voiceover, subtitles and a brand logo.
-
-  For sliding systems and profiles, comparative renders of facade systems were made (narrow 20 mm vs wide 45 mm), plus profiles, corners and handles in 7 colors. A door assembly video guide for the Premium hanging system covers the full cycle from measuring to installation with narration.
 metrics:
   - value: 50+
     label: furniture hardware models
@@ -116,14 +110,14 @@ HARDI is a Russian manufacturer of furniture hardware: drawer slides, gas lifts,
 
 ## The work
 
-- 3D modeling of drawer slides (ball-bearing, soft-close, push-to-open) and gas lifts from scratch, 60+ furniture hardware models;
+- 3D modeling of drawer slides (ball-bearing, soft-close, push-to-open) and gas lifts from scratch, 50+ furniture hardware models;
 - technical renders with translucent housings: visible 7th-precision-class balls, springs, safety rings;
 - catalog renders in a consistent angle on a white background (500+ renders across the project);
-- comparative renders of sliding systems and facade profiles, handles and corners in 7 colors;
+- comparative renders of sliding systems and facade profiles — the narrow 20 mm profile against the wide 45 mm one, handles and corners in 7 colors;
 - slide extension animation — 8 product advantage videos with voiceover, subtitles and a brand logo;
 - a door assembly video guide for the Premium hanging system — the full cycle from measuring to installation with narration;
 - logo animation for the videos.
 
 ## The result
 
-The client got a complete 3D catalog of hardware: models, catalog renders and advantage videos that reveal the internal construction in a way photography cannot.
+The hardware catalogue is now fully in 3D: models, catalogue renders and videos that reveal the internal construction in a way photography cannot.

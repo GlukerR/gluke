@@ -23,8 +23,6 @@ deliverables:
   - 30-секундные motion-креативы
   - Статики и аниматики для утверждения
   - "Ролики под все форматы: 16:9, 9:16, 4:5, 1:1"
-about: |
-  Серия рекламных роликов для мобильных игр, созданных для SVMD (Овэрскор). За время работы подготовлено 17 креативов для 6 игр, включая War Robots, Grunt Rush, Archery Clash, MAS-169, StickmanSniper и Shop Expanse. Для отдельных креативов создавались разные версии сцен, механик и игровых ситуаций.
 metrics:
   - value: "17"
     label: motion-креативов
@@ -207,4 +205,4 @@ SVMD (Овэрскор) — студия motion-креативов для моб
 
 ## Результат
 
-Ролики вышли для War Robots, Grunt Rush, Archery Clash, MAS-169, StickmanSniper и Shop Expanse. Работы прошли NDA-период и опубликованы с разрешения клиента.
+Ролики вышли для War Robots, Grunt Rush, Archery Clash, MAS-169, StickmanSniper и Shop Expanse — от статики и аниматика до финального рендера под все форматы площадок.

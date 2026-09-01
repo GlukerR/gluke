@@ -21,12 +21,6 @@ services:
   - Day and night visualization
   - Grounds improvement
   - Preparation of presentation materials
-about: |
-  I created a 3D model of the RusAgroMarket wholesale distribution center from blueprints and photographs.
-
-  I recreated the five warehouses and the grounds: roads, markings, landscaping, fencing, the checkpoint, lighting and facade elements.
-
-  I prepared the main bird's-eye view, night renders and presentation materials with labels of the complex facilities. The renders were used by the client in the project presentation.
 metrics:
   - value: "5"
     label: warehouses of the complex

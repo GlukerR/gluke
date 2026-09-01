@@ -19,12 +19,6 @@ services:
   - Lighting, materials and weather
   - Dynamic weather and time of day
   - Real-time optimization
-about: |
-  For three residential complexes — Kaskada, Visioner and Greenwood — we built an interactive 3D environment in Unreal Engine 5: buyers explore the buildings and grounds in real time, switch the time of day and weather, and view the quarter in different seasons.
-
-  The scene arrived raw from the client — 17,000 objects after importing from Revit, unoptimized, with no materials set up — so the project was rebuilt from scratch: building and glass materials reworked, landscape, roads, parking lots, playgrounds and greenery created, trees and plants placed.
-
-  Lighting and dynamic weather (sun, clouds, rain, snow) with a day/night cycle were set up separately, and the scene was optimized for a stable 80 FPS. Development was paused before release.
 metrics:
   - value: "3"
     label: "residential complexes: Kaskada, Visioner, Greenwood"
@@ -83,7 +77,7 @@ media:
 
 ## The task
 
-A residential complex needed an interactive real-time 3D environment in Unreal Engine 5: buyers were supposed to explore the territory and buildings in real time, with changing time of day, weather and seasons. The scene arrived raw from the client — 17,000 objects after importing from Revit, unoptimized, with no materials set up.
+Three residential complexes — Kaskada, Visioner and Greenwood — had to reach buyers not as a picture but as an environment they could walk through themselves. The scene arrived raw from the client: 17,000 objects after importing from Revit, unoptimized, with no materials set up.
 
 ## The work
 

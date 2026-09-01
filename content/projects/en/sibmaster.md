@@ -19,10 +19,6 @@ services:
   - Combustion process animation
   - 3D modeling from drawings and photos
   - Product visualization from drawings and CAD
-about: |
-  SibMaster is a Krasnoyarsk manufacturer of automatic heating boilers and block-modular boiler houses (WL, WH, Profi series, BMK 40–20000 kW). From drawings, photographs and technical documentation we built four detailed 3D boiler models and their technical cutaways.
-
-  The models show both coal-fired automatic boilers with a hopper and vibrator, and gas-fired ones with flame flows and the path of heat through the channels. The cutaways reveal the internal structure, while the animation clearly demonstrates how the fuel burns and transfers heat to the water.
 metrics:
   - value: 4+
     label: boiler models built from scratch
@@ -70,7 +66,7 @@ media:
 
 ## The task
 
-SibMaster produces automatic heating boilers and block-modular boiler houses. The client needed 3D models for the catalogue, technical cutaways of the internal structure and clear materials that explain to buyers how a boiler works.
+SibMaster produces automatic heating boilers of the WL, WH and Profi series, along with block-modular boiler houses rated from 40 to 20,000 kW. The client needed 3D models for the catalogue, technical cutaways of the internal structure and clear materials that explain to buyers how a boiler works.
 
 The source data consisted of drawings, photographs and technical documentation.
 
@@ -85,4 +81,4 @@ The source data consisted of drawings, photographs and technical documentation.
 
 ## The result
 
-The client received a set of 3D assets for the catalogue and sales: models, cutaways and an animation that clearly explain to buyers how an automatic boiler works.
+The models, cutaways and animation explain to buyers how an automatic boiler is built and how it works.

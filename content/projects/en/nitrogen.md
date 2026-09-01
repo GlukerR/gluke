@@ -17,10 +17,6 @@ clientUrl: https://nitrogenagro.ru/
 services:
   - Equipment 3D modeling from drawings and samples
   - Catalogue renders for the website and catalogue
-about: |
-  Nitrogen is a Barnaul plant making agricultural equipment: mixing units for liquid fertilizers (CAS, liquid complex fertilizers), crop protection dosing units and liquid fertilizer storage systems. From technical documentation, drawings and samples we built detailed 3D models of the equipment: funnels, dispensers, production lines and storage systems.
-
-  For every model we prepared catalogue renders with a transparent background and technical camera angles — general views, side and top views. The result is a unified set of visuals for the manufacturer's catalogue, website and presentation materials.
 metrics:
   - value: 4+
     label: equipment models
@@ -88,7 +84,7 @@ media:
 
 ## The task
 
-Nitrogen is a Barnaul manufacturer of liquid fertilizer equipment: mixing units for CAS and liquid complex fertilizers, crop protection dosing units and storage systems. The client needed detailed 3D models of the equipment and catalogue renders for the catalogue, website and presentation materials.
+Nitrogen is a Barnaul manufacturer of liquid fertilizer equipment: mixing units for CAS and liquid complex fertilizers, crop protection dosing units and storage systems. These are large installations that will not fit a photo studio, and on site they can only be shot in workshop surroundings — so clean imagery has to be built in 3D.
 
 The source data consisted of technical documentation, drawings and equipment samples.
 
@@ -101,4 +97,4 @@ The source data consisted of technical documentation, drawings and equipment sam
 
 ## The result
 
-The client received a set of 3D models and catalogue renders for the manufacturer's catalogue, website and presentation materials.
+3D models and catalogue renders cover the manufacturer's catalogue, website and presentation materials.

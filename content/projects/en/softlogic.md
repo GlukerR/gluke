@@ -19,10 +19,6 @@ services:
   - Web viewer 3D model
   - 3D modeling from photos and a physical sample
   - Catalogue visualization
-about: |
-  3D modeling and photorealistic renders of two SoftLogic products for the catalogue and website: the SC-iMVS-RM3 neural network observation complex for road infrastructure control and the IVS-SC11 AI accelerator card. Both are complex technical products that needed to be presented clearly and "cleanly".
-
-  We produced models in two versions (high-poly and low-poly), catalogue renders in different presentations, a 360° rotation animation and a GLB model for interactive viewing. The observation complex model runs in the web viewer at the bottom of the product page on the client's website — visitors can rotate and inspect it right in the browser.
 metrics:
   - value: "2"
     label: HP and LP model versions
@@ -108,6 +104,6 @@ We completed the full cycle of work on both devices:
 
 ## The result
 
-The client received a single set of assets that covers the catalogue, the website and presentations: complex technical products are now presented clearly and neatly, without needing to explain them "by hand". The SC-iMVS-RM3 observation complex model runs in the web viewer at the bottom of the product page on the SoftLogic website — visitors rotate and inspect the device in the browser. The model is also published on [Sketchfab](https://sketchfab.com/3d-models/sc-imvs-rm3-59ca957fc2e743bcb21ab1f5931c51c5) as a fully interactive 3D presentation.
+A single set of assets covers the catalogue, the website and presentations: complex technical products are now presented clearly and neatly, without needing to explain them "by hand". The SC-iMVS-RM3 observation complex model runs in the web viewer at the bottom of the product page on the SoftLogic website — visitors rotate and inspect the device in the browser. The model is also published on [Sketchfab](https://sketchfab.com/3d-models/sc-imvs-rm3-59ca957fc2e743bcb21ab1f5931c51c5) as a fully interactive 3D presentation.
 
 The low-poly version of the model suits web viewers and interactive presentations while keeping the product instantly recognizable.

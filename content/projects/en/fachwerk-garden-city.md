@@ -22,12 +22,6 @@ services:
   - Grounds improvement and landscaping
   - Visualization of the riverside territory
   - Renders for a presentation and an exhibition
-about: |
-  For Fachwerk Stroy, a virtual 3D scene of the Garden City village was created in Unreal Engine. The basis was a master plan of roughly 70 plots with several fachwerk house types.
-
-  The scene includes the houses and the surrounding territory: roads, a drainage system, fences, terraces, landscaping and improvement elements. The Volga waterfront area with a pier and a river boat was developed separately.
-
-  Based on the scene, overall village views, individual house angles and territory renders were prepared for the presentation and the exhibition.
 metrics:
   - value: ~70
     label: plots

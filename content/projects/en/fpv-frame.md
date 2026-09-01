@@ -18,10 +18,6 @@ services:
   - Exploded views
   - 3D modeling from drawings and photos
   - Catalogue visualization
-about: |
-  FPV FRAME is a Russian manufacturer of FPV drones and components. We built four drone frame models from scratch from drawings and photographs: Tyoshcha, Vobla, Driada and Kashchey.
-
-  For each frame we prepared catalogue renders for the product cards on the website — several camera angles, versions with and without motors, logo overlay and exploded views breaking the frame down into its parts.
 metrics:
   - value: "4"
     label: frame models built from scratch
