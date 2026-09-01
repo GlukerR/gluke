@@ -186,6 +186,12 @@ export default defineContentConfig({
         /* У статистики главной может быть ссылка в подписи (например, «Kwork»). */
         stats: z.array(metricSchema.extend({ link: linkSchema.optional() })).min(1),
         services: z.array(serviceSchema).min(1),
+        /* Вопросы-ответы на главной: попадают в разметку FAQPage и видны
+           пользователям (блок «Вопросы и ответы»). */
+        faq: z.array(z.object({
+          question: z.string().min(1),
+          answer: z.string().min(1),
+        })).min(1),
         process: z.array(processStepSchema).min(1),
         audiences: z.array(z.string().min(1)).min(1),
         proofLinks: z.array(linkSchema).min(1),

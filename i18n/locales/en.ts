@@ -49,6 +49,10 @@ export default {
       eyebrow: 'PROCESS',
       title: 'Clear path from source files to the result',
     },
+    faq: {
+      eyebrow: 'FAQ',
+      title: 'Frequently asked questions about 3D visualization',
+    },
     about: {
       eyebrow: 'STUDIO',
       team: 'Team',

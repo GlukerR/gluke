@@ -104,6 +104,30 @@ usePageSeo({
   image: () => project.value.cover,
 })
 
+/* Дата публикации видео для VideoObject: из первого года периода кейса
+   («2023–2024» → 2023-01-01). Точной даты загрузки нет — год достаточно
+   корректен для разметки. */
+function uploadDateFor(period: string): string {
+  const year = period.match(/(\d{4})/)?.[1]
+  return year ? `${year}-01-01` : '2020-01-01'
+}
+
+/* Видео-материалы кейса как VideoObject: Google и ИИ индексируют ролики
+   отдельно от страницы. Узел строится только если в кейсе есть видео. */
+const videoSchema = computed(() => (project.value.media ?? [])
+  .filter(item => item.kind === 'video')
+  .map((item, index) => ({
+    '@id': `${canonicalUrl.value}#video-${index}`,
+    '@type': 'VideoObject',
+    'name': item.caption || item.alt || project.value.title,
+    'description': item.alt || pageDescription.value,
+    'contentUrl': toAbsolute(item.src),
+    'thumbnailUrl': toAbsolute(item.poster || project.value.cover.src),
+    'uploadDate': uploadDateFor(project.value.period),
+    'width': item.width,
+    'height': item.height,
+  })))
+
 useSchemaOrg([
   /* Явные @id нужны, чтобы узлы обновлялись при клиентском переходе между кейсами. */
   defineWebPage({
@@ -134,6 +158,7 @@ useSchemaOrg([
       defineListItem({ name: () => project.value.title }),
     ],
   }),
+  ...videoSchema.value,
 ])
 </script>
 

@@ -32,6 +32,11 @@ We offer: 3D modelling of products and equipment; catalogue rendering in a consi
 - [Cascadia](https://gluke.ru/projects/cascadia): UE5, 3 residential complexes, 17 000 objects after Revit, 80 FPS, dynamic weather.
 - [HARDI](https://gluke.ru/projects/hardi): 60+ models, 500+ renders, 8 videos, technical renders, instructions.
 - [KERMI / Klivet](https://gluke.ru/projects/klivet): 7 radiators, 10 RAL variants, 2–6 tube rows, interiors.
+- [DYNOMINE](https://gluke.ru/projects/dynomine): 3D advertising for crypto-mining — animatable dinosaur, ASIC models, Unreal Engine scenes, brand video plates, 2023–2024.
+- [SVMD](https://gluke.ru/projects/svmd): motion creatives for mobile games — 17 creatives for 6 games, full Unreal Engine pipeline, 2024–2025.
+- [Cinematics](https://gluke.ru/projects/cinematics): single cinematics and ad films — Alan Wake 2 fan trailer, NFT promo, crypto exchange and mining ads, author animation.
+- [RusAgroMarket](https://gluke.ru/projects/rusagromarket): 3D visualization of a wholesale distribution centre — 5 warehouses, day/night views, presentation materials, 2022.
+- [Fachwerk Garden City](https://gluke.ru/projects/fachwerk-garden-city): 3D scene of the Garden City village on the Volga — ~70 plots, 6 fachwerk house types, waterfront environment, 2023.
 
 ## Contact forms on main page
 

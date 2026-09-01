@@ -56,6 +56,30 @@ usePageSeo({
   image: () => heroProject.value.cover,
 })
 
+/* Услуги — отдельные узлы Service, привязанные к организации: ИИ-ассистенты
+   и поиск читают их как «что умеет эта студия». */
+const organizationId = computed(() => toAbsolute('/#identity'))
+
+const serviceSchema = computed(() => services.value.map(service => ({
+  '@type': 'Service',
+  'name': service.title,
+  'description': service.description,
+  'provider': { '@id': organizationId.value },
+})))
+
+/* FAQPage соответствует видимому блоку «Вопросы и ответы» на этой странице. */
+const faqSchema = computed(() => ({
+  '@type': 'FAQPage',
+  'mainEntity': site.value.faq.map(item => ({
+    '@type': 'Question',
+    'name': item.question,
+    'acceptedAnswer': {
+      '@type': 'Answer',
+      'text': item.answer,
+    },
+  })),
+}))
+
 useSchemaOrg([
   defineWebPage({
     '@type': 'WebPage',
@@ -64,6 +88,8 @@ useSchemaOrg([
     'inLanguage': () => locale.value,
     'primaryImageOfPage': () => heroCoverUrl.value,
   }),
+  ...serviceSchema.value,
+  faqSchema.value,
 ])
 </script>
 
@@ -78,6 +104,8 @@ useSchemaOrg([
     <HomeServices :services="services" />
 
     <HomeProcess :steps="site.process" />
+
+    <HomeFaq :faq="site.faq" />
 
     <HomeAbout
       :about="site.about"

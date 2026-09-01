@@ -118,6 +118,20 @@ services:
       - label: Kiparis
         slug: kiparis
 
+faq:
+  - question: How much does a 3D model cost?
+    answer: The average project budget starts at ₽30,000. Small one-off tasks are quoted individually — send us a brief and we will give you an exact price for your task.
+  - question: What materials do you need to get started?
+    answer: Drawings, CAD files, photographs or a physical sample. We work with whatever you have — from source files to a finished model.
+  - question: What formats do you deliver?
+    answer: High-resolution images for web, catalogues and print; video for websites and marketplaces; GLB models for WebGL viewers.
+  - question: Do you work with marketplaces (WB, Ozon)?
+    answer: Yes — catalogue images, AR/3D models and assembly videos for WB and Ozon. For M1 GROUP alone we produced 100+ renders and 14 AR models.
+  - question: Do you do animation and video?
+    answer: Yes: product animations, cinematics and advertising films. Scenes are built in Unreal Engine — from device animations to full advertising creatives.
+  - question: Can I order an interactive 3D model for my website?
+    answer: Yes — we prepare an optimized GLB and integrate it into a product page or catalogue with a WebGL viewer (see Getic and SoftLogic cases).
+
 process:
   - position: 1
     title: We receive the source materials

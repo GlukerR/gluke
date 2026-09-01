@@ -44,6 +44,7 @@ const { home } = useSiteRoutes()
 
 const homeUrl = computed(() => toAbsolute(home()))
 const websiteId = computed(() => `${homeUrl.value}#website`)
+const personId = computed(() => `${homeUrl.value}#person`)
 
 useSchemaOrg([
   /* @id намеренно не задаётся: резолвер модуля присваивает стабильный `<host>/#identity`,
@@ -55,6 +56,18 @@ useSchemaOrg([
        корнем сайта, а не локализованной главной. */
     url: toAbsolute('/'),
     logo: toAbsolute('/media/brand/gluke-logo-white.svg'),
+    ...(email.value ? { email: () => email.value } : {}),
+    ...(telephone.value ? { telephone: () => telephone.value } : {}),
+    ...(sameAs.length > 0 ? { sameAs } : {}),
+    /* Фаундер студии: ИИ и поиск связывают организацию с конкретным
+       человеком-исполнителем. */
+    founder: { '@id': () => personId.value },
+  }),
+  definePerson({
+    '@id': () => personId.value,
+    'name': () => site.value.brand.founder,
+    'url': () => homeUrl.value,
+    'jobTitle': () => site.value.brand.descriptor,
     ...(email.value ? { email: () => email.value } : {}),
     ...(telephone.value ? { telephone: () => telephone.value } : {}),
     ...(sameAs.length > 0 ? { sameAs } : {}),
