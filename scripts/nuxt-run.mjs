@@ -14,7 +14,7 @@
  * Использование: `node scripts/nuxt-run.mjs <build|generate>`
  */
 import { spawn, spawnSync } from 'node:child_process'
-import { existsSync } from 'node:fs'
+import { rmSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 const command = process.argv[2] ?? 'build'
@@ -27,17 +27,18 @@ const nuxtBin = resolve('node_modules/nuxt/bin/nuxt.mjs')
 const buildDir = process.env.NUXT_BUILD_DIR || '.nuxt-build'
 
 /* Встроенный typecheck (`typescript.typeCheck`) гоняет vue-tsc -b по корневому
-   `tsconfig.json`, который ссылается на `.nuxt/tsconfig.*.json`. Если `.nuxt`
-   отсутствует (например, после `rm -rf .nuxt`), сначала генерируем его через
+   `tsconfig.json`, который ссылается на `.nuxt/tsconfig.*.json`. Корневой `.nuxt`
+   переиспользуется dev-сервером и может кэшироваться между сборками (например,
+   на Vercel), поэтому для прод-сборки его всегда удаляем и пересоздаём через
    `nuxt prepare` (prepare идёт в корневой `.nuxt`, без переопределения
-   buildDir) — иначе typecheck падает с TS5083. Сама сборка при этом идёт
-   в `.nuxt-build` и dev-шаблоны не подхватывает. */
-if (!existsSync('.nuxt/tsconfig.app.json')) {
-  console.log('[nuxt-run] .nuxt is missing — running nuxt prepare first')
-  const prepared = spawnSync(process.execPath, [nuxtBin, 'prepare'], { stdio: 'inherit' })
-  if (prepared.status !== 0) {
-    process.exit(prepared.status ?? 1)
-  }
+   buildDir) — иначе typecheck читает устаревшие типы контента и падает
+   с TS2339. Сама сборка при этом идёт в `.nuxt-build` и dev-шаблоны
+   не подхватывает. */
+rmSync('.nuxt', { recursive: true, force: true })
+console.log('[nuxt-run] regenerating .nuxt for production typecheck')
+const prepared = spawnSync(process.execPath, [nuxtBin, 'prepare'], { stdio: 'inherit' })
+if (prepared.status !== 0) {
+  process.exit(prepared.status ?? 1)
 }
 
 const child = spawn(process.execPath, [nuxtBin, command], {
