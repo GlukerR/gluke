@@ -2,7 +2,7 @@
 locale: en
 slug: alphatent
 title: 3D canopy tent models and opening animation for Alphatent
-description: "A series of 3D models of 3×3 and 6×4 folding canopy tents with an opening animation, cloth simulation and 17 catalog renders for the website."
+description: "A series of 3D models of 3×3 and 6×4 folding canopy tents with an opening animation, cloth simulation and 18 catalog renders for the website."
 client: Alphatent
 industry: Tents and canopies
 categories:
@@ -80,7 +80,7 @@ Alphatent is a Russian manufacturer of folding canopy tents for events and renta
 - opening animation: spread → rise → pause → lower → fold;
 - polyester cloth simulation in Marvelous Designer with realistic folds;
 - a variant with the logo printed on the tent;
-- 17 catalog renders for the website: different sizes and configurations, three angles each.
+- 18 catalog renders for the website: different sizes and configurations, three angles each.
 
 ## The result
 

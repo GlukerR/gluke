@@ -90,4 +90,4 @@ Build a virtual 3D scene of the Garden City cottage village in Unreal Engine: pl
 
 ## The result
 
-A complete interactive village scene in Unreal Engine plus a package of presentation renders approved by the client.
+A complete interactive village scene in Unreal Engine plus a package of presentation renders.

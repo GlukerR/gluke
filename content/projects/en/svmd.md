@@ -207,4 +207,4 @@ The client provided game assets, storyboard briefs and references; the whole 3D 
 
 ## The result
 
-17 videos for 6 games over a year and a half of steady cooperation: War Robots, Grunt Rush, Archery Clash, MAS-169, StickmanSniper, Shop Expanse. The works passed the NDA period and were published with the client's permission.
+The videos ran for War Robots, Grunt Rush, Archery Clash, MAS-169, StickmanSniper and Shop Expanse. The works passed the NDA period and were published with the client's permission.

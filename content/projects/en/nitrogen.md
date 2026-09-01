@@ -101,4 +101,4 @@ The source data consisted of technical documentation, drawings and equipment sam
 
 ## The result
 
-The client received a set of 3D models and catalogue renders for the manufacturer's catalogue, website and presentation materials. The engagement is conducted through Kwork.
+The client received a set of 3D models and catalogue renders for the manufacturer's catalogue, website and presentation materials.

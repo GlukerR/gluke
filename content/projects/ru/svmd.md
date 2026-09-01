@@ -207,4 +207,4 @@ SVMD (Овэрскор) — студия motion-креативов для моб
 
 ## Результат
 
-17 роликов для 6 игр за полтора года стабильного сотрудничества: War Robots, Grunt Rush, Archery Clash, MAS-169, StickmanSniper, Shop Expanse. Работы прошли NDA-период и опубликованы с разрешения клиента.
+Ролики вышли для War Robots, Grunt Rush, Archery Clash, MAS-169, StickmanSniper и Shop Expanse. Работы прошли NDA-период и опубликованы с разрешения клиента.

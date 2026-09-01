@@ -85,4 +85,4 @@ The source data consisted of drawings, photographs and technical documentation.
 
 ## The result
 
-The client received a set of 3D assets for the catalogue and sales: models, cutaways and an animation that clearly explain to buyers how an automatic boiler works. The engagement ran from 2024 to 2026 and is complete.
+The client received a set of 3D assets for the catalogue and sales: models, cutaways and an animation that clearly explain to buyers how an automatic boiler works.

@@ -92,4 +92,4 @@ Four models were handed over for the work — Q3, Q9, Z5 and Z14 — with fans a
 
 ## The result
 
-The client received a set of catalogue renders of four cases for the website and product cards in one consistent style. The project was completed in 2024.
+The client received a set of catalogue renders of four cases for the website and product cards in one consistent style.

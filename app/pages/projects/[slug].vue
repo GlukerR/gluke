@@ -81,6 +81,10 @@ const project = computed(() => data.value?.project ?? initialData.project)
    «Услуг» и «О проекте» — акцент на видео/галерее по клику. */
 const isShowcase = computed(() => project.value.type === 'showcase')
 
+/* Первый абзац тела показывается рядом с услугами, остальное — в свёрнутом
+   блоке. Разбор в одном месте, чтобы абзац не задвоился. */
+const story = computed(() => splitProjectStory(project.value))
+
 const pageTitle = computed(() => t('seo.projectTitle', {
   title: project.value.title,
   site: site.value.brand.name,
@@ -187,15 +191,21 @@ useSchemaOrg([
 
       <ProjectsProjectDetailOverview :metrics="project.metrics" />
 
-      <!-- `about` намеренно не передаётся: это сжатый пересказ секции
-           «Задача», а она теперь выводится в блоке «Подробнее о проекте». -->
+      <!-- `about` намеренно не передаётся: это был сжатый пересказ «Задачи».
+           Вместо него рядом с услугами стоит её первый абзац. -->
       <ProjectsProjectDetailScope
         :services="project.services"
         :deliverables="project.deliverables"
+        :lead="story.lead"
       />
     </template>
 
-    <ProjectsProjectDetailStory :project="project" />
+    <!-- Showcase — это подборка работ, а не разбор одного проекта: там текст
+         целиком уходит в шапку, и раскрывашка была бы пустой обёрткой. -->
+    <ProjectsProjectDetailStory
+      v-if="!isShowcase && story.hasRest"
+      :project="story.rest"
+    />
 
     <ProjectsProjectMediaGallery
       :media="project.media"

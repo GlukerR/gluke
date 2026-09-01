@@ -95,5 +95,3 @@ We completed a series of projects for the digital catalogue:
 ## The result
 
 The client received a set of assets that covers both the web catalogue and printed materials: the same model is used for the product card, the catalogue and large-format printing without re-modeling.
-
-The engagement ran from 2024 through 2026.

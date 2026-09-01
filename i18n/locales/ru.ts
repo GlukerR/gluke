@@ -111,6 +111,7 @@ export default {
     scopeSrTitle: 'Состав работ по проекту',
     story: 'Подробнее о проекте',
     services: 'Услуги',
+    summary: 'О проекте',
     deliverables: 'Что входило',
     gallery: 'Материалы проекта',
     media: {

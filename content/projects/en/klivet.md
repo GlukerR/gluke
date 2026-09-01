@@ -2,7 +2,7 @@
 locale: en
 slug: klivet
 title: 3D models and renders of KERMI tubular radiators
-description: '3D models of tubular radiators (Kermi/tubog analogues) and mounting hardware: the RRN/RRV series, renders in RAL colours and interiors.'
+description: '15 models of KERMI radiators — tubular RRN/RRV and panel FKO/FTV/FTU: catalogue renders in RAL colours and white, interior scenes and packaging renders.'
 client: Klivet (KERMI)
 industry: Heating equipment
 categories:
@@ -18,17 +18,18 @@ services:
   - Radiator 3D modeling from drawings
   - Catalogue renders in RAL colours
   - Interior radiator renders
+  - Packaging renders
 about: |-
-  For Klivet LLC (the KERMI brand) we created a series of 3D models of tubular radiators — analogues of Kermi/tubog — together with the mounting hardware.
+  For Klivet LLC (the KERMI brand) we created a series of 3D radiator models — analogues of Kermi/tubog — together with the mounting hardware.
 
-  Seven positions were modeled: six radiators of the RRN/RRV lines with 2–6 tube rows and heights from 300 to 1500 mm, plus the KLK mounting bracket. For each model we prepared catalogue renders in RAL colours and interior renders, showing the design differences between the RRN and RRV lines.
+  Fifteen positions were modeled: ten tubular radiators of the RRN/RRV lines with 2–6 tube rows and heights from 300 to 1500 mm, and five FKO/FTV/FTU panel radiators, plus the KLK mounting bracket. The catalogue renders follow one shot list — front and rear elevation, side, three-quarter left and right, the connection node, the thermostatic valve and the ventilation insert.
 metrics:
-  - value: "7"
-    label: radiator and mounting models
-  - value: "10"
-    label: renders in RAL colours
-  - value: 2–6
-    label: tube rows, heights up to 1500 mm
+  - value: "15"
+    label: radiator models
+  - value: 55+
+    label: catalogue renders
+  - value: RRN/RRV and FKO/FTV
+    label: tubular and panel lines
 cover:
   src: /media/projects/klivet/cover.jpg
   alt: KERMI RRN3035 tubular radiator in a bedroom interior — under the window
@@ -91,4 +92,4 @@ Klivet LLC (Moscow) makes tubular radiators under the KERMI brand. Their catalog
 
 ## The result
 
-The client received 7 models and 10 renders of the radiators and mounting hardware for the catalogue. Contract No. 20 of 21.07.2026.
+The client received 7 models and 10 renders of the radiators and mounting hardware for the catalogue.

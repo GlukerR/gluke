@@ -101,4 +101,4 @@ FPV FRAME sells FPV drones and components through its own website. The product c
 
 ## The result
 
-All four frames are ready for the product cards on the website. The client was happy with the result and continued the engagement: motor models and a ground control station are on the roadmap.
+All four frames are ready for the product cards on the website.

@@ -99,5 +99,3 @@ We set up a streamlined pipeline for producing catalogue assets:
 ## The result
 
 More than 100 furniture models have been produced over the course of the engagement. The catalogue keeps growing in one visual standard: a new item falls into line with the earlier ones without reshoots or rework.
-
-The engagement has been ongoing since 2023.

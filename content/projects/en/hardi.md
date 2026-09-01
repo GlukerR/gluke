@@ -126,4 +126,4 @@ HARDI is a Russian manufacturer of furniture hardware: drawer slides, gas lifts,
 
 ## The result
 
-The client got a complete 3D catalog of hardware: models, catalog renders and advantage videos that reveal the internal construction in a way photography cannot. The cooperation has been ongoing since 2023.
+The client got a complete 3D catalog of hardware: models, catalog renders and advantage videos that reveal the internal construction in a way photography cannot.

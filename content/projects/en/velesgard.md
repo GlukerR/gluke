@@ -87,4 +87,4 @@ Velesgard LLC (Smolensk) supplies paints and coatings for industrial facilities:
 
 ## The result
 
-The client received two animations: a logo now live on their website homepage and a 3D video painting industrial objects in brand colors. The work ran from October 2023 to May 2024.
+The client received two animations: a logo now live on their website homepage and a 3D video painting industrial objects in brand colors.

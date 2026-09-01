@@ -91,7 +91,7 @@ media:
 SoftLogic is a Russian manufacturer of neural network analysis systems: video analytics hardware, road infrastructure observation complexes, AI servers and accelerators. Two products needed visualization:
 
 - **SC-iMVS-RM3** — a neural network observation complex for road infrastructure control: a rugged enclosure, three ultra-high-resolution cameras, a computing unit, GLONASS/GPS and LTE connectivity;
-- **IVS-SC11 FP300-I** — an AI accelerator card for supercomputers in model inference (an Nvidia A100 analogue).
+- **IVS-SC11 FP300-I** — an AI accelerator card for servers and data centres: a tensor processor, a PCIe Gen5 interface and a massive copper heatsink. The manufacturer positions it as an energy-efficient alternative to the Nvidia A100.
 
 Such hardware is hard to present with regular photography — the accuracy of ports, indicators and the overall enclosure shape matters. The client needed a set of assets for the catalogue and website: clean catalogue renders, a rotation animation and 3D models for interactive viewing.
 

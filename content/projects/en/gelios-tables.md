@@ -90,4 +90,4 @@ Gelios Tables is a Novosibirsk furniture manufacturer that needed 3D table model
 
 ## The result
 
-The client received a set of 3D models and renders for the catalogue and sales: catalogue imagery of every model and interior visualizations that help buyers picture the furniture in a real setting. The engagement ran in 2022–2024.
+The client received a set of 3D models and renders for the catalogue and sales: catalogue imagery of every model and interior visualizations that help buyers picture the furniture in a real setting.

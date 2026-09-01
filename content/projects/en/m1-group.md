@@ -90,4 +90,4 @@ The key requirements were an accurate bristle geometry for the replacement heads
 
 ## The result
 
-The client received a set of assets that maintains one visual standard across both product lines — from precise renders of replacement heads to realistic tables and racks. The engagement has been ongoing since 2023: orders keep coming, and the content is updated together with new products.
+The client received a set of assets that maintains one visual standard across both product lines — from precise renders of replacement heads to realistic tables and racks. The content is updated together with new products as the orders keep coming.

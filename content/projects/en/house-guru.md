@@ -92,12 +92,8 @@ We produced more than 30 visuals:
 - modeling of the products from a physical sample, keeping the proportions and details intact;
 - catalogue renders and interior scenes for product cards;
 - exploded views breaking the product down into its parts;
-- packaging artwork.
-
-The packaging artwork was created by Alexander Glukhov.
+- packaging renders.
 
 ## The result
 
-The client received a complete set of assets for product cards: from product renders to exploded views, plus packaging artwork. All visuals follow one style, so the products look consistent in the shared listing.
-
-The work was done in 2024–2025 and is complete.
+The client received a complete set of assets for product cards: from product renders to exploded views, plus packaging renders. All visuals follow one style, so the products look consistent in the shared listing.

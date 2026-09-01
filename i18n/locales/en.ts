@@ -111,6 +111,7 @@ export default {
     scopeSrTitle: 'Scope of work on the project',
     story: 'The project in detail',
     services: 'Services',
+    summary: 'About the project',
     deliverables: 'What was delivered',
     gallery: 'Project materials',
     media: {

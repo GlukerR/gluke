@@ -4,13 +4,17 @@ import type { ProjectsCollectionItem } from '@nuxt/content'
 const props = defineProps<{
   services: ProjectsCollectionItem['services']
   deliverables: ProjectsCollectionItem['deliverables']
+  /* Первый абзац тела кейса: короткий ввод рядом с услугами. Остальной текст
+     живёт в свёрнутом блоке «Подробнее о проекте». */
+  lead?: string
 }>()
 
 const { t } = useI18n()
 
 const hasServices = computed(() => props.services.length > 0)
+const hasLead = computed(() => Boolean(props.lead))
 const hasDeliverables = computed(() => (props.deliverables?.length ?? 0) > 0)
-const hasContent = computed(() => hasServices.value || hasDeliverables.value)
+const hasContent = computed(() => hasServices.value || hasLead.value || hasDeliverables.value)
 </script>
 
 <template>
@@ -46,7 +50,19 @@ const hasContent = computed(() => hasServices.value || hasDeliverables.value)
       </div>
 
       <div
-        v-if="hasDeliverables"
+        v-if="hasLead"
+        class="project-scope__group"
+      >
+        <h3 class="text-heading text-heading--sm project-scope__heading">
+          {{ t('project.summary') }}
+        </h3>
+        <p class="text-body project-scope__lead">
+          {{ props.lead }}
+        </p>
+      </div>
+
+      <div
+        v-else-if="hasDeliverables"
         class="project-scope__group"
       >
         <h3 class="text-heading text-heading--sm project-scope__heading">
@@ -97,6 +113,11 @@ const hasContent = computed(() => hasServices.value || hasDeliverables.value)
   display: flex;
   flex-direction: column;
   border-top: var(--site-border);
+}
+
+.project-scope__lead {
+  color: var(--site-text-secondary);
+  overflow-wrap: anywhere;
 }
 
 .project-scope__item {

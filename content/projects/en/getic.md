@@ -132,7 +132,7 @@ media:
 
 ## The task
 
-Getic is an international distributor of networking hardware with offices in Latvia and Germany. The catalogue needed consistent assets across a large range of devices: models that could be shown in an interactive viewer on the website, catalogue imagery and video for the product pages.
+Getic is an international distributor of networking hardware with offices in Latvia and Germany. The catalogue needed consistent assets across the whole hardware line: models that could be shown in an interactive viewer on the website, catalogue imagery and video for the product pages.
 
 The source data consisted of drawings, dimensions and photographs of the real devices.
 
@@ -157,5 +157,3 @@ Integrating the models into the CMS and into the Three.js viewer was handled by 
 The client received a library of 50+ models in the agreed formats, catalogue imagery and video assets. The models are prepared for interactive viewing in the browser, so the same asset serves both the web catalogue and the renders.
 
 The catalogue with the 3D viewer on its product pages is publicly available — [getic.ru/shop/mikrotik](https://www.getic.ru/shop/mikrotik).
-
-The engagement ran from 2021 through 2026.
