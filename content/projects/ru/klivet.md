@@ -11,7 +11,7 @@ position: 16
 featured: false
 status: published
 navigation: false
-period: 2026
+period: "2026"
 engagement: completed
 clientUrl: https://kermi.com/
 services:
@@ -23,9 +23,9 @@ about: |-
 
   Смоделированы 7 позиций: шесть радиаторов линеек RRN/RRV с рядами труб 2–6 и высотой от 300 до 1500 мм, плюс крепление KLK. Для каждой модели подготовлены каталожные рендеры в цветах RAL и в интерьере, показывающие конструктивные отличия RRN/RRV.
 metrics:
-  - value: 7
+  - value: "7"
     label: моделей радиаторов и креплений
-  - value: 10
+  - value: "10"
     label: рендеров в цветах RAL
   - value: 2–6
     label: рядов труб, высота до 1500 мм

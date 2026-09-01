@@ -11,7 +11,7 @@ position: 7
 featured: true
 status: published
 navigation: false
-period: 2024
+period: "2024"
 engagement: completed
 clientUrl: https://prime-box.ru/
 services:
@@ -22,9 +22,9 @@ about: |
 
   Подготовлены каталожные рендеры всех ракурсов в двух цветах — белом и чёрном — на белом и прозрачном фоне, включая взрыв-схемы устройства корпусов. Стиль согласован с материалами на сайте клиента и приведён к единому стандарту.
 metrics:
-  - value: 4
+  - value: "4"
     label: полноценные 3D-модели корпусов
-  - value: 13
+  - value: "13"
     label: ракурсов в 2 цветах
   - value: взрыв-схема
     label: устройство корпуса

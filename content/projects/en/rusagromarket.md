@@ -12,7 +12,7 @@ position: 20
 featured: false
 status: published
 navigation: false
-period: 2022
+period: "2022"
 engagement: completed
 clientUrl: https://rusagromarket.ru/
 services:
@@ -28,7 +28,7 @@ about: |
 
   I prepared the main bird's-eye view, night renders and presentation materials with labels of the complex facilities. The renders were used by the client in the project presentation.
 metrics:
-  - value: 5
+  - value: "5"
     label: warehouses of the complex
   - value: Bird's-eye
     label: main angle

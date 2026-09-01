@@ -11,7 +11,7 @@ position: 16
 featured: false
 status: published
 navigation: false
-period: 2026
+period: "2026"
 engagement: completed
 clientUrl: https://kermi.com/
 services:
@@ -23,9 +23,9 @@ about: |-
 
   Seven positions were modeled: six radiators of the RRN/RRV lines with 2–6 tube rows and heights from 300 to 1500 mm, plus the KLK mounting bracket. For each model we prepared catalogue renders in RAL colours and interior renders, showing the design differences between the RRN and RRV lines.
 metrics:
-  - value: 7
+  - value: "7"
     label: radiator and mounting models
-  - value: 10
+  - value: "10"
     label: renders in RAL colours
   - value: 2–6
     label: tube rows, heights up to 1500 mm

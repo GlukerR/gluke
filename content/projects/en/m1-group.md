@@ -26,10 +26,10 @@ about: |
 metrics:
   - value: 100+
     label: renders and covers
-  - value: 14+
+  - value: 20+
     label: covers with 3D typography
-  - value: 3D models
-    label: for AR viewing
+  - value: GLB
+    label: shelving export for marketplaces
 cover:
   src: /media/projects/m1-group/m1-cover.jpg
   alt: An M1 GROUP stainless steel table with dimensional typography in an interior

@@ -11,7 +11,7 @@ position: 7
 featured: true
 status: published
 navigation: false
-period: 2024
+period: "2024"
 engagement: completed
 clientUrl: https://prime-box.ru/
 services:
@@ -22,9 +22,9 @@ about: |
 
   We prepared catalogue renders of all camera angles in two colours — white and black — on white and transparent backgrounds, including exploded views of the case structure. The style was aligned with the assets on the client's website and brought to one consistent standard.
 metrics:
-  - value: 4
+  - value: "4"
     label: full 3D case models
-  - value: 13
+  - value: "13"
     label: camera angles in 2 colours
   - value: exploded view
     label: of the case structure

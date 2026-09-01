@@ -12,7 +12,7 @@ position: 21
 featured: false
 status: published
 navigation: false
-period: 2023
+period: "2023"
 engagement: completed
 clientUrl: https://fahverk.ru/
 services:
@@ -31,9 +31,9 @@ about: |
 metrics:
   - value: ~70
     label: plots
-  - value: 6
+  - value: "6"
     label: house types
-  - value: 1
+  - value: "1"
     label: 3D scene
 cover:
   src: /media/projects/fachwerk-garden-city/fachwerk-cover.jpg

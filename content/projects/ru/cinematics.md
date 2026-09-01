@@ -12,7 +12,7 @@ position: 19
 featured: false
 status: published
 navigation: false
-period: 2023
+period: "2023"
 engagement: completed
 services:
   - Синематик-трейлер

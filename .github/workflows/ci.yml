@@ -51,6 +51,28 @@ jobs:
       - name: Run typecheck
         run: pnpm typecheck
 
+  content:
+    name: Validate content
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Nuxt Content не проверяет файлы против схемы коллекции — данные едут в
+      # базу как есть, и ошибка в YAML всплывает только на странице. Скрипт
+      # прогоняет content/ через те же zod-схемы (см. scripts/validate-content.mjs).
+      - name: Validate content against the collection schemas
+        run: pnpm validate:content
+
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -78,7 +100,7 @@ jobs:
     # Только на push в master (не на PR) и после успешной сборки. Полностью
     # автономно: ждёт свежий релиз, перекидывает на него gluke.ru, пинает IndexNow.
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    needs: [lint, typecheck, build]
+    needs: [lint, typecheck, content, build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

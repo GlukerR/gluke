@@ -27,11 +27,11 @@ about: |
 
   For sliding systems and profiles, comparative renders of facade systems were made (narrow 20 mm vs wide 45 mm), plus profiles, corners and handles in 7 colors. A door assembly video guide for the Premium hanging system covers the full cycle from measuring to installation with narration.
 metrics:
-  - value: 60+
+  - value: 50+
     label: furniture hardware models
   - value: 500+
     label: renders
-  - value: 8
+  - value: "8"
     label: unique videos
 cover:
   src: /media/projects/hardi/cover.jpg

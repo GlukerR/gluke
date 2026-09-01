@@ -26,10 +26,10 @@ about: |
 metrics:
   - value: 100+
     label: рендеров и обложек
-  - value: 14+
+  - value: 20+
     label: обложек с 3D-типографикой
-  - value: 3D-модели
-    label: для AR-просмотра
+  - value: GLB
+    label: экспорт стеллажа для маркетплейсов
 cover:
   src: /media/projects/m1-group/m1-cover.jpg
   alt: Стол M1 GROUP из нержавеющей стали с объёмной типографикой в интерьере

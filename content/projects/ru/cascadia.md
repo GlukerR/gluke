@@ -11,7 +11,7 @@ position: 14
 featured: false
 status: published
 navigation: false
-period: 2025
+period: "2025"
 engagement: completed
 services:
   - Интерактивная 3D-среда в Unreal Engine 5
@@ -26,7 +26,7 @@ about: |
 
   Отдельно настроены освещение и динамическая погода (солнце, тучи, дождь, снег) со сменой дня и ночи, а сцена оптимизирована под стабильные 80 FPS. Разработка остановлена до релиза.
 metrics:
-  - value: 3
+  - value: "3"
     label: "жилых комплекса: Kaskada, Visioner, Greenwood"
   - value: Оптимизация
     label: проекта под стабильные 80 FPS

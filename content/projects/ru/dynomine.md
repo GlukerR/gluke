@@ -31,9 +31,9 @@ about: |
 
   На основе этих моделей собрал рекламные сцены и ролики в Unreal Engine, а также серию брендированных видео-плашек и графики в After Effects.
 metrics:
-  - value: 3
+  - value: "3"
     label: ASIC-модели
-  - value: 12
+  - value: "12"
     label: рекламных видео
   - value: 360°
     label: анимация ASIC-майнеров

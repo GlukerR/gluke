@@ -24,11 +24,11 @@ about: |
 
   For the animation, 3D models were sourced and purchased on cgtrader across the client's industries: a bridge, an oil platform, a tanker, storage tanks, an oil refinery and a harbor crane. In the finale the buildings form a semicircle around the logo outline with the VELESGARD wordmark.
 metrics:
-  - value: 2
+  - value: "2"
     label: "animations: logo and 3D painting"
   - value: 6+
     label: industrial objects in 3D
-  - value: 8
+  - value: "8"
     label: months on the project
 cover:
   src: /media/projects/velesgard/cover.jpg

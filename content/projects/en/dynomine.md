@@ -31,9 +31,9 @@ about: |
 
   Based on these models I assembled advertising scenes and videos in Unreal Engine, plus a series of branded video plates and graphics in After Effects.
 metrics:
-  - value: 3
+  - value: "3"
     label: ASIC models
-  - value: 12
+  - value: "12"
     label: advertising videos
   - value: 360°
     label: ASIC animation

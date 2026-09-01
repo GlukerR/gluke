@@ -11,7 +11,7 @@ position: 14
 featured: false
 status: published
 navigation: false
-period: 2025
+period: "2025"
 engagement: completed
 services:
   - Interactive 3D environment in Unreal Engine 5
@@ -26,7 +26,7 @@ about: |
 
   Lighting and dynamic weather (sun, clouds, rain, snow) with a day/night cycle were set up separately, and the scene was optimized for a stable 80 FPS. Development was paused before release.
 metrics:
-  - value: 3
+  - value: "3"
     label: "residential complexes: Kaskada, Visioner, Greenwood"
   - value: Optimization
     label: of the project for a stable 80 FPS

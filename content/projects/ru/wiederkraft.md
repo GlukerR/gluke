@@ -11,7 +11,7 @@ position: 3
 featured: true
 status: published
 navigation: false
-period: 2024-2026
+period: 2024-2025
 engagement: completed
 clientUrl: https://wiederkraft.ru/
 services:
@@ -25,8 +25,8 @@ about: |
 metrics:
   - value: 20+
     label: моделей оборудования
-  - value: 3
-    label: года сотрудничества
+  - value: 1,5 года
+    label: сотрудничества
   - value: 300 DPI
     label: подготовка материалов для печати
 cover:

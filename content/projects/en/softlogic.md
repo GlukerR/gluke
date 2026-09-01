@@ -24,7 +24,7 @@ about: |
 
   We produced models in two versions (high-poly and low-poly), catalogue renders in different presentations, a 360° rotation animation and a GLB model for interactive viewing. The observation complex model runs in the web viewer at the bottom of the product page on the client's website — visitors can rotate and inspect it right in the browser.
 metrics:
-  - value: 2
+  - value: "2"
     label: HP and LP model versions
   - value: 360°
     label: rotation animation

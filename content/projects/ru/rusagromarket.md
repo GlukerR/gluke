@@ -12,7 +12,7 @@ position: 20
 featured: false
 status: published
 navigation: false
-period: 2022
+period: "2022"
 engagement: completed
 clientUrl: https://rusagromarket.ru/
 services:
@@ -28,7 +28,7 @@ about: |
 
   Подготовил основной вид с высоты, ночную визуализацию и презентационные материалы с обозначениями объектов комплекса. Рендеры использованы клиентом в презентации проекта.
 metrics:
-  - value: 5
+  - value: "5"
     label: складов комплекса
   - value: «Птичка»
     label: основной ракурс

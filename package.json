@@ -17,8 +17,9 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "typecheck": "node scripts/typecheck.mjs",
+    "validate:content": "node scripts/validate-content.mjs",
     "indexnow": "node scripts/indexnow.mjs",
-    "check": "pnpm lint && pnpm typecheck && pnpm build"
+    "check": "pnpm lint && pnpm typecheck && pnpm validate:content && pnpm build"
   },
   "dependencies": {
     "@nuxt/content": "^3.15.2",
@@ -39,10 +40,12 @@
     "@nuxt/eslint": "^1.16.0",
     "@types/three": "^0.185.4",
     "eslint": "^10.8.0",
+    "jiti": "^2.7.0",
     "sharp": "^0.35.3",
     "svg-pathdata": "^9.0.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
-    "vue-tsc": "^3.3.8"
+    "vue-tsc": "^3.3.8",
+    "yaml": "^2.9.0"
   }
 }

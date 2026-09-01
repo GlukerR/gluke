@@ -11,7 +11,7 @@ position: 12
 featured: false
 status: published
 navigation: false
-period: 2023
+period: "2023"
 engagement: completed
 clientUrl: https://www.alphatent.ru/
 services:
@@ -24,12 +24,12 @@ about: |
 
   The frame was modeled from the physical sample: aluminum profiles, telescopic legs, an accordion roof, foot pads and locking buttons. The fabric — polyester — was simulated with physically accurate folds in Marvelous Designer. For the catalog, renders of tents in different sizes and configurations were prepared: with windows, with the logo, in three angles.
 metrics:
-  - value: 17
-    label: tent models
+  - value: "18"
+    label: catalogue renders
   - value: animation
     label: of opening with cloth simulation
-  - value: 6+
-    label: base models and configurations
+  - value: "6"
+    label: base tent models
 cover:
   src: /media/projects/alphatent/cover.jpg
   alt: Folding canopy tent 3×3 Alphatent — aluminum frame with tent roof
