@@ -140,7 +140,6 @@ export default {
     projectsCategoryDescription: '{category}: {description}',
   },
   errors: {
-    siteContentUnavailable: 'Site content is unavailable for the current language',
     featuredProjectsMissing: 'No published featured projects were found',
     publishedProjectsMissing: 'No published projects were found',
     projectNotFound: 'Project not found',

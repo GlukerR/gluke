@@ -15,7 +15,7 @@
 | Мета-тег `yandex-verification` | `820eb76ffe56a5df`, в `<head>` на всех страницах |
 | Индексация | разрешена только для production (не для preview/dev) |
 | `llms.txt` | есть — для AI-краулеров (ChatGPT/Perplexity/Claude) |
-| IndexNow | авто-пинг 37 URL на каждый push в master (см. `scripts/postdeploy.mjs`) |
+| IndexNow | авто-пинг всех URL сайта на каждый push в master (см. `scripts/postdeploy.mjs`) |
 
 ## Актуальный статус (на дату последнего обновления)
 

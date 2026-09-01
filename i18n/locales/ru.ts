@@ -140,7 +140,6 @@ export default {
     projectsCategoryDescription: '{category}: {description}',
   },
   errors: {
-    siteContentUnavailable: 'Глобальный контент сайта недоступен для текущего языка',
     featuredProjectsMissing: 'Опубликованные избранные проекты не найдены',
     publishedProjectsMissing: 'Опубликованные проекты не найдены',
     projectNotFound: 'Проект не найден',

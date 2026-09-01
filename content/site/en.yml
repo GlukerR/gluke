@@ -133,9 +133,9 @@ faq:
       - label: HouseGuru
         slug: house-guru
   - question: Do you do animation and video?
-    answer: Yes — product animations, cinematics and advertising films. Scenes are built in Unreal Engine — from device animations to full advertising creatives.
+    answer: Yes, it is a separate line of work — product animations, cinematics and advertising films. Scenes are built in Unreal Engine, from device animations to full advertising creatives.
   - question: Can I order an interactive 3D model for my website?
-    answer: Yes — we prepare an optimized GLB and integrate it into a product page or catalogue with a WebGL viewer.
+    answer: Yes, we prepare an optimized GLB and integrate it into a product page or catalogue with a WebGL viewer.
     cases:
       - label: Getic
         slug: getic
@@ -154,7 +154,7 @@ process:
     description: Modeling, materials, textures, lighting and technical preparation.
   - position: 4
     title: We approve the result
-    description: We share work in progress and apply the agreed corrections.
+    description: We share work in progress and apply revisions.
   - position: 5
     title: We hand over the materials
     description: We prepare images, video or 3D files in the formats needed for a website, catalogue, marketplace or print.
