@@ -96,12 +96,18 @@ jobs:
         run: pnpm build
 
   postdeploy:
-    name: Deploy domain + IndexNow
-    # Только на push в master (не на PR) и после успешной сборки. Полностью
-    # автономно: ждёт свежий релиз, перекидывает на него gluke.ru, пинает IndexNow.
+    name: Notify search engines
+    # Только на push в master (не на PR) и после успешной сборки: дожидается
+    # успешного деплоя коммита и пингует IndexNow.
+    #
+    # Домен здесь не трогается — production-алиас Vercel назначает сам. Ждём
+    # через GitHub Deployments API (их заводит git-интеграция Vercel), поэтому
+    # хватает встроенного GITHUB_TOKEN и отдельный токен Vercel не нужен.
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs: [lint, typecheck, content, build]
     runs-on: ubuntu-latest
+    permissions:
+      deployments: read
     steps:
       - uses: actions/checkout@v4
 
@@ -109,11 +115,10 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      - name: Post-deploy (alias gluke.ru + IndexNow)
+      - name: Wait for the deployment, then ping IndexNow
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_PROJECT_ID: prj_2itGawiyIK0VOXWtACJiwvau2Pvk
-          TEAM_ID: team_zQkaayXq4up4bienpia7ZJOH
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_SHA: ${{ github.sha }}
           NUXT_SITE_URL: https://gluke.ru
         run: node scripts/postdeploy.mjs
