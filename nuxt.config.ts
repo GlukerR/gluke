@@ -148,8 +148,11 @@ export default defineNuxtConfig({
     credits: false,
   },
   sitemap: {
-    /* Статические маршруты берутся из nuxt:pages, кейсы — из типизированного серверного источника. */
+    /* Все URL — из одного типизированного серверного источника: и статические
+       маршруты, и кейсы. Авто-обход nuxt:pages отключён, иначе главная попадает
+       в карту дважды — один раз от него (без `lastmod`) и один раз отсюда. */
     sources: ['/api/__sitemap__/urls'],
+    excludeAppSources: ['nuxt:pages'],
     exclude: ['/api/**'],
     credits: false,
   },

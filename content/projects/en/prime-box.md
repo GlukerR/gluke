@@ -12,6 +12,7 @@ featured: true
 status: published
 navigation: false
 period: "2024"
+updated: 2026-09-01
 engagement: completed
 clientUrl: https://prime-box.ru/
 services:

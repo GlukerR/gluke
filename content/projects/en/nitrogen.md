@@ -12,6 +12,7 @@ featured: true
 status: published
 navigation: false
 period: 2025-2026
+updated: 2026-09-01
 engagement: active
 clientUrl: https://nitrogenagro.ru/
 services:

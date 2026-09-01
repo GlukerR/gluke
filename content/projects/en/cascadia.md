@@ -12,6 +12,7 @@ featured: false
 status: published
 navigation: false
 period: "2025"
+updated: 2026-09-01
 engagement: completed
 services:
   - Interactive 3D environment in Unreal Engine 5

@@ -12,6 +12,7 @@ featured: false
 status: published
 navigation: false
 period: "2026"
+updated: 2026-09-01
 engagement: completed
 clientUrl: https://www.kermi.com/ru/ru/
 services:

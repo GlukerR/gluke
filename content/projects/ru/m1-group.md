@@ -12,6 +12,7 @@ featured: true
 status: published
 navigation: false
 period: 2023-2026
+updated: 2026-09-01
 engagement: active
 clientUrl: https://www.wildberries.ru/brands/12572044-m1-group
 services:

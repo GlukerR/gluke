@@ -12,6 +12,7 @@ featured: true
 status: published
 navigation: false
 period: 2021-2026
+updated: 2026-09-01
 engagement: completed
 clientUrl: https://www.getic.com/
 services:

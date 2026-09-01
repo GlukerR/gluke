@@ -12,6 +12,7 @@ featured: false
 status: published
 navigation: false
 period: 2023-2026
+updated: 2026-09-01
 engagement: active
 clientUrl: https://hardi.pro/
 services:

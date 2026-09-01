@@ -13,6 +13,7 @@ featured: false
 status: published
 navigation: false
 period: 2023–2024
+updated: 2026-09-01
 engagement: completed
 services:
   - Ретопология, риг и анимация динозавра

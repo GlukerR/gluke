@@ -18,6 +18,7 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "node scripts/typecheck.mjs",
     "validate:content": "node scripts/validate-content.mjs",
+    "lastmod": "node scripts/update-lastmod.mjs",
     "indexnow": "node scripts/indexnow.mjs",
     "check": "pnpm lint && pnpm typecheck && pnpm validate:content && pnpm build"
   },

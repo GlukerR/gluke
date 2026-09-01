@@ -13,6 +13,7 @@ featured: false
 status: published
 navigation: false
 period: "2023"
+updated: 2026-09-01
 engagement: completed
 services:
   - Cinematic trailer

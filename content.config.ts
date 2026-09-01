@@ -13,6 +13,11 @@ const localeSchema = z.enum(LOCALE_CODES)
 
 const slugSchema = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/)
 
+/* Дата последнего изменения файла (YYYY-MM-DD). Проставляется скриптом
+   `pnpm lastmod` из git и уезжает в sitemap как `lastmod`. Считать её при
+   сборке нельзя: Vercel клонирует репозиторий поверхностно. */
+const updatedSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
+
 const visualSchema = z.object({
   src: z.string().min(1).startsWith(MEDIA_PREFIX),
   alt: z.string().min(1),
@@ -116,6 +121,7 @@ export default defineContentConfig({
         featured: z.boolean(),
         status: z.enum(['draft', 'review', 'published']),
         period: z.string().min(1),
+        updated: updatedSchema.optional(),
         engagement: z.enum(['active', 'completed']),
         year: z.number().int().min(2000).max(2100).optional(),
         duration: z.string().min(1).optional(),
@@ -168,6 +174,7 @@ export default defineContentConfig({
       source: 'site/*.yml',
       schema: z.object({
         locale: localeSchema,
+        updated: updatedSchema.optional(),
         brand: z.object({
           name: z.string().min(1),
           descriptor: z.string().min(1),

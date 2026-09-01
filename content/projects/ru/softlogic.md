@@ -12,6 +12,7 @@ featured: true
 status: published
 navigation: false
 period: 2023-2024
+updated: 2026-09-01
 engagement: completed
 clientUrl: https://softlogic.ai/catalog/sc-imvs-rm3
 services:

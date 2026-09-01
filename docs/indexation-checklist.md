@@ -9,7 +9,7 @@
 | Проверка | Статус |
 | --- | --- |
 | `robots.txt` | индексация разрешена, запрещён только `/api/`, sitemap объявлен |
-| `sitemap.xml` / `sitemap_index.xml` | есть, разбит по языкам `en-US` и `ru-RU` |
+| `sitemap.xml` / `sitemap_index.xml` | есть, разбит по языкам `en-US` и `ru-RU`, у всех URL проставлен `lastmod` (из поля `updated`, см. `pnpm lastmod`) |
 | canonical / hreflang / x-default | корректные, абсолютные |
 | Schema.org / Open Graph / Twitter | есть на всех страницах |
 | Мета-тег `yandex-verification` | `820eb76ffe56a5df`, в `<head>` на всех страницах |

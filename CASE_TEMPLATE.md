@@ -179,5 +179,6 @@ ffmpeg -y -v error -i "исходник.mp4" -vf scale=1280:1280 -c:v libx264 -c
 - [ ] В тексте нет двоеточий с пробелом вне кавычек (ломают YAML) — проверяется `pnpm validate:content`
 - [ ] Обложка и все медиа сжаты, `width`/`height` реальные
 - [ ] Медиа добавлены в `scripts/sync-media.mjs`
+- [ ] `pnpm lastmod` — обновить дату изменения (уходит в `lastmod` карты сайта)
 - [ ] `pnpm lint && pnpm typecheck && pnpm validate:content` — чисто
 - [ ] Проверено в превью: страница кейса + карточка на главной
