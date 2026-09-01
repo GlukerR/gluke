@@ -15,7 +15,7 @@
 | Мета-тег `yandex-verification` | `820eb76ffe56a5df`, в `<head>` на всех страницах |
 | Индексация | разрешена только для production (не для preview/dev) |
 | `llms.txt` | есть — для AI-краулеров (ChatGPT/Perplexity/Claude) |
-| IndexNow | авто-пинг всех URL сайта на каждый push в master (см. `scripts/postdeploy.mjs`) |
+| IndexNow | авто-пинг всех URL сайта на каждый push в master (см. `scripts/postdeploy.mjs`). Шаг ждёт готовности деплоя на Vercel до 20 минут — сборка с ~235 медиафайлами в 10 не укладывалась |
 
 ## Актуальный статус (на дату последнего обновления)
 

@@ -35,28 +35,56 @@ const run = async (cmd, args, opts = {}) =>
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
+/* Ожидание production-деплоя. Таймаут 20 минут: с ростом числа кейсов сборка
+   на Vercel (обработка ~235 медиафайлов через sharp + prerender) перестала
+   укладываться в прежние 10 и шаг стабильно падал по таймауту.
+
+   `teamId` обязателен: проект командный, и без него API отвечает по личному
+   scope — деплои команды в выдачу не попадают. Alias ниже scope уже передаёт,
+   здесь его не хватало. */
+const WAIT_MINUTES = 20
+
 async function waitForCommitDeployment() {
   const sha = process.env.GITHUB_SHA
   const projectId = process.env.VERCEL_PROJECT_ID
   const token = process.env.VERCEL_TOKEN
-  const deadline = Date.now() + 10 * 60 * 1000 // до 10 минут
+  const teamId = process.env.TEAM_ID
+  const deadline = Date.now() + WAIT_MINUTES * 60 * 1000
   const endpoint
     = `https://api.vercel.com/v6/deployments?projectId=${encodeURIComponent(projectId)}&target=production&limit=30`
+      + (teamId ? `&teamId=${encodeURIComponent(teamId)}` : '')
+
+  /* Цикл раньше молчал: и ошибка авторизации, и просто незаконченная сборка
+     выглядели одинаково — «не дождались». Поэтому состояние логируется. */
+  let lastReport = ''
   while (Date.now() < deadline) {
     const res = await fetch(endpoint, { headers: { authorization: `Bearer ${token}` } })
-    if (res.ok) {
+    if (!res.ok) {
+      console.log(`Vercel API responded ${res.status} ${res.statusText}`)
+    }
+    else {
       const data = await res.json()
-      const hit = (data.deployments || []).find(
+      const deployments = data.deployments || []
+      const hit = deployments.find(
         deployment =>
           deployment.target === 'production'
           && deployment.readyState === 'READY'
           && (deployment.meta || {}).githubCommitSha === sha,
       )
       if (hit) return hit
+
+      const mine = deployments.filter(deployment => (deployment.meta || {}).githubCommitSha === sha)
+      const report = mine.length
+        ? `commit build state: ${mine.map(deployment => deployment.readyState).join(', ')}`
+        : `no production deployment for this commit yet (${deployments.length} seen)`
+      if (report !== lastReport) {
+        console.log(report)
+        lastReport = report
+      }
     }
     await sleep(15 * 1000)
   }
-  throw new Error(`Deployment for commit ${sha} did not become READY within 10 min`)
+  throw new Error(`Deployment for commit ${sha} did not become READY within ${WAIT_MINUTES} min`)
 }
 
 async function main() {
