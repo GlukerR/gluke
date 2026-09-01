@@ -73,6 +73,15 @@ jobs:
       - name: Validate content against the collection schemas
         run: pnpm validate:content
 
+      # llms.txt читают ИИ-краулеры, и он уже однажды разошёлся с кейсами
+      # (обещал «14+ AR models», которых не было). Файл генерируется из
+      # контента при сборке; здесь проверяется, что закоммиченная версия
+      # совпадает с тем, что даёт генератор.
+      - name: Check llms.txt matches the content
+        run: |
+          pnpm llms
+          git diff --exit-code -- public/llms.txt
+
   build:
     name: Build
     runs-on: ubuntu-latest

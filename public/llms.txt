@@ -1,43 +1,73 @@
-# GLUKE — 3D content for business
+# GLUKE — 3D visualization studio
 
-> 3D-студия GLUKE создаёт 3D-модели, изображения, анимацию и интерактивные 3D-визуализации продукции — по чертежам, CAD-файлам и фотографиям. Работаем с производителями оборудования, мебели, электроники и товаров для маркетплейсов: каталожные изображения, продуктовые анимации, взрыв-схемы, GLB/WebGL-модели и материалы для печати.
+> We create 3D models, images, animation and interactive 3D product visualization — from drawings, CAD files and photographs.
+
+We combine art direction with technical accuracy. We work with equipment, furniture and consumer goods — from the original drawings to finished assets for a website, catalogue, marketplace or presentation.
 
 ## Main pages
 
-- [Home (EN)](https://gluke.ru/): 3D content for business — services, cases, process.
-- [Home (RU)](https://gluke.ru/ru): главная — услуги, кейсы, процесс.
-- [Projects (EN)](https://gluke.ru/projects): all case studies.
-- [Projects (RU)](https://gluke.ru/ru/projects): все кейсы.
-- [About / process](https://gluke.ru/): студийный блок о GLUKE на главной.
+- [Home (EN)](https://gluke.ru/): services, cases, process, pricing and contacts.
+- [Главная (RU)](https://gluke.ru/ru): услуги, кейсы, процесс, цены и контакты.
+- [Projects (EN)](https://gluke.ru/projects): all published case studies.
+- [Проекты (RU)](https://gluke.ru/ru/projects): все опубликованные кейсы.
+
+Every page exists in two languages: English at the root, Russian under `/ru`.
 
 ## Services
 
-We offer: 3D modelling of products and equipment; catalogue rendering in a consistent visual style; product animation (assembly, device, features); interactive 3D models (optimized GLB for WebGL viewer and website); exploded views of internal device and composition; high-resolution materials for printing, presentations and catalogues.
+- **3D model** — We build an accurate model from CAD, drawings, photographs or a physical sample.
+- **Catalogue images** — One visual style for a website, catalogue and marketplaces.
+- **Animation** — We show how a product works, is assembled or what makes it stand out.
+- **Interactive 3D model** — An optimized GLB prepared for a WebGL viewer and your website.
+- **Exploded view** — We show the internal structure and parts of a product.
+- **Print materials** — High-resolution images for catalogues, presentations and printed materials.
 
-## Projects (case studies)
+## Pricing
 
-- [Getic](https://gluke.ru/projects/getic): 50+ models, WebGL catalogue, renders and animation, 2021–2026.
-- [Kiparis](https://gluke.ru/projects/kiparis): 100+ furniture models, 6–8 fabric variants, long-term production.
-- [WiederKraft](https://gluke.ru/projects/wiederkraft): industrial equipment — CAD to catalogue renders to print.
-- [HouseGuru](https://gluke.ru/projects/house-guru): 30+ products, modelling from samples, exploded views, packaging.
-- [M1 GROUP](https://gluke.ru/projects/m1-group): 100+ renders/covers, 14+ AR models, assembly videos (WB/Ozon).
-- [SoftLogic](https://gluke.ru/projects/softlogic): HP/LP, GLB, WebGL, 360° animation, complex equipment.
-- [Prime Box](https://gluke.ru/projects/prime-box): 4 cases, 13 views, 2 colours, exploded view.
-- [Sibmaster](https://gluke.ru/projects/sibmaster): 4 boilers, cutaways, internal device, combustion animation.
-- [Gelios tables](https://gluke.ru/projects/gelios-tables): 8+ models, catalogue + interiors.
-- [Nitrogen](https://gluke.ru/projects/nitrogen): non-standard agri equipment, drawings/samples, technical views.
-- [FPV FRAME](https://gluke.ru/projects/fpv-frame): 4 frames, 20+ renders, exploded views, modelling from scratch.
-- [Alphatent](https://gluke.ru/projects/alphatent): 17 models, animation, fabric simulation, 6+ configurations.
-- [Velesgard](https://gluke.ru/projects/velesgard): 3D animation of industrial objects, 6+ objects, 8 months.
-- [Cascadia](https://gluke.ru/projects/cascadia): UE5, 3 residential complexes, 17 000 objects after Revit, 80 FPS, dynamic weather.
-- [HARDI](https://gluke.ru/projects/hardi): 60+ models, 500+ renders, 8 videos, technical renders, instructions.
-- [KERMI / Klivet](https://gluke.ru/projects/klivet): 7 radiators, 10 RAL variants, 2–6 tube rows, interiors.
-- [DYNOMINE](https://gluke.ru/projects/dynomine): 3D advertising for crypto-mining — animatable dinosaur, ASIC models, Unreal Engine scenes, brand video plates, 2023–2024.
-- [SVMD](https://gluke.ru/projects/svmd): motion creatives for mobile games — 17 creatives for 6 games, full Unreal Engine pipeline, 2024–2025.
-- [Cinematics](https://gluke.ru/projects/cinematics): single cinematics and ad films — Alan Wake 2 fan trailer, NFT promo, crypto exchange and mining ads, author animation.
-- [RusAgroMarket](https://gluke.ru/projects/rusagromarket): 3D visualization of a wholesale distribution centre — 5 warehouses, day/night views, presentation materials, 2022.
-- [Fachwerk Garden City](https://gluke.ru/projects/fachwerk-garden-city): 3D scene of the Garden City village on the Volga — ~70 plots, 6 fachwerk house types, waterfront environment, 2023.
+The average project budget starts from €500. Smaller standalone tasks are quoted individually.
 
-## Contact forms on main page
+## FAQ
 
-Gluke accepts project briefs through the contact form on the home page.
+**How long does the work take?** A single model with catalogue renders takes a few days. A series for a catalogue or an animation is scoped by volume — we give you the timeline together with the quote, before the work starts.
+
+**What materials do you need to get started?** Drawings, CAD files, photographs or a physical sample. We work with whatever you have — from source files to a finished model.
+
+**What formats do you deliver?** High-resolution images for web, catalogues and print; video for websites and marketplaces; GLB models for WebGL viewers.
+
+**Do you work with marketplaces (WB, Ozon)?** Yes — catalogue images, 3D models and assembly videos for WB and Ozon. For M1 GROUP alone we produced 100+ renders and product card covers.
+
+**Do you do animation and video?** Yes, it is a separate line of work — product animations, cinematics and advertising films. Scenes are built in Unreal Engine, from device animations to full advertising creatives.
+
+**Can I order an interactive 3D model for my website?** Yes, we prepare an optimized GLB and integrate it into a product page or catalogue with a WebGL viewer.
+
+## Case studies (21)
+
+Figures below are the ones published on each case page.
+
+- [Getic](https://gluke.ru/projects/getic): 3D catalogue of MikroTik networking hardware for Getic. 50+ models for the web catalogue; 2021–2026 length of the engagement; WebGL prepared for interactive viewing. 2021-2026.
+- [Кипарис](https://gluke.ru/projects/kiparis): Continuous 3D pipeline for a furniture catalogue. 100+ furniture models; 6–8 fabric options for individual models; since 2023 the engagement is ongoing. 2023-2026.
+- [WiederKraft](https://gluke.ru/projects/wiederkraft): Digital equipment catalogue for WiederKraft. 20+ equipment models; 3 years of collaboration; 300 DPI materials prepared for print. 2024-2026.
+- [HouseGuru](https://gluke.ru/projects/house-guru): HouseGuru product visualization for marketplaces. 30+ visuals; exploded views of the internal structure; 3D models from physical samples. 2024-2025.
+- [M1 GROUP](https://gluke.ru/projects/m1-group): Marketplace content for M1 GROUP. 100+ renders and covers; 20+ covers with 3D typography; GLB shelving export for marketplaces. 2023-2026.
+- [SoftLogic](https://gluke.ru/projects/softlogic): 3D models and renders of SoftLogic video analytics hardware. 2 HP and LP model versions; 360° rotation animation; GLB web viewer model. 2023-2024.
+- [Prime Box](https://gluke.ru/projects/prime-box): 3D models and renders of Prime Box PC cases. 4 full 3D case models; 13 camera angles in 2 colours; exploded view of the case structure. 2024.
+- [СибМастер](https://gluke.ru/projects/sibmaster): 3D models and cutaways of SibMaster boilers. 4+ boiler models built from scratch; cutaways of the internal structure; animation of the combustion process. 2024-2026.
+- [ГелиосСтолы](https://gluke.ru/projects/gelios-tables): 3D table models and interior renders for Gelios Tables. 8+ table models; renders in interiors; 3D models from drawings and samples. 2022-2024.
+- [Нитроген (Nitrogen)](https://gluke.ru/projects/nitrogen): 3D models and renders of Nitrogen agri-equipment. 4+ equipment models; renders catalogue and technical; 3D models from drawings and samples. 2025-2026.
+- [FPV FRAME](https://gluke.ru/projects/fpv-frame): 3D models and renders of FPV FRAME drones. 4 frame models built from scratch; 20+ renders for the catalogue; exploded views of every frame. 2025-2026.
+- [Alphatent](https://gluke.ru/projects/alphatent): 3D canopy tent models and opening animation for Alphatent. 18 catalogue renders; animation of opening with cloth simulation; 6 base tent models. 2023.
+- [Velesgard](https://gluke.ru/projects/velesgard): 3D animation for Velesgard. 2 animations: logo and 3D painting; 6+ industrial objects in 3D; 8 months on the project. 2023-2024.
+- [Cascadia](https://gluke.ru/projects/cascadia): Interactive 3D residential environment in Unreal Engine 5. 3 residential complexes: Kaskada, Visioner, Greenwood; Optimization of the project for a stable 80 FPS; Interactive weather and time-of-day switching. 2025.
+- [HARDI](https://gluke.ru/projects/hardi): 3D models, renders and videos for HARDI furniture hardware. 50+ furniture hardware models; 500+ renders; 8 unique videos. 2023-2026.
+- [Klivet (KERMI)](https://gluke.ru/projects/klivet): 3D models and renders of KERMI radiators. 15 radiator models; 55+ catalogue renders; RRN/RRV and FKO/FTV tubular and panel lines. 2026.
+- [DYNOMINE (Dynomine AI)](https://gluke.ru/projects/dynomine): DYNOMINE — 3D advertising for crypto mining. 3 ASIC models; 12 advertising videos; 360° ASIC animation. 2023–2024.
+- [SVMD (Overskor)](https://gluke.ru/projects/svmd): SVMD — motion creatives for mobile games. 17 motion creatives; 6 mobile games; Unreal Engine full production pipeline. 2024–2025.
+- [Standalone projects](https://gluke.ru/projects/cinematics): Cinematics and advertising videos. UE5 scene built in Unreal Engine; 40 s trailer duration. 2023.
+- [RusAgroMarket](https://gluke.ru/projects/rusagromarket): RusAgroMarket — 3D visualization of the wholesale distribution center. 5 warehouses of the complex; Bird's-eye main angle; Day and night visualization variants. 2022.
+- [Fachwerk Stroy](https://gluke.ru/projects/fachwerk-garden-city): Fachwerk Stroy — 3D visualization of the Garden City village. ~70 plots; 6 house types; 1 3D scene. 2023.
+
+## Contact
+
+Telegram: @Gluke_art (https://t.me/Gluke_art). Briefs are accepted through the contact form on the home page.
+
+_Generated from the site content by scripts/generate-llms.mjs — do not edit by hand._
