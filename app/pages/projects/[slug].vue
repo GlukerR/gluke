@@ -202,6 +202,22 @@ useSchemaOrg([
 
     <!-- Showcase — это подборка работ, а не разбор одного проекта: там текст
          целиком уходит в шапку, и раскрывашка была бы пустой обёрткой. -->
+    <!-- Панель параметров живёт отдельным блоком, а не в шапке: шапка должна
+         оставаться чистой, а покрутить настройки приходит тот, кому интересно. -->
+    <section
+      v-if="project.demo?.tunable"
+      class="project-page__demo"
+    >
+      <div class="site-container">
+        <ProjectsProjectPrismDemo
+          :demo="project.demo"
+          :poster="project.cover.src"
+          :poster-alt="project.cover.alt"
+          variant="tunable"
+        />
+      </div>
+    </section>
+
     <ProjectsProjectDetailStory
       v-if="!isShowcase && story.hasRest"
       :project="story.rest"
@@ -234,6 +250,10 @@ useSchemaOrg([
 .project-page {
   --project-space: clamp(28px, 3.2vw, 56px);
   --project-space-edge: clamp(56px, 6.4vw, 104px);
+}
+
+.project-page__demo {
+  padding-block: var(--project-space, clamp(28px, 3.2vw, 56px));
 }
 
 .project-page__back {

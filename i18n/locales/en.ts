@@ -91,6 +91,10 @@ export default {
         title: 'Exteriors',
         description: 'Architecture and exterior visualizations.',
       },
+      webgl: {
+        title: 'Interactive & WebGL',
+        description: 'Shaders, real-time scenes and website widgets.',
+      },
       cinematics: {
         title: 'Cinematics',
         description: 'Trailers, videos and advertising cinematics.',
@@ -113,6 +117,17 @@ export default {
     services: 'Services',
     summary: 'About the project',
     deliverables: 'What was delivered',
+    demo: {
+      title: 'Try the parameters',
+      hint: 'The same settings the widget config exposes — they apply live, with no reload.',
+      groups: {
+        geometry: 'Geometry',
+        color: 'Colour',
+        motion: 'Motion',
+        logo: 'Logo',
+      },
+      reset: 'Reset',
+    },
     gallery: 'Project materials',
     media: {
       unsupported: 'Your browser cannot play this video.',

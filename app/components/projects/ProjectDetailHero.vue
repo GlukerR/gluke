@@ -9,6 +9,8 @@ const { t } = useI18n()
    скачивается только на кейсах, где реально есть модель. На кейсах
    с обложкой вместо модели лишний мегабайт не тратится. */
 const LazyModelViewer = defineAsyncComponent(() => import('~/components/projects/ProjectModelViewer.vue'))
+/* WebGL-виджет кейса: как и модель, только на клиенте и только по требованию. */
+const LazyPrismDemo = defineAsyncComponent(() => import('~/components/projects/ProjectPrismDemo.vue'))
 
 const clientLinkLabel = computed(() => t('project.clientLinkAria', { client: props.project.client }))
 </script>
@@ -16,7 +18,7 @@ const clientLinkLabel = computed(() => t('project.clientLinkAria', { client: pro
 <template>
   <section
     class="project-hero"
-    :class="{ 'project-hero--model': !!project.model }"
+    :class="{ 'project-hero--model': !!project.model || !!project.demo }"
     aria-labelledby="project-hero-title"
   >
     <div class="site-container project-hero__inner">
@@ -75,10 +77,19 @@ const clientLinkLabel = computed(() => t('project.clientLinkAria', { client: pro
       </div>
 
       <div class="project-hero__visual">
+        <!-- Живой WebGL-виджет вместо обложки: без панели параметров —
+             она живёт ниже по странице, чтобы шапка оставалась чистой. -->
+        <LazyPrismDemo
+          v-if="project.demo"
+          :demo="project.demo"
+          :poster="project.cover.src"
+          :poster-alt="project.cover.alt"
+          variant="hero"
+        />
         <!-- Живая 3D-модель вместо обложки: постером служит сама обложка,
              модель плавно заменяет её после загрузки. -->
         <LazyModelViewer
-          v-if="project.model"
+          v-else-if="project.model"
           :src="project.model.src"
           :alt="project.model.alt"
           :width="project.model.width"

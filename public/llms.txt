@@ -40,7 +40,7 @@ The average project budget starts from €500. Smaller standalone tasks are quot
 
 **Can I order an interactive 3D model for my website?** Yes, we prepare an optimized GLB and integrate it into a product page or catalogue with a WebGL viewer.
 
-## Case studies (21)
+## Case studies (22)
 
 Figures below are the ones published on each case page.
 
@@ -65,6 +65,7 @@ Figures below are the ones published on each case page.
 - [Standalone projects](https://gluke.ru/projects/cinematics): Cinematics and advertising videos. UE5 scene built in Unreal Engine; 40 s trailer duration. 2023.
 - [RusAgroMarket](https://gluke.ru/projects/rusagromarket): RusAgroMarket — 3D visualization of the wholesale distribution center. 5 warehouses of the complex; Bird's-eye main angle; Day and night visualization variants. 2022.
 - [Fachwerk Stroy](https://gluke.ru/projects/fachwerk-garden-city): Fachwerk Stroy — 3D visualization of the Garden City village. ~70 plots; 6 house types; 1 3D scene. 2023.
+- [In-house project](https://gluke.ru/projects/pleprism): Pleprism — a pure WebGL 3D prism for a site header. 27 KB widget size, 9.8 KB gzipped; 0 dependencies and build steps; SDF volume computed by a shader, not polygons. 2026.
 
 ## Contact
 

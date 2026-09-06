@@ -2,7 +2,7 @@
 import type { ProjectsCollectionItem } from '@nuxt/content'
 
 const props = defineProps<{
-  category: 'orgtech' | 'industrial' | 'furniture' | 'exteriors' | 'cinematics' | 'gameready'
+  category: 'orgtech' | 'industrial' | 'furniture' | 'exteriors' | 'cinematics' | 'gameready' | 'webgl'
   cover: ProjectsCollectionItem['cover']
   /* Прямая ссылка вместо промежуточной сетки категории: для категорий-коллекций
      (например «Синематики») карточка ведёт сразу на страницу с материалами. */

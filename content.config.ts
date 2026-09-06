@@ -116,7 +116,7 @@ export default defineContentConfig({
         client: z.string().min(1),
         industry: z.string().min(1),
         /* Профили, к которым относится кейс (массив — кейс может быть в двух сразу). */
-        categories: z.array(z.enum(['orgtech', 'industrial', 'furniture', 'exteriors', 'cinematics', 'gameready'])).optional(),
+        categories: z.array(z.enum(['orgtech', 'industrial', 'furniture', 'exteriors', 'cinematics', 'gameready', 'webgl'])).optional(),
         position: z.number().int().positive(),
         featured: z.boolean(),
         status: z.enum(['draft', 'review', 'published']),
@@ -164,6 +164,17 @@ export default defineContentConfig({
           hemisphereLight: z.number().min(0).max(3).optional(),
           keyLight: z.number().min(0).max(3).optional(),
           fillLight: z.number().min(0).max(3).optional(),
+        }).optional(),
+        /* Живой WebGL-виджет вместо обложки в шапке кейса — по тому же принципу,
+           что и `model`, только считается шейдером, а не грузится файлом.
+           `params` уходят в виджет как есть. Тема страницы на них не влияет:
+           подложка блока тёмная всегда, иначе аддитивное свечение теряется. */
+        demo: z.object({
+          widget: z.literal('prism'),
+          alt: z.string().min(1),
+          logo: z.string().startsWith('/media/').optional(),
+          tunable: z.boolean().optional(),
+          params: z.record(z.union([z.number(), z.string(), z.boolean(), z.array(z.number())])),
         }).optional(),
         media: z.array(mediaSchema),
         metrics: z.array(metricSchema).min(1),

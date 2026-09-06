@@ -7,6 +7,7 @@ client: Getic
 industry: Networking hardware and e-commerce
 categories:
   - orgtech
+  - webgl
 position: 1
 featured: true
 status: published

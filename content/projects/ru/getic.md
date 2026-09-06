@@ -7,12 +7,13 @@ client: Getic
 industry: Сетевое оборудование и e-commerce
 categories:
   - orgtech
+  - webgl
 position: 1
 featured: true
 status: published
 navigation: false
 period: 2021-2026
-updated: 2026-09-01
+updated: 2026-09-05
 engagement: completed
 clientUrl: https://www.getic.com/
 services:
