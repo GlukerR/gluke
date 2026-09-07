@@ -48,7 +48,8 @@ const isBleedHero = computed(() => isBleedDemoWidget(props.project.demo?.widget)
 const clientLinkLabel = computed(() => t('project.clientLinkAria', { client: props.project.client }))
 </script>
 
-<template>    <section
+<template>
+  <section
     class="project-hero"
     :class="{
       'project-hero--model': (!!project.model || (!!project.demo && !!demoWidget)) && !isBleedHero,

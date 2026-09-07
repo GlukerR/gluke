@@ -25,11 +25,11 @@ demo:
   tunable: true
   params: {}
 metrics:
-  - value: 20 KB
-    label: widget size, 7 KB gzipped
+  - value: 37 KB
+    label: widget size, 12 KB gzipped
   - value: "0"
     label: dependencies and build steps
-  - value: "6"
+  - value: "8"
     label: stars per 100×100 px square — the density stays the same on any screen
 cover:
   src: /media/projects/constellation/constellation-cover.jpg
@@ -53,4 +53,4 @@ An interactive background for a website usually means "engine plus model plus me
 
 ## The result
 
-A single 20 KB file, 7 KB compressed, with zero dependencies and zero build steps. The live field at the top of this page is that very file — the same code you can drop into any site.
+A single 37 KB file, 12 KB compressed, with zero dependencies and zero build steps. The live field at the top of this page is that very file — the same code you can drop into any site.

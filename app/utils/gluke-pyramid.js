@@ -1,13 +1,10 @@
 /*!
  * GlukePyramid — светящаяся 3D-пирамида на чистом WebGL, без зависимостей.
- * Виджет кейса `pleprism`, не библиотека из npm. Источник — отдельный скрипт
- * пирамиды из D:/Work/WEB/pleprism/prism.js.
+ * Виджет кейса `pyramid`, не библиотека из npm.
  *
- * От того скрипта отличается четырьмя вещами:
- *   1. IIFE присваивается переменной и экспортируется как ES-модуль —
- *      исходный UMD-хвост (`global.Pleprism` + `module.exports`) в ESM-сборке
- *      не годится;
- *   2. убран автозапуск `API.auto()` по DOMContentLoaded: в SPA он бы сканировал
+ * Особенности реализации:
+ *   1. Модуль экспортируется как ES-модуль;
+ *   2. автозапуск по DOMContentLoaded убран: в SPA он бы сканировал
  *      документ при импорте и создавал контексты в обход жизненного цикла Vue.
  *      Экземпляры создаёт ProjectPyramidDemo.vue и он же их уничтожает;
  *   3. добавлены методы перецепления `detach()`/`reattach()`: виджеты кейсов
@@ -676,11 +673,11 @@ const GlukePyramid = (function (global) {
       return p;
     },
     auto: function (selector) {
-      var nodes = document.querySelectorAll(selector || '.pleprism,[data-pleprism]');
+      var nodes = document.querySelectorAll(selector || '.gluke-pyramid,[data-gluke-pyramid]');
       for (var i = 0; i < nodes.length; i++) {
-        if (nodes[i].__pleprism) continue;
+        if (nodes[i].__glukePyramid) continue;
         try {
-          nodes[i].__pleprism = API.create(nodes[i]);
+          nodes[i].__glukePyramid = API.create(nodes[i]);
         } catch (e) { console.error(e); }
       }
       return API.instances;

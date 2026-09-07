@@ -64,7 +64,7 @@ const CATEGORY_COVERS: Record<ProjectCategory, string> = {
   exteriors: 'cascadia',
   cinematics: 'dynomine',
   gameready: '',
-  webgl: 'pleprism',
+  webgl: 'pyramid',
 }
 
 const categoryCover = (category: ProjectCategory) => {
@@ -77,7 +77,7 @@ const categoryCover = (category: ProjectCategory) => {
 /* Демо-виджет категории — от представительного кейса (того же, что даёт
    обложку), но без фолбэка на ведущий проект: живое превью уместно только
    если у самой категории есть кейс с виджетом. Сейчас это «Интерактив
-   и WebGL» → пирамида pleprism. */
+   и WebGL» → пирамида (кейс pyramid). */
 const categoryDemo = (category: ProjectCategory) => {
   const preferred = publishedProjects.value.find(project => project.slug === CATEGORY_COVERS[category])
   return preferred?.demo

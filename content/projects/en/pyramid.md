@@ -1,8 +1,8 @@
 ---
 locale: en
-slug: pleprism
-title: Glowing pyramid — a pure WebGL 3D pyramid
-description: 'A volumetric pyramid computed by a shader rather than built from polygons: 27 KB with no dependencies and no build step, the logo fused into the material of the faces, dropped into any site with one line.'
+slug: pyramid
+title: Glowing pyramid — a pure WebGL 3D widget
+description: 'A volumetric pyramid computed by a shader rather than built from polygons: 30 KB with no dependencies and no build step, the logo fused into the material of the faces, dropped into any site with one line.'
 client: Web graphics
 industry: Widgets
 categories:
@@ -22,7 +22,7 @@ services:
 demo:
   widget: pyramid
   alt: An interactive 3D pyramid — it spins on its own and moves away from the cursor
-  logo: /media/projects/pleprism/g-mark.svg
+  logo: /media/projects/pyramid/g-mark.svg
   tunable: true
   params:
     rise: 2
@@ -48,14 +48,14 @@ demo:
     markGlow: 16
     markDepth: 0.13
 metrics:
-  - value: 27 KB
-    label: widget size, 9.8 KB gzipped
+  - value: 30 KB
+    label: widget size, 10 KB gzipped
   - value: "0"
     label: dependencies and build steps
   - value: SDF
     label: volume computed by a shader, not polygons
 cover:
-  src: /media/projects/pleprism/pleprism-cover.jpg
+  src: /media/projects/pyramid/pyramid-cover.jpg
   alt: A 3D pyramid outlined in a rainbow gradient — magenta along the upper edges, blue and green toward the base — with the GLUKE logo near the apex
   width: 1680
   height: 945
@@ -79,6 +79,6 @@ We wanted to skip the model entirely and end up with a widget that drops into an
 
 ## The result
 
-A single 27 KB file, 9.8 KB compressed, with no dependencies and no build step. The live pyramid at the top of this page is that file, not a video.
+A single 30 KB file, 10 KB compressed, with no dependencies and no build step. The live pyramid at the top of this page is that file, not a video.
 
 Everything is computed by the shader, so the weight does not depend on how complex the shape is: the geometry has no vertices, no triangles and no textures. The cost sits elsewhere — in fill rate: a hundred steps for every pixel of every frame. Hence the resolution caps on narrow screens, without which a phone would heat up for the sake of a background decoration.
