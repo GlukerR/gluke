@@ -92,14 +92,16 @@ powershell -NoProfile -Command "(Start-Process -FilePath 'node.exe' -ArgumentLis
 | `pnpm generate` | Статическая генерация: все маршруты в `.output/public`. Та же изоляция `.nuxt-build` |
 | `pnpm typecheck` | Изолированный vue-tsc (`scripts/typecheck.mjs`, `.nuxt-typecheck`) — быстрая проверка перед деплоем |
 | `pnpm lint` / `pnpm lint:fix` | ESLint (автофикс через `lint:fix`) |
-| `pnpm check` | `lint` + `typecheck` + `build` — всё, что гоняет CI |
+| `pnpm test` / `pnpm test:watch` | Vitest: юнит-тесты утилит и `scrollBehavior` (файлы `.test.ts` рядом с кодом в `app/`) |
+| `pnpm check` | `lint` + `typecheck` + `validate:content` + `test` + `build` — всё, что гоняет CI |
 
 Заметки:
 - Все проверки безопасны при работающем dev-сервере: прод-сборка идёт в
-  `.nuxt-build`, typecheck — в `.nuxt-typecheck`, dev их не трогает.
+  `.nuxt-build`, typecheck — в `.nuxt-typecheck`, vitest — изолированный раннер
+  с собственным `vitest.config.ts` (алиас `#shared`), dev их не трогает.
 - Не нужно `rm -rf .nuxt` перед сборкой; если удалил — обёртка сама пересоздаст
   через `nuxt prepare`.
-- CI гоняет все три проверки на каждый push; Vercel деплоит тот же `pnpm build`.
+- CI гоняет все проверки на каждый push; Vercel деплоит тот же `pnpm build`.
 
 ## Контент
 
@@ -140,6 +142,12 @@ powershell -NoProfile -Command "(Start-Process -FilePath 'node.exe' -ArgumentLis
 - `vercel.json` теперь чистит кэш Nuxt внутри node_modules перед сборкой:
   `rm -rf node_modules/.cache/nuxt && pnpm build`. Каждая сборка Vercel стартует
   с чистого состояния Nuxt (без устаревших типов/базы/tsbuildinfo).
+- Перед `pnpm build` buildCommand выполняет `git fetch --unshallow && pnpm lastmod`:
+  Vercel клонирует репозиторий поверхностно, поэтому без докачки полной истории
+  `git log` вернул бы одну дату для всех файлов и перезаписал бы все `updated`
+  одной датой деплоя. Полная история даёт реальные даты последних правок по
+  каждому файлу; если докачка не удалась (нет сети/прав), lastmod просто
+  пропускается и sitemap использует закоммиченные `updated` — сборка не падает.
 - `HomeServices.vue` больше не выводит тип props из сгенерированного
   `SiteCollectionItem['services']`: используются явные типы из
   `app/utils/home-services.ts`, а `app/pages/index.vue` передаёт их через

@@ -4,6 +4,10 @@ import type { ProjectsCollectionItem } from '@nuxt/content'
 const props = defineProps<{
   category: 'orgtech' | 'industrial' | 'furniture' | 'exteriors' | 'cinematics' | 'gameready' | 'webgl'
   cover: ProjectsCollectionItem['cover']
+  /* Демо-виджет категории — от представительного кейса (того же, что даёт
+     обложку): если у кейса есть живой WebGL-демо, карточка показывает его
+     вместо статичной обложки. Сейчас это «Интерактив и WebGL» → призма. */
+  demo?: ProjectsCollectionItem['demo']
   /* Прямая ссылка вместо промежуточной сетки категории: для категорий-коллекций
      (например «Синематики») карточка ведёт сразу на страницу с материалами. */
   to?: string
@@ -35,6 +39,14 @@ const description = computed(() => t(`projects.categories.${props.category}.desc
         decoding="async"
         class="category-card__picture"
         :img-attrs="{ class: 'category-card__image' }"
+      />
+
+      <!-- Живое превью: у категорий с WebGL-кейсом обложка после простоя
+           страницы уступает место настоящему рендеру (тот же компонент,
+           что на карточках кейсов). Пока виджет не ожил — видна обложка. -->
+      <ProjectsProjectCardDemo
+        v-if="demo?.widget"
+        :demo="demo"
       />
     </span>
 
@@ -76,6 +88,7 @@ const description = computed(() => t(`projects.categories.${props.category}.desc
 }
 
 .category-card__media {
+  position: relative;
   display: block;
   overflow: hidden;
   border-radius: var(--site-radius-md);

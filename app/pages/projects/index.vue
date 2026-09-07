@@ -3,6 +3,7 @@ const site = useSiteContent()
 const locale = useCurrentLocale()
 const { t } = useI18n()
 const { projects: projectsPath, project: projectPath } = useSiteRoutes()
+const { prefetchOnEnter, prefetchOnLeave } = useCasePrefetch()
 const { toAbsolute } = useSiteUrls()
 const route = useRoute()
 
@@ -73,12 +74,23 @@ const categoryCover = (category: ProjectCategory) => {
     ?? initialLeadProject.cover
 }
 
+/* Демо-виджет категории — от представительного кейса (того же, что даёт
+   обложку), но без фолбэка на ведущий проект: живое превью уместно только
+   если у самой категории есть кейс с виджетом. Сейчас это «Интерактив
+   и WebGL» → пирамида pleprism. */
+const categoryDemo = (category: ProjectCategory) => {
+  const preferred = publishedProjects.value.find(project => project.slug === CATEGORY_COVERS[category])
+  return preferred?.demo
+    ?? publishedProjects.value.find(project => project.categories?.includes(category))?.demo
+}
+
 /* Все категории ведут на сетку своих кейсов (?category=…): у «Синематиков»
    она же показывает отдельные серии (SWMD, DYNOMINE) рядом с подборкой. */
 const categoryCards = computed(() =>
   CATEGORIES.map(category => ({
     category,
     cover: categoryCover(category),
+    demo: categoryDemo(category),
   })),
 )
 
@@ -185,6 +197,10 @@ useSchemaOrg([
           v-for="project in visibleProjects"
           :key="project.slug"
           class="projects-archive__item"
+          @pointerenter="prefetchOnEnter($event, project.slug)"
+          @pointerleave="prefetchOnLeave($event)"
+          @focusin="prefetchOnEnter($event, project.slug)"
+          @focusout="prefetchOnLeave($event)"
         >
           <ProjectsProjectCard
             :project="project"
@@ -205,6 +221,7 @@ useSchemaOrg([
           <ProjectsCategoryCard
             :category="card.category"
             :cover="card.cover"
+            :demo="card.demo"
           />
         </li>
       </ul>

@@ -44,3 +44,11 @@ desktop.ini
 .env
 .env.*
 !.env.example
+
+# WIP: лава-лампа из метаболлов — кейс снят с публикации, исходники
+# остаются для доработки и не должны попасть в коммит случайным add -A
+app/utils/gluke-metaballs.js
+app/components/projects/ProjectMetaballsDemo.vue
+
+# Локальный тулинг агентов (launch.json и т.п.) — не для коммита
+.claude/

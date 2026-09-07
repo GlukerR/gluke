@@ -1,7 +1,7 @@
 {
   "framework": "nuxtjs",
   "installCommand": "pnpm install",
-  "buildCommand": "rm -rf node_modules/.cache/nuxt && pnpm build",
+  "buildCommand": "rm -rf node_modules/.cache/nuxt && if git fetch --unshallow; then pnpm lastmod || echo \"[lastmod] warning: refresh failed, keeping committed dates\"; else echo \"[lastmod] skipped: no full git history on Vercel\"; fi && pnpm build",
   "outputDirectory": ".output",
   "regions": ["fra1"]
 }

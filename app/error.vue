@@ -2,6 +2,7 @@
 import type { NuxtError } from '#app'
 
 import { LOCALE_COOKIE_MAX_AGE, LOCALE_COOKIE_NAME } from '#shared/i18n'
+import { trackMetrika } from '~/utils/metrika'
 
 const props = defineProps<{ error: NuxtError }>()
 
@@ -67,6 +68,24 @@ const copy = computed(() => isRussian.value
     })
 
 const is404 = computed(() => props.error.statusCode === 404)
+
+/* Показ страницы ошибки шлём в Метрику целью по коду статуса (`404`, `500`):
+   битые URL и падающий сервер видны в аналитике, а не только в логах.
+   onMounted — только клиент: серверный рендер ошибки сам по себе не событие.
+   Мета-данные проходят через очередь в app/utils/metrika.ts и уходят после
+   того, как плагин Метрики закончил init (на слабом интернете скрипт может
+   ещё качаться). */
+onMounted(() => {
+  const status = props.error.statusCode
+  if (!status) {
+    return
+  }
+
+  trackMetrika(String(status), {
+    path: pathname.value,
+    referrer: typeof document !== 'undefined' ? document.referrer || '' : '',
+  })
+})
 
 /* Ссылки собираются вручную, а не через useLocalePath: на странице ошибки
    локализованный маршрут не существует, и префикс зависит только от локали. */

@@ -39,6 +39,15 @@ const services = computed(() => props.project.services.slice(0, 2))
         class="project-card__picture"
         :img-attrs="{ class: 'project-card__image' }"
       />
+
+      <!-- Живое превью: у кейсов с WebGL-виджетом (GlukePyramid, Constellation)
+           обложка после простоя страницы уступает место настоящему рендеру.
+           Пока виджет не ожил (и навсегда при «уменьшить движение»/без WebGL)
+           поверх прозрачен — видна обложка. -->
+      <ProjectsProjectCardDemo
+        v-if="project.demo?.widget"
+        :demo="project.demo"
+      />
     </span>
 
     <span class="project-card__body">
@@ -105,14 +114,28 @@ const services = computed(() => props.project.services.slice(0, 2))
 }
 
 .project-card__media {
+  position: relative;
   display: block;
   overflow: hidden;
   border-radius: var(--site-radius-md);
   background-color: var(--site-media-canvas);
 }
 
+/* У карточек с живым виджетом подложки нет вовсе — фон даёт карточка. */
+.project-card__media:has(.project-card-demo--live) {
+  background-color: transparent;
+}
+
 .project-card__picture {
   display: block;
+  transition: opacity 500ms ease;
+}
+
+/* Живой виджет рисует прозрачным канвасом, поэтому под ним не должно
+   оставаться тёмной обложки: как только превью ожило — гасим картинку и
+   виджет ложится прямо на поверхность карточки. */
+.project-card__media:has(.project-card-demo--live) .project-card__picture {
+  opacity: 0;
 }
 
 .project-card__picture :deep(.project-card__image) {

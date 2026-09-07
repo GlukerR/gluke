@@ -12,6 +12,10 @@ const { t } = useI18n()
 const { project: projectPath } = useSiteRoutes()
 
 const hasLinks = computed(() => Boolean(props.previous ?? props.next))
+
+/* Hover/focus-предзагрузка соседних кейсов — общая логика и guard-ы
+   в composable useCasePrefetch (dedupe, 2g/saveData, сенсорные). */
+const { prefetchOnEnter, prefetchOnLeave } = useCasePrefetch()
 </script>
 
 <template>
@@ -32,6 +36,10 @@ const hasLinks = computed(() => Boolean(props.previous ?? props.next))
         <li
           v-if="previous"
           class="project-pager__cell"
+          @pointerenter="prefetchOnEnter($event, previous.slug)"
+          @pointerleave="prefetchOnLeave($event)"
+          @focusin="prefetchOnEnter($event, previous.slug)"
+          @focusout="prefetchOnLeave($event)"
         >
           <NuxtLink
             :to="projectPath(previous.slug)"
@@ -48,6 +56,10 @@ const hasLinks = computed(() => Boolean(props.previous ?? props.next))
         <li
           v-if="next"
           class="project-pager__cell project-pager__cell--next"
+          @pointerenter="prefetchOnEnter($event, next.slug)"
+          @pointerleave="prefetchOnLeave($event)"
+          @focusin="prefetchOnEnter($event, next.slug)"
+          @focusout="prefetchOnLeave($event)"
         >
           <NuxtLink
             :to="projectPath(next.slug)"

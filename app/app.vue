@@ -21,6 +21,13 @@ useHead(() => ({
 
 <template>
   <UApp>
+    <!-- Индикатор загрузки при клиентской навигации (кейсы, проекты): тонкая
+         полоска сверху показывает, что страница грузится, вместо резкой
+         подмены контента. Градиент — из фирменной палитры brand. -->
+    <NuxtLoadingIndicator
+      :height="3"
+      color="repeating-linear-gradient(to right, var(--color-brand-300) 0%, var(--color-brand-500) 50%, var(--color-brand-700) 100%)"
+    />
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>

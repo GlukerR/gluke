@@ -1,7 +1,17 @@
 <script setup lang="ts">
 import type { ProjectsCollectionItem } from '@nuxt/content'
+import { isBleedDemoWidget } from '~/utils/demoWidgetCache'
 
-const props = defineProps<{ project: ProjectsCollectionItem }>()
+const props = withDefaults(defineProps<{
+  project: ProjectsCollectionItem
+  /* Полноформатный hero звёздного поля может жить не внутри компонента,
+     а в обёртке страницы — тогда канвас рисуется обёрткой за пределами
+     hero (чтобы звёзды шли и под «Вернуться к проектам», и под хедером),
+     а этот компонент оставляет только текст и затемнение. */
+  bleedExternal?: boolean
+}>(), {
+  bleedExternal: false,
+})
 
 const { t } = useI18n()
 
@@ -9,18 +19,60 @@ const { t } = useI18n()
    скачивается только на кейсах, где реально есть модель. На кейсах
    с обложкой вместо модели лишний мегабайт не тратится. */
 const LazyModelViewer = defineAsyncComponent(() => import('~/components/projects/ProjectModelViewer.vue'))
-/* WebGL-виджет кейса: как и модель, только на клиенте и только по требованию. */
-const LazyPrismDemo = defineAsyncComponent(() => import('~/components/projects/ProjectPrismDemo.vue'))
+/* WebGL-виджеты кейсов: как и модель, только на клиенте и только по требованию.
+   Чанк грузится под конкретный виджет — у призмы, звёздного поля и лава-лампы
+   разный код, и тащить все на страницу с одним демо незачем. */
+const LazyPyramidDemo = defineAsyncComponent(() => import('~/components/projects/ProjectPyramidDemo.vue'))
+
+/* Звёздное поле в полноформатной шапке грузится не лениво, а статически: там
+   нет постер-картинки (см. компонент), и ждать асинхронный чанк компонента,
+   чтобы показать реальный рендер, незачем — виджет маленький и должен ожить
+   сразу после гидрации. Узкий 16:9-режим призмы остаётся ленивым. */
+import ConstellationDemo from '~/components/projects/ProjectConstellationDemo.vue'
+
+/* Демо-виджет кейса по типу из контента: `pyramid` → пирамида, `constellation` →
+   звёздное поле. Виджет без hero-движка не бывает — у обоих канвас прозрачный
+   и живёт прямо на фоне сайта. */
+const demoWidget = computed(() => {
+  if (props.project.demo?.widget === 'constellation') return ConstellationDemo
+  if (props.project.demo?.widget === 'pyramid') return LazyPyramidDemo
+  return null
+})
+
+/* Полноэкранный hero-режим — у виджетов из общего списка (BLEED_DEMO_WIDGETS):
+   канвас заливает всю шапку фоном (как сплэш softlogic), текст ложится поверх
+   слева, справа остаётся живое поле без контента. Остальные демо остаются
+   в своей колонке карточкой 16:9. Список общий для шаблона и страницы. */
+const isBleedHero = computed(() => isBleedDemoWidget(props.project.demo?.widget))
 
 const clientLinkLabel = computed(() => t('project.clientLinkAria', { client: props.project.client }))
 </script>
 
-<template>
-  <section
+<template>    <section
     class="project-hero"
-    :class="{ 'project-hero--model': !!project.model || !!project.demo }"
+    :class="{
+      'project-hero--model': (!!project.model || (!!project.demo && !!demoWidget)) && !isBleedHero,
+      'project-hero--bleed': isBleedHero,
+      /* Канвас рисует обёртка страницы позади hero: весь hero-бокс прозрачен
+         для указателя, иначе он перехватывал бы события и курсор-«планета»
+         работал бы только в промежутках между блоками. */
+      'project-hero--pointerless': isBleedHero && props.bleedExternal,
+    }"
     aria-labelledby="project-hero-title"
   >
+    <!-- Полноформатный режим: канвас лежит абсолютом позади текста и
+         заполняет шапку целиком от края до края. Если канвас рисует обёртка
+         страницы (`bleedExternal`), здесь он не нужен — иначе рендер
+         задвоится. Виджет выбирается по типу из контента, как и в колонке. -->
+    <component
+      :is="demoWidget"
+      v-if="project.demo && demoWidget && isBleedHero && !props.bleedExternal"
+      :demo="project.demo"
+      :poster="project.cover.src"
+      :poster-alt="project.cover.alt"
+      variant="bleed"
+    />
+
     <div class="site-container project-hero__inner">
       <div class="project-hero__text">
         <p class="text-label text-accent project-hero__meta">
@@ -76,11 +128,15 @@ const clientLinkLabel = computed(() => t('project.clientLinkAria', { client: pro
         </a>
       </div>
 
-      <div class="project-hero__visual">
+      <div
+        v-if="!isBleedHero"
+        class="project-hero__visual"
+      >
         <!-- Живой WebGL-виджет вместо обложки: без панели параметров —
              она живёт ниже по странице, чтобы шапка оставалась чистой. -->
-        <LazyPrismDemo
-          v-if="project.demo"
+        <component
+          :is="demoWidget"
+          v-if="project.demo && demoWidget"
           :demo="project.demo"
           :poster="project.cover.src"
           :poster-alt="project.cover.alt"
@@ -247,6 +303,51 @@ const clientLinkLabel = computed(() => t('project.clientLinkAria', { client: pro
 .project-hero--model .project-hero__text {
   position: relative;
   z-index: 1;
+}
+
+/* Полноформатный hero: канвас — фон всей шапки, текст ложится поверх слева.
+   Поле живёт на фоне сайта и следует его теме (палитра перекрашивается
+   через recolor), поэтому текстовые токены не переопределяем — они
+   приходят из темы сайта как обычно. */
+.project-hero--bleed {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  padding-block: clamp(48px, 6vw, 88px) clamp(64px, 8vw, 120px);
+}
+
+/* Когда hero — только текст поверх канваса обёртки, весь его бокс прозрачен
+   для мыши (текст и так не кликабелен, кроме ссылок — им возвращаем клики). */
+.project-hero--bleed.project-hero--pointerless {
+  pointer-events: none;
+}
+
+.project-hero--bleed .project-hero__text {
+  position: relative;
+  z-index: 2;
+}
+
+/* Текст-оверлей прозрачен для указателя: курсор-«планета» и расталкивание
+   звёзд должны работать на всей шапке, включая область под заголовком.
+   Ссылкам и кнопкам возвращаем клики. */
+.project-hero--bleed .project-hero__inner {
+  pointer-events: none;
+}
+
+.project-hero--bleed .project-hero__inner a,
+.project-hero--bleed .project-hero__inner button {
+  pointer-events: auto;
+}
+
+.project-hero--bleed .project-hero__inner {
+  align-items: center;
+}
+
+@media (min-width: 1024px) {
+  /* Текст держится в левой колонке, поле продолжается справа за ним. */
+  .project-hero--bleed .project-hero__inner {
+    grid-template-columns: minmax(0, 44rem) minmax(0, 1fr);
+  }
 }
 
 @media (min-width: 1024px) {

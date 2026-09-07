@@ -285,3 +285,17 @@
     text-transform: uppercase;
   }
 }
+
+/* Классы страничного перехода кейсов (`pageTransition` в definePageMeta
+   страницы проекта): плавный короткий fade вместо резкой подмены контента.
+   Длительность перекликается с остальными анимациями сайта; для
+   prefers-reduced-motion глобальное правило в @layer base всё обнуляет. */
+.page-fade-enter-active,
+.page-fade-leave-active {
+  transition: opacity 200ms ease;
+}
+
+.page-fade-enter-from,
+.page-fade-leave-to {
+  opacity: 0;
+}

@@ -4,6 +4,7 @@ import type { ProjectsCollectionItem } from '@nuxt/content'
 defineProps<{ projects: ProjectsCollectionItem[] }>()
 
 const { t } = useI18n()
+const { prefetchOnEnter, prefetchOnLeave } = useCasePrefetch()
 
 const WIDE_SIZES = '100vw md:100vw lg:64vw xl:920px'
 
@@ -42,6 +43,10 @@ function cardEmphasis(index: number) {
           v-for="(project, index) in projects"
           :key="project.path"
           class="home-projects__item"
+          @pointerenter="prefetchOnEnter($event, project.slug)"
+          @pointerleave="prefetchOnLeave($event)"
+          @focusin="prefetchOnEnter($event, project.slug)"
+          @focusout="prefetchOnLeave($event)"
         >
           <ProjectsProjectCard
             :project="project"

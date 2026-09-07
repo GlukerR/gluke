@@ -14,8 +14,10 @@ const localeSchema = z.enum(LOCALE_CODES)
 const slugSchema = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/)
 
 /* Дата последнего изменения файла (YYYY-MM-DD). Проставляется скриптом
-   `pnpm lastmod` из git и уезжает в sitemap как `lastmod`. Считать её при
-   сборке нельзя: Vercel клонирует репозиторий поверхностно. */
+   `pnpm lastmod` из git и уезжает в sitemap как `lastmod`. В buildCommand
+   Vercel сначала докачивает полную историю (`git fetch --unshallow`) и затем
+   пересчитывает даты по ней; без полной истории используются закоммиченные
+   значения. */
 const updatedSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
 
 const visualSchema = z.object({
@@ -170,7 +172,7 @@ export default defineContentConfig({
            `params` уходят в виджет как есть. Тема страницы на них не влияет:
            подложка блока тёмная всегда, иначе аддитивное свечение теряется. */
         demo: z.object({
-          widget: z.literal('prism'),
+          widget: z.enum(['pyramid', 'constellation', 'metaballs']),
           alt: z.string().min(1),
           logo: z.string().startsWith('/media/').optional(),
           tunable: z.boolean().optional(),

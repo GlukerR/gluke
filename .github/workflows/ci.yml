@@ -51,6 +51,27 @@ jobs:
       - name: Run typecheck
         run: pnpm typecheck
 
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Vitest: юнит-тесты чистых утилит и scrollBehavior (см. vitest.config.ts).
+      # Файлы лежат рядом с кодом в app/, поэтому попадают и в typecheck выше.
+      - name: Run unit tests
+        run: pnpm test
+
   content:
     name: Validate content
     runs-on: ubuntu-latest

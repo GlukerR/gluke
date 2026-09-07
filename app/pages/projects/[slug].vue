@@ -1,4 +1,22 @@
 <script setup lang="ts">
+import { isBleedDemoWidget } from '~/utils/demoWidgetCache'
+
+/* Плавный fade при переходе между кейсами: имя переходу задаёт CSS ниже,
+   mode out-in не даёт страницам наползать друг на друга во время смены.
+
+   Ключ страницы — только слаг кейса (не путь целиком): переключение языка
+   меняет URL, но не кейс, и страница переиспользуется вместо полного
+   перемонтирования. Иначе locale-свитч сносил бы DOM и заново поднимал
+   WebGL-виджеты — с морганием и пересборкой поля. Смена кейса (другой слаг)
+   по-прежнему даёт новый ключ и обычный fade. */
+definePageMeta({
+  key: (route) => String(('slug' in route.params ? route.params.slug : '') ?? ''),
+  pageTransition: {
+    name: 'page-fade',
+    mode: 'out-in',
+  },
+})
+
 const route = useRoute()
 const site = useSiteContent()
 const locale = useCurrentLocale()
@@ -80,6 +98,40 @@ const project = computed(() => data.value?.project ?? initialData.project)
 /* Showcase (синематики/гейм-реди): компактная страница без метрик,
    «Услуг» и «О проекте» — акцент на видео/галерее по клику. */
 const isShowcase = computed(() => project.value.type === 'showcase')
+
+/* Демо-кейсы с полноформатным hero-сплэшем (список общий для страницы
+   и шаблона — BLEED_DEMO_WIDGETS): канвас заливает весь верх страницы
+   (включая строку «Вернуться к проектам» и, через прозрачный frosted-хедер,
+   самую верхушку экрана). Сейчас это звёздное поле и пирамида; когда
+   у лава-лампы появится движок, она добавится в тот же список. */
+const isBleedDemo = computed(() => isBleedDemoWidget(project.value.demo?.widget))
+
+/* Сплэш приподнимается под липкий хедер на его высоту, а высота
+   компенсируется паддингом: контент не прыгает, а канвас доходит до
+   верхней кромки вьюпорта. Высота хедера меряется после монтирования
+   (шрифты/брейкпоинты) и обновляется по ресайзу. */
+const bleedTopRef = ref<HTMLElement | null>(null)
+let removeBleedLift: (() => void) | undefined
+
+function applyBleedLift() {
+  const header = document.querySelector<HTMLElement>('.site-header')
+  const top = bleedTopRef.value
+  if (!header || !top || !isBleedDemo.value) return
+  const h = header.offsetHeight
+  if (h > 0) top.style.setProperty('--bleed-lift', `${h}px`)
+}
+
+onMounted(() => {
+  if (!isBleedDemo.value) return
+  applyBleedLift()
+  window.addEventListener('resize', applyBleedLift)
+  removeBleedLift = () => window.removeEventListener('resize', applyBleedLift)
+})
+
+onBeforeUnmount(() => {
+  removeBleedLift?.()
+  removeBleedLift = undefined
+})
 
 /* Первый абзац тела показывается рядом с услугами, остальное — в свёрнутом
    блоке. Разбор в одном месте, чтобы абзац не задвоился. */
@@ -171,24 +223,69 @@ useSchemaOrg([
     v-if="data && project"
     class="project-page"
   >
-    <div class="site-container project-page__back">
-      <NuxtLink
-        :to="projectsPath()"
-        class="project-page__back-link text-body--sm"
-      >
-        <span aria-hidden="true">←</span>
-        <span>{{ t('project.back') }}</span>
-      </NuxtLink>
+    <!-- Полноэкранный сплэш WebGL-виджета (звёздное поле, пирамида): одна
+         обёртка для канваса, строки «Вернуться к проектам» и hero-текста —
+         виджет идёт от верхней кромки экрана (под frosted-хедером) через всю
+         шапку, без чёрной полосы между хедером и полем и без собственной
+         рамки/фона. -->
+    <div
+      v-if="isBleedDemo"
+      ref="bleedTopRef"
+      class="project-page__bleed-top"
+    >
+      <!-- Bleed-канвас по типу виджета: список тех, кто умеет заливать hero
+           целиком, — BLEED_DEMO_WIDGETS (demoWidgetCache.ts); новые виджеты
+           добавляются туда одной строкой, а здесь — своей веткой. Сейчас это
+           звёздное поле; пирамида живёт обычной колонкой справа от текста. -->
+      <ProjectsProjectConstellationDemo
+        v-if="project.demo?.widget === 'constellation'"
+        :demo="project.demo"
+        :poster="project.cover.src"
+        :poster-alt="project.cover.alt"
+        variant="bleed"
+      />
+
+      <div class="site-container project-page__back project-page__bleed-back">
+        <NuxtLink
+          :to="projectsPath()"
+          class="project-page__back-link text-body--sm"
+        >
+          <span aria-hidden="true">←</span>
+          <span>{{ t('project.back') }}</span>
+        </NuxtLink>
+      </div>
+
+      <ProjectsProjectDetailHero
+        :project="project"
+        bleed-external
+      />
     </div>
 
-    <ProjectsProjectShowcaseHero
-      v-if="isShowcase"
-      :project="project"
-    />
-
     <template v-else>
-      <ProjectsProjectDetailHero :project="project" />
+      <div class="site-container project-page__back">
+        <NuxtLink
+          :to="projectsPath()"
+          class="project-page__back-link text-body--sm"
+        >
+          <span aria-hidden="true">←</span>
+          <span>{{ t('project.back') }}</span>
+        </NuxtLink>
+      </div>
 
+      <ProjectsProjectShowcaseHero
+        v-if="isShowcase"
+        :project="project"
+      />
+
+      <ProjectsProjectDetailHero
+        v-else
+        :project="project"
+      />
+    </template>
+
+    <!-- Полноценный кейс (в т.ч. звёздный сплэш Constellation): метрики
+         и услуги идут сразу под шапкой. -->
+    <template v-if="!isShowcase">
       <ProjectsProjectDetailOverview :metrics="project.metrics" />
 
       <!-- `about` намеренно не передаётся: это был сжатый пересказ «Задачи».
@@ -209,7 +306,15 @@ useSchemaOrg([
       class="project-page__demo"
     >
       <div class="site-container">
-        <ProjectsProjectPrismDemo
+        <ProjectsProjectPyramidDemo
+          v-if="project.demo.widget === 'pyramid'"
+          :demo="project.demo"
+          :poster="project.cover.src"
+          :poster-alt="project.cover.alt"
+          variant="tunable"
+        />
+        <ProjectsProjectConstellationDemo
+          v-else-if="project.demo.widget === 'constellation'"
           :demo="project.demo"
           :poster="project.cover.src"
           :poster-alt="project.cover.alt"
@@ -259,6 +364,33 @@ useSchemaOrg([
 .project-page__back {
   padding-block: clamp(16px, 2vw, 24px) 0;
 }
+
+/* Сплэш WebGL-виджета: канвас-фон + «Вернуться к проектам» + hero.
+   Сплэш приподнят под липкий хедер ровно на его высоту (меряется в JS
+   и приходит в `--bleed-lift`), компенсированную паддингом: контент не
+   двигается, а поле доходит до верхней кромки экрана и просвечивает
+   сквозь frosted-хедер — пустой полосы над ним нет. Фон и текст следуют
+   теме сайта (виджет перекрашивается через recolor), токены не трогаем. */
+.project-page__bleed-top {
+  position: relative;
+  isolation: isolate;
+  margin-top: calc(-1 * var(--bleed-lift, 0px));
+  padding-top: var(--bleed-lift, 0px);
+}
+
+/* Строка «Вернуться к проектам» прозрачна для указателя: звёздная карта под
+   ней должна оставаться интерактивной (курсор-«планета» ходит по всему полю).
+   Кликабельной остаётся только сама ссылка. */
+.project-page__bleed-back {
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.project-page__bleed-back .project-page__back-link {
+  pointer-events: auto;
+}
+
 
 .project-page__back-link {
   display: inline-flex;

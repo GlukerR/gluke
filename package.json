@@ -16,12 +16,14 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "typecheck": "node scripts/typecheck.mjs",
     "llms": "node scripts/generate-llms.mjs",
     "validate:content": "node scripts/validate-content.mjs",
     "lastmod": "node scripts/update-lastmod.mjs",
     "indexnow": "node scripts/indexnow.mjs",
-    "check": "pnpm lint && pnpm typecheck && pnpm validate:content && pnpm build"
+    "check": "pnpm lint && pnpm typecheck && pnpm validate:content && pnpm test && pnpm build"
   },
   "dependencies": {
     "@nuxt/content": "^3.15.2",
@@ -47,6 +49,7 @@
     "svg-pathdata": "^9.0.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
+    "vitest": "^5.0.0",
     "vue-tsc": "^3.3.8",
     "yaml": "^2.9.0"
   }

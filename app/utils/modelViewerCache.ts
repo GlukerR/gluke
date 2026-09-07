@@ -65,7 +65,7 @@ function disposeViewer(viewer: CachedViewer) {
  * ограничен по памяти: при добавлении сверх лимита освобождается самый
  * давно не использованный (и не висящий сейчас в DOM) вьювер.
  */
-class ViewerCache {
+export class ViewerCache {
   private readonly items = new Map<string, CachedViewer>()
 
   get(src: string): CachedViewer | undefined {
