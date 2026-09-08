@@ -45,10 +45,14 @@ desktop.ini
 .env.*
 !.env.example
 
-# WIP: лава-лампа из метаболлов — кейс снят с публикации, исходники
-# остаются для доработки и не должны попасть в коммит случайным add -A
-app/utils/gluke-metaballs.js
-app/components/projects/ProjectMetaballsDemo.vue
+# WIP: лава-лампа из метаболлов — кейс снят с публикации. Скрываем только
+# сам кейс: без своего .md он нигде не появляется — ни страницей, ни
+# карточкой в каталоге, ни в sitemap. Исходники виджета, наоборот, должны
+# лежать в репозитории: на них статически ссылаются ProjectCardDemo.vue и
+# ProjectDetailHero.vue, и без них сборка падает с TS2307.
+content/projects/ru/metaballs.md
+content/projects/en/metaballs.md
+public/media/projects/metaballs/
 
 # Локальный тулинг агентов (launch.json и т.п.) — не для коммита
 .claude/

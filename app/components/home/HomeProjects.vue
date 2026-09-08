@@ -86,7 +86,11 @@ function cardEmphasis(index: number) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .home-projects__item:first-child {
+  /* Первая и четвёртая карточки широкие — так же, как в 12-колоночной сетке
+     ниже. Без четвёртой она оставалась одна в последнем ряду половинкой,
+     и справа от неё зияла пустота. */
+  .home-projects__item:first-child,
+  .home-projects__item:nth-child(4) {
     grid-column: span 2;
   }
 }

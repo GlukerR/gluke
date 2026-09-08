@@ -172,9 +172,20 @@ export default defineContentConfig({
            `params` уходят в виджет как есть. Тема страницы на них не влияет:
            подложка блока тёмная всегда, иначе аддитивное свечение теряется. */
         demo: z.object({
-          widget: z.enum(['pyramid', 'constellation', 'metaballs']),
+          widget: z.enum(['pyramid', 'constellation', 'metaballs', 'particles', 'image-particles']),
           alt: z.string().min(1),
           logo: z.string().startsWith('/media/').optional(),
+          /* Модель для виджетов, которые её сэмплируют (`particles`). */
+          model: z.string().startsWith('/media/').optional(),
+          /* Картинка-донор для виджетов, которые собирают частицы из
+             изображения (`image-particles`). */
+          src: z.string().startsWith('/media/').optional(),
+          /* Подпись к модели: у лицензий вроде CC-BY атрибуция обязательна
+             и должна стоять рядом с работой, а не в подвале страницы. */
+          credit: z.object({
+            text: z.string().min(1),
+            url: z.string().url().optional(),
+          }).optional(),
           tunable: z.boolean().optional(),
           params: z.record(z.union([z.number(), z.string(), z.boolean(), z.array(z.number())])),
         }).optional(),

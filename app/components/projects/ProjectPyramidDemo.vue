@@ -100,12 +100,19 @@ const themeParams = computed<PyramidParams>(() => ({
   ...PYRAMID_THEME_LOOK[isLight.value ? 'light' : 'dark'],
 }))
 
+/* Правило шаблона демо-кейсов: настройки лаборатории живут только в памяти
+   текущей сессии и только у экземпляра `tunable`. Hero-вариант всегда создаётся
+   и живёт на дефолтах кейса (themeParams) — что бы ни крутили внизу, шапка не
+   меняется, и после перезапуска страницы всё снова дефолтное. */
 const tuned = ref<Record<string, number>>({})
+const isTuner = computed(() => props.variant === 'tunable')
 
 /* `phase` — массив из трёх чисел, а ползунки правят его компоненты по одному,
    поэтому phase0/1/2 собираются обратно в массив и из плоского набора убираются. */
 function currentParams(): PyramidParams {
-  const merged = { ...themeParams.value, ...tuned.value }
+  /* Подкрученные значения уходят только в лабораторию; hero/bleed всегда
+     используют дефолты кейса — из лаборатории ничего не переходит в шапку. */
+  const merged = { ...themeParams.value, ...(isTuner.value ? tuned.value : {}) }
   const hues = [...((props.demo.params.hues as number[] | undefined) ?? [0, 1, 2])]
   let huesTouched = false
 
@@ -214,7 +221,12 @@ async function mount() {
   }
 }
 
-watch(tuned, () => pyramid.value?.set(currentParams()), { deep: true })
+watch(tuned, () => {
+  /* Ползунки есть только у лаборатории: подкрутка меняет её собственный виджет
+     и никуда не сохраняется. Hero/bleed обновлять нечего — они живут
+     на дефолтах и в кэше лежат отдельным ключом. */
+  if (isTuner.value) pyramid.value?.set(currentParams())
+}, { deep: true })
 
 /* Смена темы сайта: пирамида перекрашивается на лету без пересоздания
    WebGL-контекста и без перекачки логотипов — set() пересылает только

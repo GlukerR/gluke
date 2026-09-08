@@ -44,3 +44,65 @@ export const CONSTELLATION_THEME_COLORS: Record<'dark' | 'light', ConstellationT
     coreColor: '#312e81',
   },
 }
+
+export type ParticlesThemeParams = Record<string, unknown>
+
+/* Облако точек. На тёмном фоне точки складываются аддитивно и светятся,
+   на светлом аддитив уводит всё в белое — поэтому тема переключает и режим
+   смешивания, и палитру на «чернильную». */
+export const PARTICLES_THEME_LOOK: Record<'dark' | 'light', ParticlesThemeParams> = {
+  dark: {
+    additive: true,
+    color: '#c084fc',
+    accent: '#38bdf8',
+    brightness: 1,
+  },
+  light: {
+    additive: false,
+    color: '#5b21b6',
+    accent: '#0369a1',
+    brightness: 1.1,
+    /* На светлом фоне линии рисуются обычным смешиванием и бьют в глаза
+       сильнее, чем на тёмном, — поэтому по умолчанию они полупрозрачны. */
+    lineOpacity: 0.08,
+  },
+}
+
+export type MetaballsThemeParams = Record<string, unknown>
+
+/* Лава-лампа: цвет капель задаётся оттенками в кейсе, а светлоту и свечение
+   диктует тема. На тёмном фоне лава горит, на светлом — темнеет и приглушает
+   ореол, иначе оранжевые капли по белому уходят в кислотный. */
+export type ImageParticlesThemeParams = Record<string, unknown>
+
+/* Частицы из картинки: тёмная тема — аддитивное свечение по чёрному фону
+   донора (как в оригинале), светлая — обычное смешивание, «чернильные»
+   точки и ноль у чёрного фона, иначе по белому вылезут 57 тысяч точек
+   фоновых пикселей. */
+export const IMAGE_PARTICLES_THEME_LOOK: Record<'dark' | 'light', ImageParticlesThemeParams> = {
+  dark: {
+    additive: true,
+    invert: false,
+    lightness: 1,
+    minGrey: 0.03,
+  },
+  light: {
+    additive: false,
+    invert: true,
+    lightness: 0.92,
+    minGrey: 0,
+  },
+}
+
+export const METABALLS_THEME_LOOK: Record<'dark' | 'light', MetaballsThemeParams> = {
+  dark: {
+    lightness: 0.62,
+    glow: 1.1,
+    gloss: 0.55,
+  },
+  light: {
+    lightness: 0.56,
+    glow: 0.5,
+    gloss: 0.35,
+  },
+}

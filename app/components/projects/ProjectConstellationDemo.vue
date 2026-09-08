@@ -79,7 +79,7 @@ const GROUPS = [
   {
     id: 'links',
     controls: [
-      { key: 'linkDist', min: 0.02, max: 1, step: 0.01 },
+      { key: 'linkDist', min: 0.2, max: 4, step: 0.02 },
       { key: 'linkAlpha', min: 0, max: 2, step: 0.01 },
     ],
   },
@@ -113,7 +113,7 @@ const DEFAULT_PARAMS: Record<string, number> = {
   drift: 0.45,
   wander: 2,
   speedSpread: 3.25,
-  linkDist: 0.09,
+  linkDist: 1.48,
   linkAlpha: 0.1,
   cursorRadius: 0.32,
   planetRadius: 0.07,
@@ -122,41 +122,32 @@ const DEFAULT_PARAMS: Record<string, number> = {
   cursorObject: 1,
 }
 
-const STORAGE_KEY = 'gluke-constellation-v3'
-
 const isTuner = computed(() => props.variant === 'tunable')
 
+/* Настройки лаборатории живут только в памяти текущей сессии: подкрученные
+   значения никуда не сохраняются, и после любого перезапуска страницы всё
+   возвращается к дефолтам кейса. */
 const tuned = reactive<Record<string, number>>({})
-
-/* Сохранённые настройки лаборатории живут на кейсе под своим ключом.
-   Ключ версионируется: при смене базовых параметров он бампается, чтобы
-   старые сохранённые значения не подменяли новые дефолты. */
-if (import.meta.client) {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved) Object.assign(tuned, JSON.parse(saved))
-  }
-  catch {
-    /* битые данные — просто дефолты */
-  }
-}
 
 const themeParams = computed<ConstellationParams>(() => ({
   ...DEFAULT_PARAMS,
   ...(props.demo.params as ConstellationParams),
 }))
 
+/* Конфиг лаборатории включает подкрученные значения; hero/bleed-варианты
+   всегда используют только дефолты кейса — из лаборатории ничего не
+   переходит в шапку, даже в рамках одной сессии. */
 function buildConfig(): Record<string, unknown> {
   return {
     density: DENSITY_STD,
     densityTile: DENSITY_TILE,
     ...themeParams.value,
-    ...tuned,
+    ...(isTuner.value ? tuned : {}),
   }
 }
 
 function currentParams(): ConstellationParams {
-  return { ...themeParams.value, ...tuned }
+  return { ...themeParams.value, ...(isTuner.value ? tuned : {}) }
 }
 
 function readInitial(key: string): number {
@@ -186,8 +177,8 @@ async function mount() {
      сохранённый канвас: те же звёзды с их позициями и курсами, без
      пересоздания WebGL и без «перемешивания» поля. Конфиг намеренно не
      переприменяем: set() с countMult/size пересоздал бы массив точек,
-     а инстанс и так помнит свои параметры (включая настройки лаборатории
-     из localStorage). Цвета темы всё же приводим к актуальной — recolor
+     а инстанс и так помнит свои параметры (у лаборатории — только текущей
+     сессии). Цвета темы всё же приводим к актуальной — recolor
      не трогает позиции. */
   const cached = getDemoWidget<ConstellationInstance>(cacheKey.value)
   if (cached) {
@@ -224,15 +215,10 @@ function applyThemeColors(instance: ConstellationInstance) {
 }
 
 watch(tuned, () => {
-  if (isTuner.value && import.meta.client) {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(tuned))
-    }
-    catch {
-      /* приватный режим — молчим */
-    }
-  }
-  widget.value?.set(buildConfig())
+  /* Ползунки есть только у лаборатории: подкрутка меняет её собственное
+     поле и никуда не сохраняется. Hero/bleed обновлять нечего — они живут
+     на дефолтах и в кэше лежат отдельным ключом. */
+  if (isTuner.value) widget.value?.set(buildConfig())
 }, { deep: true })
 
 /* Число звёзд при текущей площади сцены: стандарт × площадь ÷ опорный

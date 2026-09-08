@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { ProjectsCollectionItem } from '@nuxt/content'
 import { demoWidgetKey, getDemoWidget, setDemoWidget } from '~/utils/demoWidgetCache'
-import { CONSTELLATION_THEME_COLORS, PYRAMID_THEME_LOOK } from '~/utils/widgetThemeLook'
+import { CONSTELLATION_THEME_COLORS, IMAGE_PARTICLES_THEME_LOOK, METABALLS_THEME_LOOK, PARTICLES_THEME_LOOK, PYRAMID_THEME_LOOK } from '~/utils/widgetThemeLook'
 
 /* Живое превью на карточке кейса: у проектов с demo-виджетом (призма,
    звёздное поле) вместо статичной обложки после простоя страницы
@@ -130,6 +130,51 @@ async function boot() {
         honorReducedMotion: true,
       }) as DemoInstance
     }
+    else if (widget.value === 'metaballs') {
+      const { default: GlukeMetaballs } = await import('~/utils/gluke-metaballs.js')
+      created = GlukeMetaballs.create(el, {
+        ...(props.demo.params as Record<string, unknown>),
+        ...METABALLS_THEME_LOOK[isLight.value ? 'light' : 'dark'],
+        /* Как и у остальных карточек: курсор не ловим, иначе все превью
+           разом начнут следить за указателем. Каплю-курсор тоже гасим. */
+        cursorLava: 0,
+        pointer: false,
+        ratioCap: 1.5,
+        pixelBudget: 1.5e6,
+        pauseOffscreen: true,
+        respectReducedMotion: true,
+      }) as DemoInstance
+    }
+    else if (widget.value === 'image-particles') {
+      const { default: GlukeImageParticles } = await import('~/utils/gluke-image-particles.js')
+      created = GlukeImageParticles.create(el, {
+        ...(props.demo.params as Record<string, unknown>),
+        ...IMAGE_PARTICLES_THEME_LOOK[isLight.value ? 'light' : 'dark'],
+        src: props.demo.src,
+        /* Карточка — превью: плотность поменьше, курсор не ловим. */
+        density: Math.max(1, ((props.demo.params as Record<string, number> | undefined)?.density ?? 1) + 1),
+        pointer: false,
+        ratioCap: 1.5,
+        pixelBudget: 1.5e6,
+        pauseOffscreen: true,
+        respectReducedMotion: true,
+      }) as DemoInstance
+    }
+    else if (widget.value === 'particles') {
+      const { default: GlukeParticles } = await import('~/utils/gluke-particles.js')
+      created = GlukeParticles.create(el, {
+        ...(props.demo.params as Record<string, unknown>),
+        ...PARTICLES_THEME_LOOK[isLight.value ? 'light' : 'dark'],
+        model: props.demo.model,
+        /* Карточка — превью: вращение идёт само, перетаскивание и
+           глобальный ловец мыши не нужны (как у остальных карточек). */
+        drag: false,
+        ratioCap: 1.5,
+        pixelBudget: 1.5e6,
+        pauseOffscreen: true,
+        respectReducedMotion: true,
+      }) as DemoInstance
+    }
 
     if (!created || disposed) return
     instance = created
@@ -187,6 +232,15 @@ function applyTheme(w: DemoInstance): void {
   else if (widget.value === 'constellation' && w.recolor) {
     const c = CONSTELLATION_THEME_COLORS[isLight.value ? 'light' : 'dark']
     w.recolor(c.palette, c.linkColor, c.auraColor, c.coreColor)
+  }
+  else if (widget.value === 'metaballs') {
+    w.set(METABALLS_THEME_LOOK[isLight.value ? 'light' : 'dark'])
+  }
+  else if (widget.value === 'image-particles') {
+    w.set(IMAGE_PARTICLES_THEME_LOOK[isLight.value ? 'light' : 'dark'])
+  }
+  else if (widget.value === 'particles') {
+    w.set(PARTICLES_THEME_LOOK[isLight.value ? 'light' : 'dark'])
   }
 }
 

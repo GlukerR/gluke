@@ -23,6 +23,9 @@ const LazyModelViewer = defineAsyncComponent(() => import('~/components/projects
    Чанк грузится под конкретный виджет — у призмы, звёздного поля и лава-лампы
    разный код, и тащить все на страницу с одним демо незачем. */
 const LazyPyramidDemo = defineAsyncComponent(() => import('~/components/projects/ProjectPyramidDemo.vue'))
+const LazyMetaballsDemo = defineAsyncComponent(() => import('~/components/projects/ProjectMetaballsDemo.vue'))
+const LazyParticlesDemo = defineAsyncComponent(() => import('~/components/projects/ProjectParticlesDemo.vue'))
+const LazyImageParticlesDemo = defineAsyncComponent(() => import('~/components/projects/ProjectImageParticlesDemo.vue'))
 
 /* Звёздное поле в полноформатной шапке грузится не лениво, а статически: там
    нет постер-картинки (см. компонент), и ждать асинхронный чанк компонента,
@@ -31,11 +34,14 @@ const LazyPyramidDemo = defineAsyncComponent(() => import('~/components/projects
 import ConstellationDemo from '~/components/projects/ProjectConstellationDemo.vue'
 
 /* Демо-виджет кейса по типу из контента: `pyramid` → пирамида, `constellation` →
-   звёздное поле. Виджет без hero-движка не бывает — у обоих канвас прозрачный
+   звёздное поле, `metaballs` → лава-лампа. У всех трёх канвас прозрачный
    и живёт прямо на фоне сайта. */
 const demoWidget = computed(() => {
   if (props.project.demo?.widget === 'constellation') return ConstellationDemo
   if (props.project.demo?.widget === 'pyramid') return LazyPyramidDemo
+  if (props.project.demo?.widget === 'metaballs') return LazyMetaballsDemo
+  if (props.project.demo?.widget === 'particles') return LazyParticlesDemo
+  if (props.project.demo?.widget === 'image-particles') return LazyImageParticlesDemo
   return null
 })
 

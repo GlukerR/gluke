@@ -311,7 +311,11 @@ useSchemaOrg([
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .projects-categories__item:last-child {
+  /* Растягиваем последнюю карточку на два столбца только когда она реально
+     остаётся одна в ряду, то есть при нечётном их числе. Без `nth-child(odd)`
+     правило срабатывало всегда: при шести профилях последняя вставала во всю
+     ширину, хотя рядом с ней стояла соседка. */
+  .projects-categories__item:last-child:nth-child(odd) {
     grid-column: span 2;
   }
 }

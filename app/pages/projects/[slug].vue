@@ -320,6 +320,27 @@ useSchemaOrg([
           :poster-alt="project.cover.alt"
           variant="tunable"
         />
+        <ProjectsProjectMetaballsDemo
+          v-else-if="project.demo.widget === 'metaballs'"
+          :demo="project.demo"
+          :poster="project.cover.src"
+          :poster-alt="project.cover.alt"
+          variant="tunable"
+        />
+        <ProjectsProjectParticlesDemo
+          v-else-if="project.demo.widget === 'particles'"
+          :demo="project.demo"
+          :poster="project.cover.src"
+          :poster-alt="project.cover.alt"
+          variant="tunable"
+        />
+        <ProjectsProjectImageParticlesDemo
+          v-else-if="project.demo.widget === 'image-particles'"
+          :demo="project.demo"
+          :poster="project.cover.src"
+          :poster-alt="project.cover.alt"
+          variant="tunable"
+        />
       </div>
     </section>
 
