@@ -217,7 +217,9 @@ watch(isLight, () => {
 })
 
 function reset() {
-  for (const key of Object.keys(tuned)) delete tuned[key]
+  /* Ключи чистим через Reflect, а не delete по вычисляемому ключу:
+     значения по умолчанию всё равно подставляет currentParams(). */
+  for (const key of Object.keys(tuned)) Reflect.deleteProperty(tuned, key)
   lava.value?.set(currentParams())
 }
 
@@ -227,7 +229,9 @@ async function copyJson() {
   try {
     await navigator.clipboard.writeText(jsonOut.value)
     copied.value = true
-    setTimeout(() => { copied.value = false }, 1500)
+    setTimeout(() => {
+      copied.value = false
+    }, 1500)
   }
   catch {
     /* clipboard недоступен — текст лежит в блоке под панелью */

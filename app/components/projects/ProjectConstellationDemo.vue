@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch } from 'vue'
 import type { ProjectsCollectionItem } from '@nuxt/content'
 import { demoWidgetKey, getDemoWidget, setDemoWidget } from '~/utils/demoWidgetCache'
-import { CONSTELLATION_THEME_COLORS, type ConstellationThemeColors } from '~/utils/widgetThemeLook'
+import { CONSTELLATION_THEME_COLORS } from '~/utils/widgetThemeLook'
 
 type ConstellationParams = Record<string, unknown>
 
@@ -146,10 +146,6 @@ function buildConfig(): Record<string, unknown> {
   }
 }
 
-function currentParams(): ConstellationParams {
-  return { ...themeParams.value, ...(isTuner.value ? tuned : {}) }
-}
-
 function readInitial(key: string): number {
   return Number(themeParams.value[key] ?? DEFAULT_PARAMS[key] ?? 0)
 }
@@ -234,7 +230,9 @@ const starEstimate = computed(() => {
 const jsonOut = computed(() => JSON.stringify(buildConfig(), null, 2))
 
 function reset() {
-  for (const key of Object.keys(tuned)) delete tuned[key]
+  /* Ключи чистим через Reflect, а не delete по вычисляемому ключу:
+     значения по умолчанию всё равно подставляет buildConfig(). */
+  for (const key of Object.keys(tuned)) Reflect.deleteProperty(tuned, key)
   widget.value?.set(buildConfig())
 }
 
@@ -242,7 +240,9 @@ async function copyJson() {
   try {
     await navigator.clipboard.writeText(jsonOut.value)
     copied.value = true
-    setTimeout(() => { copied.value = false }, 1500)
+    setTimeout(() => {
+      copied.value = false
+    }, 1500)
   }
   catch {
     /* clipboard недоступен — текст лежит в блоке под панелью */

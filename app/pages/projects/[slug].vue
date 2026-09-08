@@ -10,7 +10,7 @@ import { isBleedDemoWidget } from '~/utils/demoWidgetCache'
    WebGL-виджеты — с морганием и пересборкой поля. Смена кейса (другой слаг)
    по-прежнему даёт новый ключ и обычный fade. */
 definePageMeta({
-  key: (route) => String(('slug' in route.params ? route.params.slug : '') ?? ''),
+  key: route => String(('slug' in route.params ? route.params.slug : '') ?? ''),
   pageTransition: {
     name: 'page-fade',
     mode: 'out-in',
@@ -411,7 +411,6 @@ useSchemaOrg([
 .project-page__bleed-back .project-page__back-link {
   pointer-events: auto;
 }
-
 
 .project-page__back-link {
   display: inline-flex;

@@ -3,7 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vu
 import type { ProjectsCollectionItem } from '@nuxt/content'
 import { demoWidgetKey, getDemoWidget, setDemoWidget } from '~/utils/demoWidgetCache'
 import { applyTouchScrollPolicy, isCoarsePointer } from '~/utils/touchScroll'
-import { PYRAMID_THEME_LOOK, type PyramidThemeParams } from '~/utils/widgetThemeLook'
+import { PYRAMID_THEME_LOOK } from '~/utils/widgetThemeLook'
 
 type PyramidParams = Record<string, unknown>
 

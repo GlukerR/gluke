@@ -2,6 +2,12 @@
 import type { ProjectsCollectionItem } from '@nuxt/content'
 import { isBleedDemoWidget } from '~/utils/demoWidgetCache'
 
+/* Звёздное поле в полноформатной шапке грузится не лениво, а статически: там
+   нет постер-картинки (см. компонент), и ждать асинхронный чанк компонента,
+   чтобы показать реальный рендер, незачем — виджет маленький и должен ожить
+   сразу после гидрации. Узкий 16:9-режим призмы остаётся ленивым. */
+import ConstellationDemo from '~/components/projects/ProjectConstellationDemo.vue'
+
 const props = withDefaults(defineProps<{
   project: ProjectsCollectionItem
   /* Полноформатный hero звёздного поля может жить не внутри компонента,
@@ -26,12 +32,6 @@ const LazyPyramidDemo = defineAsyncComponent(() => import('~/components/projects
 const LazyMetaballsDemo = defineAsyncComponent(() => import('~/components/projects/ProjectMetaballsDemo.vue'))
 const LazyParticlesDemo = defineAsyncComponent(() => import('~/components/projects/ProjectParticlesDemo.vue'))
 const LazyImageParticlesDemo = defineAsyncComponent(() => import('~/components/projects/ProjectImageParticlesDemo.vue'))
-
-/* Звёздное поле в полноформатной шапке грузится не лениво, а статически: там
-   нет постер-картинки (см. компонент), и ждать асинхронный чанк компонента,
-   чтобы показать реальный рендер, незачем — виджет маленький и должен ожить
-   сразу после гидрации. Узкий 16:9-режим призмы остаётся ленивым. */
-import ConstellationDemo from '~/components/projects/ProjectConstellationDemo.vue'
 
 /* Демо-виджет кейса по типу из контента: `pyramid` → пирамида, `constellation` →
    звёздное поле, `metaballs` → лава-лампа. У всех трёх канвас прозрачный
