@@ -116,9 +116,16 @@ const GlukeMetaballs = (function (global) {
 
     '  float field = 0.0;',
     '  vec2 grad = vec2(0.0);',
+    '  vec2 span = vec2(aspect, 1.0);',
     '  for (int i = 0; i < ' + MAX_BLOBS + '; i++){',
     '    if (float(i) >= uCount) break;',
+    /* Расстояние до ближайшей копии капли, а не до её центра: поле
+       периодично по обеим осям. Центры и так переносятся через край (см.
+       «тор» в _step), но само поле про края не знало — капля у границы
+       срезалась плоско, а в момент переноса центра прыгала. Теперь она
+       уходит за край и непрерывно выходит с противоположной стороны. */
     '    vec2 d = p - uBlobs[i];',
+    '    d -= span * floor(d / span + 0.5);',
     '    float w = exp(-dot(d, d) * uFalloff);',
     '    field += w;',
     '    grad += w * (-2.0 * uFalloff) * d;',
