@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import type { ProjectsCollectionItem } from '@nuxt/content'
 import { isBleedDemoWidget } from '~/utils/demoWidgetCache'
+import { widgetDemoSpec } from '~/utils/widgetDemoSpecs'
 
 /* Звёздное поле в полноформатной шапке грузится не лениво, а статически: там
    нет постер-картинки (см. компонент), и ждать асинхронный чанк компонента,
    чтобы показать реальный рендер, незачем — виджет маленький и должен ожить
    сразу после гидрации. Узкий 16:9-режим призмы остаётся ленивым. */
-import ConstellationDemo from '~/components/projects/ProjectConstellationDemo.vue'
 
 const props = withDefaults(defineProps<{
   project: ProjectsCollectionItem
@@ -25,25 +25,13 @@ const { t } = useI18n()
    скачивается только на кейсах, где реально есть модель. На кейсах
    с обложкой вместо модели лишний мегабайт не тратится. */
 const LazyModelViewer = defineAsyncComponent(() => import('~/components/projects/ProjectModelViewer.vue'))
-/* WebGL-виджеты кейсов: как и модель, только на клиенте и только по требованию.
-   Чанк грузится под конкретный виджет — у призмы, звёздного поля и лава-лампы
-   разный код, и тащить все на страницу с одним демо незачем. */
-const LazyPyramidDemo = defineAsyncComponent(() => import('~/components/projects/ProjectPyramidDemo.vue'))
-const LazyMetaballsDemo = defineAsyncComponent(() => import('~/components/projects/ProjectMetaballsDemo.vue'))
-const LazyParticlesDemo = defineAsyncComponent(() => import('~/components/projects/ProjectParticlesDemo.vue'))
-const LazyImageParticlesDemo = defineAsyncComponent(() => import('~/components/projects/ProjectImageParticlesDemo.vue'))
+/* Все WebGL-виджеты кейсов рисует одна оболочка: сцена, панель ползунков
+   и жизненный цикл у них общие, различия описаны в widgetDemoSpecs.
+   Компонент грузится лениво, а движок под конкретный виджет — своим чанком
+   уже изнутри: на странице с одним демо чужие движки не качаются. */
+const LazyWidgetDemo = defineAsyncComponent(() => import('~/components/projects/ProjectWidgetDemo.vue'))
 
-/* Демо-виджет кейса по типу из контента: `pyramid` → пирамида, `constellation` →
-   звёздное поле, `metaballs` → лава-лампа. У всех трёх канвас прозрачный
-   и живёт прямо на фоне сайта. */
-const demoWidget = computed(() => {
-  if (props.project.demo?.widget === 'constellation') return ConstellationDemo
-  if (props.project.demo?.widget === 'pyramid') return LazyPyramidDemo
-  if (props.project.demo?.widget === 'metaballs') return LazyMetaballsDemo
-  if (props.project.demo?.widget === 'particles') return LazyParticlesDemo
-  if (props.project.demo?.widget === 'image-particles') return LazyImageParticlesDemo
-  return null
-})
+const demoWidget = computed(() => (widgetDemoSpec(props.project.demo?.widget) ? LazyWidgetDemo : null))
 
 /* Полноэкранный hero-режим — у виджетов из общего списка (BLEED_DEMO_WIDGETS):
    канвас заливает всю шапку фоном (как сплэш softlogic), текст ложится поверх

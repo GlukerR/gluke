@@ -233,12 +233,11 @@ useSchemaOrg([
       ref="bleedTopRef"
       class="project-page__bleed-top"
     >
-      <!-- Bleed-канвас по типу виджета: список тех, кто умеет заливать hero
-           целиком, — BLEED_DEMO_WIDGETS (demoWidgetCache.ts); новые виджеты
-           добавляются туда одной строкой, а здесь — своей веткой. Сейчас это
-           звёздное поле; пирамида живёт обычной колонкой справа от текста. -->
-      <ProjectsProjectConstellationDemo
-        v-if="project.demo?.widget === 'constellation'"
+      <!-- Bleed-канвас: кто умеет заливать hero целиком, перечислено в
+           BLEED_DEMO_WIDGETS (demoWidgetCache.ts) — новый виджет добавляется
+           туда одной строкой, ветка здесь не нужна. -->
+      <ProjectsProjectWidgetDemo
+        v-if="project.demo"
         :demo="project.demo"
         :poster="project.cover.src"
         :poster-alt="project.cover.alt"
@@ -306,36 +305,7 @@ useSchemaOrg([
       class="project-page__demo"
     >
       <div class="site-container">
-        <ProjectsProjectPyramidDemo
-          v-if="project.demo.widget === 'pyramid'"
-          :demo="project.demo"
-          :poster="project.cover.src"
-          :poster-alt="project.cover.alt"
-          variant="tunable"
-        />
-        <ProjectsProjectConstellationDemo
-          v-else-if="project.demo.widget === 'constellation'"
-          :demo="project.demo"
-          :poster="project.cover.src"
-          :poster-alt="project.cover.alt"
-          variant="tunable"
-        />
-        <ProjectsProjectMetaballsDemo
-          v-else-if="project.demo.widget === 'metaballs'"
-          :demo="project.demo"
-          :poster="project.cover.src"
-          :poster-alt="project.cover.alt"
-          variant="tunable"
-        />
-        <ProjectsProjectParticlesDemo
-          v-else-if="project.demo.widget === 'particles'"
-          :demo="project.demo"
-          :poster="project.cover.src"
-          :poster-alt="project.cover.alt"
-          variant="tunable"
-        />
-        <ProjectsProjectImageParticlesDemo
-          v-else-if="project.demo.widget === 'image-particles'"
+        <ProjectsProjectWidgetDemo
           :demo="project.demo"
           :poster="project.cover.src"
           :poster-alt="project.cover.alt"
