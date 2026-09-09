@@ -40,7 +40,7 @@ The average project budget starts from €500. Smaller standalone tasks are quot
 
 **Can I order an interactive 3D model for my website?** Yes, we prepare an optimized GLB and integrate it into a product page or catalogue with a WebGL viewer.
 
-## Case studies (25)
+## Case studies (26)
 
 Figures below are the ones published on each case page.
 
@@ -68,6 +68,7 @@ Figures below are the ones published on each case page.
 - [Web graphics](https://gluke.ru/projects/pyramid): Glowing pyramid — a pure WebGL 3D widget. 30 KB widget size, 10 KB gzipped; 0 dependencies and build steps; SDF volume computed by a shader, not polygons. 2026.
 - [Web graphics](https://gluke.ru/projects/constellation): Constellation — an interactive star field in pure WebGL. 39 KB widget size, 12 KB gzipped; 0 dependencies and build steps; 8 stars per 100×100 px square — the density stays the same on any screen. 2026.
 - [Web graphics](https://gluke.ru/projects/particles): A model in particles — surface-sampled point cloud in three.js. 21K triangles in the source model; 18 parameters you can turn right on the page; 21K points by default, up to 80 thousand in the lab. 2026.
+- [Web graphics](https://gluke.ru/projects/metaballs): Metaball lava lamp — an interactive background in pure WebGL. 23 KB widget size, 8 KB gzipped, no dependencies; 0 libraries — a single fragment shader; 14 blobs max in one field. 2026.
 - [Web graphics](https://gluke.ru/projects/image-particles): A portrait in particles — an interactive field in pure WebGL. ~21K particles in frame — donor pixels with the empty background dropped; 0 libraries — a single gl.POINTS draw call; 2D effect — particles from an image, not a 3D scene. 2026.
 
 ## Contact
