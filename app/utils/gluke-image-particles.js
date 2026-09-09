@@ -591,13 +591,17 @@ const GlukeImageParticles = (function (global) {
         self._mouse.ty = -(py / r.height - 0.5) * 2
       }
       /* Курсор покинул окно — уводим цель за экран: частицы плавно
-         возвращаются в собранную картинку, а не остаются разогнанными. */
+         возвращаются в собранную картинку, а не остаются разогнанными.
+         На сенсоре роль «ухода» играет отрыв пальца: mouseleave там не
+         случается никогда, и без этого дыра оставалась бы висеть. */
       this._onLeave = function () {
         self._mouse.tx = 0
         self._mouse.ty = 999
       }
       host.addEventListener('mousemove', this._onMove)
       host.addEventListener('touchmove', this._onMove, { passive: true })
+      host.addEventListener('touchend', this._onLeave, { passive: true })
+      host.addEventListener('touchcancel', this._onLeave, { passive: true })
       document.addEventListener('mouseleave', this._onLeave)
     }
   }
@@ -610,6 +614,10 @@ const GlukeImageParticles = (function (global) {
     if (this._onMove && this._hoverHost) {
       this._hoverHost.removeEventListener('mousemove', this._onMove)
       this._hoverHost.removeEventListener('touchmove', this._onMove)
+      if (this._onLeave) {
+        this._hoverHost.removeEventListener('touchend', this._onLeave)
+        this._hoverHost.removeEventListener('touchcancel', this._onLeave)
+      }
     }
     if (this._onLeave) document.removeEventListener('mouseleave', this._onLeave)
     this._ro = null

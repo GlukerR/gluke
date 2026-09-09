@@ -347,8 +347,11 @@ const GlukeMetaballs = (function (global) {
     if (this.o.pointer) {
       this._onMove = function (e) {
         var rect = self.el.getBoundingClientRect()
-        var cx = (e.clientX || 0) - rect.left
-        var cy = (e.clientY || 0) - rect.top
+        /* У TouchEvent нет clientX — координата лежит в touches[0]. Без этой
+           развилки касание давало 0 и капля-курсор прилипала к левому краю. */
+        var pt = e.touches && e.touches[0] ? e.touches[0] : e
+        var cx = (pt.clientX || 0) - rect.left
+        var cy = (pt.clientY || 0) - rect.top
         self._hover.x = rect.width > 0 ? Math.max(0, Math.min(rect.width, cx)) / rect.width : 0.5
         /* Ось Y в поле направлена снизу вверх (как gl_FragCoord), а `cy`
            считается от верхнего края блока — иначе капля-курсор оказывалась
@@ -358,9 +361,10 @@ const GlukeMetaballs = (function (global) {
       }
       var host = this.o.pointerFrom === 'window' ? global : this.el
       host.addEventListener('mousemove', this._onMove)
-      if (this.o.pointerFrom === 'self') {
-        host.addEventListener('touchmove', this._onMove, { passive: true })
-      }
+      /* Касание слушаем всегда, а не только при pointerFrom: 'self' — иначе
+         на дефолтном 'window' тач не работал вовсе. Слушатель пассивный,
+         скролл страницы не отбирается. */
+      host.addEventListener('touchmove', this._onMove, { passive: true })
       this._hoverHost = host
     }
   }

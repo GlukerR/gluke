@@ -156,8 +156,9 @@ async function mount() {
       pixelBudget: window.innerWidth < 1024 ? 0.9e6 : 2.2e6,
       pauseOffscreen: true,
       respectReducedMotion: true,
-      /* На тач-устройствах курсора нет — картинка просто собрана из точек. */
-      pointer: !coarse,
+      /* Тач расталкивает частицы так же, как курсор. Вертикальный свайп
+         остаётся у страницы — см. touch-action ниже. */
+      pointer: true,
       pointerFrom: 'window',
     }) as ParticlesInstance
 

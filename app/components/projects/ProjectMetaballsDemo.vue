@@ -175,8 +175,9 @@ async function mount() {
       pixelBudget: window.innerWidth < 1024 ? 0.7e6 : 2.2e6,
       pauseOffscreen: true,
       respectReducedMotion: true,
-      /* На тач-устройствах курсора нет — лава просто дрейфует сама. */
-      pointer: !coarse,
+      /* Тач ведёт лаву так же, как курсор: капли тянутся за пальцем.
+         Вертикальный свайп остаётся у страницы — см. touch-action ниже. */
+      pointer: true,
       pointerFrom: 'window',
     }) as MetaballsInstance
 

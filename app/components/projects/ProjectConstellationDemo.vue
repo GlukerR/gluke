@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch } from 'vue'
 import type { ProjectsCollectionItem } from '@nuxt/content'
 import { demoWidgetKey, getDemoWidget, setDemoWidget } from '~/utils/demoWidgetCache'
+import { applyTouchScrollPolicy, isCoarsePointer } from '~/utils/touchScroll'
 import { CONSTELLATION_THEME_COLORS } from '~/utils/widgetThemeLook'
 
 type ConstellationParams = Record<string, unknown>
@@ -192,6 +193,13 @@ async function mount() {
       ...themeColors.value,
     }) as ConstellationInstance
     instance.start()
+    /* Канвас создаёт сам виджет — политику скролла вешаем после запуска:
+       на тач-экране вертикальный свайп должен листать страницу, а не
+       уходить в поле. */
+    if (isCoarsePointer()) {
+      const canvas = el.querySelector('canvas')
+      if (canvas) applyTouchScrollPolicy(canvas)
+    }
     widget.value = instance
     /* Кэшируем сразу: смена языка перемонтирует компонент, и следующий
        показ перецепит тот же виджет без перезагрузки. */

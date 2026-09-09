@@ -296,7 +296,12 @@ class Constellation {
 
   _bind() {
     const ctx = this
-    if (window.matchMedia('(pointer: fine)').matches && this.opts.pointer) {
+    /* Раньше здесь стоял гейт `(pointer: fine)`, и на телефоне не вешалось
+       ни одного слушателя — поле выглядело неинтерактивной картинкой.
+       Pointer Events покрывают и касание, поэтому гейт снят: палец ведёт
+       «планету» так же, как курсор. Вертикальный свайп остаётся у страницы —
+       канвасу проставляется touch-action: pan-y. */
+    if (this.opts.pointer) {
       const move = (e) => {
         const r = ctx.el.getBoundingClientRect()
         ctx.cursor = {
@@ -309,6 +314,10 @@ class Constellation {
       }
       this.el.addEventListener('pointermove', move, { passive: true })
       this.el.addEventListener('pointerleave', leave)
+      /* После отрыва пальца указателя больше нет: без этого «планета»
+         осталась бы висеть там, где касание закончилось. */
+      this.el.addEventListener('pointerup', leave)
+      this.el.addEventListener('pointercancel', leave)
       this._handlers = { move, leave }
     }
     else {
@@ -780,6 +789,8 @@ class Constellation {
     if (this._handlers) {
       this.el.removeEventListener('pointermove', this._handlers.move)
       this.el.removeEventListener('pointerleave', this._handlers.leave)
+      this.el.removeEventListener('pointerup', this._handlers.leave)
+      this.el.removeEventListener('pointercancel', this._handlers.leave)
       this._handlers = null
     }
   }
@@ -817,6 +828,8 @@ class Constellation {
     if (this._handlers) {
       this.el.removeEventListener('pointermove', this._handlers.move)
       this.el.removeEventListener('pointerleave', this._handlers.leave)
+      this.el.removeEventListener('pointerup', this._handlers.leave)
+      this.el.removeEventListener('pointercancel', this._handlers.leave)
     }
     const gl = this.gl
     gl.deleteBuffer(this.buffer)
