@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitest/config'
 
-/* Тесты лежат рядом с кодом внутри app/, поэтому попадают и в `pnpm typecheck`
+/* Тесты лежат рядом с кодом (app/ и shared/), поэтому попадают и в `pnpm typecheck`
    (tsconfig.app.json включает всё app/), и в прогон vitest. Раннер запускает
    модули вне Nuxt, поэтому алиасы, которые Nuxt раздаёт приложению, повторяем здесь. */
 export default defineConfig({
@@ -15,6 +15,8 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['app/**/*.test.ts'],
+    /* shared/ раздаётся и приложению, и серверу: выбор языка для первого
+       визита живёт именно там, поэтому раннер должен видеть и её. */
+    include: ['app/**/*.test.ts', 'shared/**/*.test.ts'],
   },
 })

@@ -41,11 +41,13 @@ export function useSiteUrls(): SiteUrlResolver {
   }
 
   function toCanonical(path: string): string {
-    /* Query и hash в canonical не нужны, для главной сохраняется «/». */
+    /* Query и hash в canonical не нужны: иначе каждая фильтрация каталога
+       становилась бы для поисковика отдельной страницей. Хвостовые слеши
+       снимаются, а корень остаётся корнем сам — пустой путь конструктор URL
+       и так разворачивает в «/». */
     const pathname = new URL(path, origin.value).pathname
-    const normalized = pathname === '/' ? '/' : pathname.replace(/\/+$/, '')
 
-    return toAbsolute(normalized)
+    return toAbsolute(pathname.replace(/\/+$/, ''))
   }
 
   return { toAbsolute, toCanonical }
