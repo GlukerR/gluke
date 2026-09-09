@@ -3,15 +3,18 @@
    так же, как виджет в самом кейсе, в обеих темах (тёмной и светлой).
    Меняется в одном месте — компоненты только импортируют. */
 
-export type PyramidThemeParams = Record<string, unknown>
-
 /* Пирамида живёт на фоне темы сайта, как звёздное поле: собственного тёмного
    экрана у неё больше нет. Свечение в тёмной теме — как настроено в кейсе,
    а в светлой пирамида приглушается (тёмная подложка убрана, и неон по
    белому фону выцветает): `wash` ровно затемняет каналы, не сдвигая оттенок,
    `vividness` держит насыщенность. Ползунки лаборатории поверх темы не
    теряются — `tuned` ложится последним. */
-export const PYRAMID_THEME_LOOK: Record<'dark' | 'light', PyramidThemeParams> = {
+/* Вид виджета под тему сайта: набор его же параметров, которые кладутся
+   поверх настроек кейса. У каждого виджета свои ключи, общего контракта
+   между ними нет — отсюда открытая запись. */
+export type WidgetThemeLook = Record<string, unknown>
+
+export const PYRAMID_THEME_LOOK: Record<'dark' | 'light', WidgetThemeLook> = {
   dark: {},
   light: {
     wash: '#7e7e9c',
@@ -45,12 +48,10 @@ export const CONSTELLATION_THEME_COLORS: Record<'dark' | 'light', ConstellationT
   },
 }
 
-export type ParticlesThemeParams = Record<string, unknown>
-
 /* Облако точек. На тёмном фоне точки складываются аддитивно и светятся,
    на светлом аддитив уводит всё в белое — поэтому тема переключает и режим
    смешивания, и палитру на «чернильную». */
-export const PARTICLES_THEME_LOOK: Record<'dark' | 'light', ParticlesThemeParams> = {
+export const PARTICLES_THEME_LOOK: Record<'dark' | 'light', WidgetThemeLook> = {
   dark: {
     additive: true,
     color: '#c084fc',
@@ -68,18 +69,15 @@ export const PARTICLES_THEME_LOOK: Record<'dark' | 'light', ParticlesThemeParams
   },
 }
 
-export type MetaballsThemeParams = Record<string, unknown>
-
 /* Лава-лампа: цвет капель задаётся оттенками в кейсе, а светлоту и свечение
    диктует тема. На тёмном фоне лава горит, на светлом — темнеет и приглушает
    ореол, иначе оранжевые капли по белому уходят в кислотный. */
-export type ImageParticlesThemeParams = Record<string, unknown>
 
 /* Частицы из картинки: тёмная тема — аддитивное свечение по чёрному фону
    донора (как в оригинале), светлая — обычное смешивание, «чернильные»
    точки и ноль у чёрного фона, иначе по белому вылезут 57 тысяч точек
    фоновых пикселей. */
-export const IMAGE_PARTICLES_THEME_LOOK: Record<'dark' | 'light', ImageParticlesThemeParams> = {
+export const IMAGE_PARTICLES_THEME_LOOK: Record<'dark' | 'light', WidgetThemeLook> = {
   dark: {
     additive: true,
     invert: false,
@@ -94,7 +92,7 @@ export const IMAGE_PARTICLES_THEME_LOOK: Record<'dark' | 'light', ImageParticles
   },
 }
 
-export const METABALLS_THEME_LOOK: Record<'dark' | 'light', MetaballsThemeParams> = {
+export const METABALLS_THEME_LOOK: Record<'dark' | 'light', WidgetThemeLook> = {
   dark: {
     lightness: 0.62,
     glow: 1.1,
