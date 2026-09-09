@@ -20,7 +20,9 @@
  *   здесь его нужно перекрывать стилем из JS).
  */
 export function isCoarsePointer(): boolean {
-  return typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
+  if (import.meta.server) return false
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
+  return window.matchMedia('(pointer: coarse)').matches
 }
 
 export function applyTouchScrollPolicy(canvas: HTMLCanvasElement): void {

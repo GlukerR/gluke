@@ -19,6 +19,8 @@
  *   предзагрузка создавала бы конкуренцию за канал с текущей страницей.
  */
 
+import { isCoarsePointer } from '~/utils/touchScroll'
+
 const HOVER_INTENT_MS = 150
 
 /* Верхняя граница ожидания простоя: даже при вечно занятой странице
@@ -38,14 +40,6 @@ function isSlowConnection(): boolean {
   }).connection
 
   return Boolean(connection && ((connection.saveData ?? false) || /2g/.test(connection.effectiveType ?? '')))
-}
-
-/* Сенсорные устройства: «наведения» нет, а по тапу предзагрузка не успевает —
-   только тратит трафик. Гибриды с мышью (primary pointer fine) не страдают. */
-function isCoarsePointer(): boolean {
-  if (import.meta.server) return false
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
-  return window.matchMedia('(pointer: coarse)').matches
 }
 
 export function useCasePrefetch() {

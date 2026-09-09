@@ -25,7 +25,7 @@ demo:
   tunable: true
   params: {}
 metrics:
-  - value: 37 КБ
+  - value: 39 КБ
     label: вес виджета, 12 КБ в gzip
   - value: "0"
     label: зависимостей и шагов сборки

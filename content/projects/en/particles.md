@@ -46,7 +46,7 @@ demo:
 metrics:
   - value: 21K
     label: triangles in the source model
-  - value: "16"
+  - value: "18"
     label: parameters you can turn right on the page
   - value: 21K
     label: points by default, up to 80 thousand in the lab
@@ -81,6 +81,6 @@ The demo model is our own deer: a single mesh, 21,248 triangles, 65 KB with Drac
 
 The widget is not tied to the deer: the model is set in the case configuration rather than in code, and any `.glb` can take its place. The drawing never finishes: once the cloud is complete the widget does not reset it but starts replacing the oldest points with fresh ones in a loop — erasing behind, appearing ahead. The lines behave the same way, so anyone arriving later finds work in progress rather than a finished picture.
 
-The panel under the model is real, and all sixteen parameters are live. The extremes give quite different pictures: drop the point reveal speed to zero and only the lines remain, sketching the deer across an invisible surface; remove the lines and a bare cloud is left; add a tail and the lines turn into short running strokes.
+The panel under the model is real, and all eighteen parameters are live. The extremes give quite different pictures: drop the point reveal speed to zero and only the lines remain, sketching the deer across an invisible surface; remove the lines and a bare cloud is left; add a tail and the lines turn into short running strokes.
 
 This is the only one of our widgets that needs an engine: three.js plus the model file itself. The other three — the pyramid, the star field and the lava lamp — get by on a couple of dozen kilobytes and zero dependencies. Here the cost is different, and it buys something different: the ability to take any finished model and show it like this.

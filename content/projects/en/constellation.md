@@ -25,7 +25,7 @@ demo:
   tunable: true
   params: {}
 metrics:
-  - value: 37 KB
+  - value: 39 KB
     label: widget size, 12 KB gzipped
   - value: "0"
     label: dependencies and build steps

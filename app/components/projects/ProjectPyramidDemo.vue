@@ -30,7 +30,16 @@ const props = defineProps<{
   variant?: 'hero' | 'tunable' | 'bleed'
 }>()
 
-const { t } = useI18n()
+const { t, te } = useI18n()
+
+/* Подпись ползунка. Сначала ищем ключ с префиксом виджета: карта подписей
+   общая на все виджеты, и одно и то же имя параметра может значить в них
+   разное — `drift` у пирамиды это скорость вращения, а у звёздного поля
+   скорость полёта звёзд. Префикс разводит такие случаи, не ломая остальные. */
+function controlLabel(key: string): string {
+  const scoped = `project.demo.controls.pyramid${key.charAt(0).toUpperCase()}${key.slice(1)}`
+  return te(scoped) ? t(scoped) : t(`project.demo.controls.${key}`)
+}
 
 const host = ref<HTMLElement | null>(null)
 const pyramid = shallowRef<PyramidInstance | null>(null)
@@ -315,7 +324,7 @@ onBeforeUnmount(() => {
             :key="control.key"
             class="pyramid-demo__slider"
           >
-            <span class="text-body--sm pyramid-demo__slider-name">{{ control.key }}</span>
+            <span class="text-body--sm pyramid-demo__slider-name">{{ controlLabel(control.key) }}</span>
             <input
               :value="tuned[control.key] ?? readInitial(control.key)"
               type="range"
