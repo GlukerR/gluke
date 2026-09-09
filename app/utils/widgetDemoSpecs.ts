@@ -89,6 +89,11 @@ export interface WidgetDemoSpec {
   /** Переприменять конфиг при перецеплении из кэша. Звёздному полю нельзя:
       `set` с `countMult` пересоздал бы массив точек и «перемешал» поле. */
   reapplyOnReattach?: boolean
+  /** Гасить поле под текстом в полноэкранном режиме. Нужно тем, кто заливает
+      большие плотные пятна: в светлой теме «чернильные» капли лавы попадают
+      под такой же тёмный текст и заголовок пропадает. Разреженному звёздному
+      полю не нужно — буквы читаются прямо по нему. */
+  bleedScrim?: boolean
   /** Подпись под панелью: сколько объектов получится при текущих настройках. */
   estimate?: (stage: { w: number, h: number }, value: (key: string) => number) => number | null
 }
@@ -267,6 +272,7 @@ export const WIDGET_DEMO_SPECS: Record<string, WidgetDemoSpec> = {
   'metaballs': {
     load: () => import('~/utils/gluke-metaballs.js') as unknown as Promise<{ default: WidgetFactory }>,
     storageKey: 'gluke-metaballs-v4',
+    bleedScrim: true,
     themeLook: light => METABALLS_THEME_LOOK[light ? 'light' : 'dark'],
     defaults: {
       count: 6,

@@ -20,15 +20,15 @@ const OUT = 'public/media/projects/metaballs/metaballs-cover.jpg'
 /* Пресет кейса. Держим копию здесь, а не парсим markdown: скрипт запускается
    руками после смены настроек, лишняя зависимость ни к чему. */
 const P = {
-  count: 6,
-  blobSize: 0.11,
-  threshold: 0.5,
-  turbulence: 0.5,
-  hue: 0.03,
-  saturation: 1,
-  glow: 1.1,
-  gloss: 0.55,
-  relief: 2,
+  count: 14,
+  blobSize: 0.065,
+  threshold: 0.6,
+  turbulence: 0.65,
+  hue: 1,
+  saturation: 1.6,
+  glow: 0.45,
+  gloss: 1.1,
+  relief: 1.3,
 }
 
 /* Светлота тёмной темы — из METABALLS_THEME_LOOK. */

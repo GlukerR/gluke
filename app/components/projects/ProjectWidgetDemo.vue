@@ -248,7 +248,10 @@ defineExpose({ failed })
 <template>
   <div
     class="widget-demo"
-    :class="[`widget-demo--${props.variant ?? 'hero'}`, { 'widget-demo--live': running }]"
+    :class="[
+      `widget-demo--${props.variant ?? 'hero'}`,
+      { 'widget-demo--live': running, 'widget-demo--scrim': spec?.bleedScrim },
+    ]"
   >
     <div
       ref="stageEl"
@@ -382,6 +385,36 @@ defineExpose({ failed })
 
 .widget-demo--bleed .widget-demo__controls {
   display: none;
+}
+
+/* Подложка под текстом сплэша: гасит поле там, где по нему идёт текст
+   страницы, и отпускает дальше. Лежит поверх канваса, но раньше по разметке,
+   чем сам текст, — он остаётся поверх. Звёздному полю не нужна: оно
+   разреженное, буквы читаются прямо по нему. */
+.widget-demo--bleed.widget-demo--scrim .widget-demo__stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    var(--site-bg) 0%,
+    color-mix(in srgb, var(--site-bg) 72%, transparent) 45%,
+    transparent 100%
+  );
+}
+
+/* На широком экране текст занимает левую колонку, поле должно остаться
+   открытым справа — гасим по горизонтали, а не по вертикали. */
+@media (min-width: 1024px) {
+  .widget-demo--bleed.widget-demo--scrim .widget-demo__stage::after {
+    background: linear-gradient(
+      to right,
+      var(--site-bg) 0%,
+      color-mix(in srgb, var(--site-bg) 70%, transparent) 42%,
+      transparent 70%
+    );
+  }
 }
 
 .widget-demo__poster,
