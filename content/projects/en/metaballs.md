@@ -1,13 +1,13 @@
 ---
 locale: en
 slug: metaballs
-title: Metaball lava lamp — an interactive background in pure WebGL
+title: Metaball lava lamp — an interactive background in WebGL
 description: 'Flowing blobs of lava that melt together and split apart: the metaball field is computed in a fragment shader, 23 KB with no dependencies, the cursor drags the lava with it, and the palette follows the site theme.'
 client: Web graphics
 industry: Widgets
 categories:
   - webgl
-position: 26
+position: 27
 featured: false
 status: published
 navigation: false

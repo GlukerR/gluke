@@ -8,7 +8,7 @@ client: SVMD (Овэрскор)
 industry: Motion-креативы
 categories:
   - cinematics
-position: 18
+position: 19
 featured: false
 status: published
 navigation: false

@@ -141,6 +141,7 @@ async function mount() {
       ...(current.createOptions?.({
         demo: props.demo as Record<string, unknown>,
         narrow: window.innerWidth < 1024,
+        variant: props.variant ?? 'hero',
       }) ?? {}),
     }
 
@@ -251,6 +252,9 @@ defineExpose({ failed })
     :class="[
       `widget-demo--${props.variant ?? 'hero'}`,
       { 'widget-demo--live': running, 'widget-demo--scrim': spec?.bleedScrim },
+      /* Объектные виджеты (портрет) в обычном hero растягиваются на всю
+         высоту своей половины вместо 16:9-карточки. */
+      { 'widget-demo--hero-fill': props.variant === 'hero' && spec?.heroFill },
     ]"
   >
     <div
@@ -367,6 +371,18 @@ defineExpose({ failed })
   position: relative;
   background: transparent;
   aspect-ratio: 16 / 9;
+}
+
+/* Hero-режим объектных виджетов: виджет заполняет свою половину шапки
+   целиком (картинка вписывается по пропорциям внутри канваса), а не
+   сидит 16:9-карточкой. Высоту задаёт родительская колонка. */
+.widget-demo--hero-fill {
+  height: 100%;
+}
+
+.widget-demo--hero-fill .widget-demo__stage {
+  aspect-ratio: auto;
+  height: 100%;
 }
 
 /* Полноэкранный bleed-режим: виджет заполняет весь верх страницы фоном,

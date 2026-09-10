@@ -4,9 +4,10 @@
    осмысленной при любых пропорциях: звёздное поле и лава. Пирамида,
    облако точек и портрет строятся вокруг объекта — растянутые на весь
    верх, они дают пустые поля по краям, поэтому живут обычной колонкой
-   справа от текста. Новый bleed-виджет добавляется сюда одной строкой:
-   шаблон общий. */
-export const BLEED_DEMO_WIDGETS = ['constellation', 'metaballs'] as const
+   справа от текста (портрет дополнительно растягивается на всю высоту
+   своей половины через `heroFill`). Новый bleed-виджет добавляется сюда
+   одной строкой: шаблон общий. */
+export const BLEED_DEMO_WIDGETS = ['constellation', 'metaballs', 'energy-fill'] as const
 
 export function isBleedDemoWidget(widget: string | null | undefined): boolean {
   return !!widget && (BLEED_DEMO_WIDGETS as readonly string[]).includes(widget)

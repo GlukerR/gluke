@@ -7,7 +7,7 @@ client: Velesgard
 industry: Construction and industrial facilities
 categories:
   - industrial
-position: 13
+position: 14
 featured: false
 status: published
 navigation: false

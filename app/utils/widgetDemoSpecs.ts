@@ -11,10 +11,12 @@
  *
  * Сами движки не пересекаются и общего кода не имеют: пирамида — raymarching
  * по SDF, созвездие — точки и нити, лава — поле метаболлов, облако —
- * three.js и сэмплирование поверхности, портрет — gl.POINTS из пикселей.
+ * three.js и сэмплирование поверхности, портрет — gl.POINTS из пикселей,
+ * наполнение знака — запечённые поля расстояний по маске логотипа.
  */
 import {
   CONSTELLATION_THEME_COLORS,
+  ENERGY_FILL_THEME_LOOK,
   IMAGE_PARTICLES_THEME_LOOK,
   METABALLS_THEME_LOOK,
   PARTICLES_THEME_LOOK,
@@ -58,6 +60,10 @@ export interface WidgetCreateContext {
   demo: Record<string, unknown>
   /** Узкий экран (<1024): для него ниже потолки dpr и площади буфера. */
   narrow: boolean
+  /** Где живёт этот экземпляр: карточка в шапке, полноэкранный сплэш или
+      лаборатория. Полноформатной шапке нужна своя раскладка кадра — текст
+      кейса лежит поверх левой половины. */
+  variant: 'hero' | 'tunable' | 'bleed'
 }
 
 export interface WidgetDemoSpec {
@@ -94,6 +100,11 @@ export interface WidgetDemoSpec {
       под такой же тёмный текст и заголовок пропадает. Разреженному звёздному
       полю не нужно — буквы читаются прямо по нему. */
   bleedScrim?: boolean
+  /** В обычном hero-режиме растянуть виджет на всю высоту своей половины
+      (объектные виджеты: портрет). Сцена перестаёт быть 16:9-карточкой и
+      занимает колонку целиком, на узком экране уходит вторым блоком под
+      текст. */
+  heroFill?: boolean
   /** Подпись под панелью: сколько объектов получится при текущих настройках. */
   estimate?: (stage: { w: number, h: number }, value: (key: string) => number) => number | null
 }
@@ -118,9 +129,176 @@ const MAX_STARS = 2000
 const HUES_KEY = /^hues([0-2])$/
 
 export const WIDGET_DEMO_SPECS: Record<string, WidgetDemoSpec> = {
+  'energy-fill': {
+    load: () => import('~/utils/gluke-energy-fill.js') as unknown as Promise<{ default: WidgetFactory }>,
+    storageKey: 'gluke-energy-fill-v1',
+    themeLook: light => ENERGY_FILL_THEME_LOOK[light ? 'light' : 'dark'],
+    defaults: {
+      markPick: 0,
+      detail: 2,
+      markSize: 0.99,
+      markShift: 0,
+      markFit: 0,
+      entryAngle: 30,
+      beamReach: 1.1,
+      beamWidth: 0.05,
+      beamNoise: 0.8,
+      beamGlow: 1.6,
+      frontWidth: 0.06,
+      frontGlow: 1.4,
+      fillNoise: 0.16,
+      noiseScale: 7,
+      frontFlow: 0.5,
+      grain: 0.22,
+      grainScale: 14,
+      grainSteps: 7,
+      idle: 0.55,
+      idleSpeed: 0.15,
+      idleTight: 5,
+      idleShape: 1.3,
+      rim: 0.9,
+      rimWidth: 0.14,
+      halo: 1,
+      haloWidth: 0.15,
+      soft: 0.55,
+      softWidth: 0.29,
+      bloom: 0.5,
+      bloomWidth: 1.28,
+      shock: 1.45,
+      shockWidth: 0.22,
+      burst: 0,
+      burstScale: 3.5,
+      burstSpeed: 0.5,
+      hue: 0.147,
+      saturation: 0.91,
+      dormant: 0.3,
+      charge: 0.7,
+      fillTime: 1,
+      flash: 0.35,
+      hold: 1.4,
+      ambient: 3,
+      loop: 1,
+      freeze: 0,
+      scrub: 0.37,
+    },
+    /* В полноформатной шапке текст кейса лежит в левой колонке (44rem), а знак
+       по умолчанию стоит по центру кадра — он попадал бы под заголовок. Уводим
+       его в правую треть и там же держим по ширине, иначе на узком десктопе
+       крупный знак всё равно наползает на текст. На мобильном текст идёт
+       сверху отдельным блоком — там знак остаётся по центру и во всю высоту. */
+    createOptions: ({ narrow, variant }) => ({
+      ...perfOptions(narrow, 0.7e6),
+      ...(variant === 'bleed' && !narrow ? { markShift: 0.32, markFit: 0.28 } : {}),
+    }),
+    /* Знак приходит не из `createOptions`, а отсюда: `createOptions`
+       раскладывается последним и затёр бы выбор ползунка. Движок растеризует
+       любой SVG или PNG и печёт по нему карту прихода волны — заранее
+       готовить нечего, поэтому переключение работает и на лету. */
+    mapParams: (merged, _tuned, demo) => {
+      const params = (demo.params ?? {}) as WidgetParams
+      const alt = typeof params.markAlt === 'string' ? params.markAlt : null
+      const pick = Number(merged.markPick ?? 0)
+      const rest: WidgetParams = { ...merged }
+      delete rest.markPick
+      delete rest.markAlt
+      rest.mark = (pick > 0.5 && alt) ? alt : demo.logo
+      return rest
+    },
+    groups: [
+      {
+        id: 'beam',
+        controls: [
+          { key: 'entryAngle', min: -180, max: 180, step: 1 },
+          { key: 'beamReach', min: 0.2, max: 2.5, step: 0.05 },
+          { key: 'beamWidth', min: 0.005, max: 0.2, step: 0.005 },
+          { key: 'beamNoise', min: 0, max: 2, step: 0.05 },
+          { key: 'beamGlow', min: 0, max: 4, step: 0.05 },
+        ],
+      },
+      {
+        id: 'fill',
+        controls: [
+          { key: 'frontWidth', min: 0.005, max: 0.4, step: 0.005 },
+          { key: 'frontGlow', min: 0, max: 4, step: 0.05 },
+          { key: 'fillNoise', min: 0, max: 0.6, step: 0.01 },
+          { key: 'noiseScale', min: 1, max: 20, step: 0.5 },
+          { key: 'frontFlow', min: 0, max: 3, step: 0.05 },
+          /* Захват кусками: `grain` — насколько участки разбегаются по
+             времени, `grainSteps` — на сколько ступеней режется шум (меньше
+             ступеней — крупнее и заметнее куски). */
+          { key: 'grain', min: 0, max: 0.8, step: 0.01 },
+          { key: 'grainScale', min: 3, max: 40, step: 0.5 },
+          { key: 'grainSteps', min: 2, max: 24, step: 1 },
+        ],
+      },
+      {
+        id: 'idle',
+        controls: [
+          { key: 'idle', min: 0, max: 2, step: 0.05 },
+          { key: 'idleShape', min: 0, max: 2, step: 0.1 },
+          { key: 'idleSpeed', min: 0, max: 2, step: 0.01 },
+          { key: 'idleTight', min: 0.5, max: 5, step: 0.1 },
+        ],
+      },
+      {
+        id: 'mark',
+        controls: [
+          { key: 'markPick', min: 0, max: 1, step: 1 },
+          { key: 'detail', min: 0.5, max: 2, step: 0.25 },
+          { key: 'markSize', min: 0.2, max: 1.4, step: 0.01 },
+          { key: 'markShift', min: -0.4, max: 0.4, step: 0.01 },
+          { key: 'markFit', min: 0, max: 1, step: 0.01 },
+          { key: 'rim', min: 0, max: 3, step: 0.05 },
+          { key: 'rimWidth', min: 0.02, max: 1, step: 0.01 },
+        ],
+      },
+      {
+        id: 'glow',
+        controls: [
+          { key: 'halo', min: 0, max: 3, step: 0.05 },
+          { key: 'haloWidth', min: 0.005, max: 1, step: 0.005 },
+          { key: 'soft', min: 0, max: 3, step: 0.05 },
+          { key: 'softWidth', min: 0.02, max: 1.5, step: 0.01 },
+          { key: 'bloom', min: 0, max: 4, step: 0.05 },
+          { key: 'bloomWidth', min: 0.05, max: 2, step: 0.01 },
+          { key: 'shock', min: 0, max: 6, step: 0.05 },
+          { key: 'shockWidth', min: 0.02, max: 1, step: 0.01 },
+          { key: 'burst', min: 0, max: 2, step: 0.05 },
+          { key: 'burstScale', min: 0.5, max: 12, step: 0.1 },
+          { key: 'burstSpeed', min: 0, max: 2, step: 0.05 },
+        ],
+      },
+      {
+        id: 'palette',
+        controls: [
+          { key: 'hue', min: 0, max: 1, step: 0.005 },
+          { key: 'saturation', min: 0, max: 1, step: 0.01 },
+          { key: 'dormant', min: 0, max: 1, step: 0.01 },
+        ],
+      },
+      {
+        id: 'timing',
+        controls: [
+          { key: 'charge', min: 0.1, max: 2, step: 0.05 },
+          { key: 'fillTime', min: 0.2, max: 3, step: 0.05 },
+          { key: 'flash', min: 0, max: 1.5, step: 0.05 },
+          { key: 'hold', min: 0, max: 6, step: 0.1 },
+          { key: 'ambient', min: 0, max: 3, step: 0.05 },
+          { key: 'loop', min: 0, max: 1, step: 1 },
+          /* Стоп-кадр и протяжка по сцене: без них фронт и импульс живут по
+             сотне миллисекунд, и настроить их ползунками невозможно. */
+          { key: 'freeze', min: 0, max: 1, step: 1 },
+          { key: 'scrub', min: 0, max: 1, step: 0.005 },
+        ],
+      },
+    ],
+  },
+
   'pyramid': {
     load: () => import('~/utils/gluke-pyramid.js') as unknown as Promise<{ default: WidgetFactory }>,
     labelPrefix: 'pyramid',
+    /* Пирамида тоже объект в кадре: в 16:9-карточке она получалась мелкой. */
+    heroFill: true,
     themeLook: light => PYRAMID_THEME_LOOK[light ? 'light' : 'dark'],
     groups: [
       {
@@ -333,20 +511,23 @@ export const WIDGET_DEMO_SPECS: Record<string, WidgetDemoSpec> = {
   'particles': {
     load: () => import('~/utils/gluke-particles.js') as unknown as Promise<{ default: WidgetFactory }>,
     storageKey: 'gluke-particles-v3',
+    /* Олень — объект со своим центром композиции: в hero растягивается на всю
+       высоту правой колонки, иначе в 16:9-карточке он выходит мелким. */
+    heroFill: true,
     themeLook: light => PARTICLES_THEME_LOOK[light ? 'light' : 'dark'],
     defaults: {
       points: 21000,
-      pointSize: 0.8,
-      spread: 0.03,
-      revealSpeed: 0.095,
-      pointOpacity: 0.19,
+      pointSize: 0.9,
+      spread: 0.08,
+      revealSpeed: 0.195,
+      pointOpacity: 0.145,
       brightness: 1,
       paths: 8,
-      pathStep: 0.09,
+      pathStep: 0.11,
       pathSpeed: 13,
-      lineTail: 0,
-      lineFade: 10,
-      lineOpacity: 0.26,
+      lineTail: 1850,
+      lineFade: 9.5,
+      lineOpacity: 0.425,
       lineDisplace: 0.05,
       hueShift: 0,
       lineHueSpread: 0.5,
@@ -405,6 +586,10 @@ export const WIDGET_DEMO_SPECS: Record<string, WidgetDemoSpec> = {
 
   'image-particles': {
     load: () => import('~/utils/gluke-image-particles.js') as unknown as Promise<{ default: WidgetFactory }>,
+    /* Портрет — объект в центре: в обычном hero он растягивается на всю
+       высоту правой половины шапки (uFit вписывает картинку по пропорциям),
+       на мобильном уходит вторым блоком под текст. */
+    heroFill: true,
     themeLook: light => IMAGE_PARTICLES_THEME_LOOK[light ? 'light' : 'dark'],
     defaults: {
       density: 1,

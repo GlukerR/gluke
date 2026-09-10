@@ -7,7 +7,7 @@ client: Каскад
 industry: Интерактивные презентации недвижимости
 categories:
   - exteriors
-position: 14
+position: 15
 featured: false
 status: published
 navigation: false

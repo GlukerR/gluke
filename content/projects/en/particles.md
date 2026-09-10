@@ -7,7 +7,7 @@ client: Web graphics
 industry: Widgets
 categories:
   - webgl
-position: 25
+position: 26
 featured: false
 status: published
 navigation: false
@@ -26,17 +26,17 @@ demo:
   model: /media/projects/particles/deer.glb
   params:
     points: 21000
-    pointSize: 0.8
-    spread: 0.03
-    revealSpeed: 0.095
-    pointOpacity: 0.19
+    pointSize: 0.9
+    spread: 0.08
+    revealSpeed: 0.195
+    pointOpacity: 0.145
     brightness: 1
     paths: 8
-    pathStep: 0.09
+    pathStep: 0.11
     pathSpeed: 13
-    lineTail: 0
-    lineFade: 10
-    lineOpacity: 0.26
+    lineTail: 1850
+    lineFade: 9.5
+    lineOpacity: 0.425
     lineDisplace: 0.05
     hueShift: 0
     lineHueSpread: 0.5

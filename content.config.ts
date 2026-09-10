@@ -28,6 +28,48 @@ const visualSchema = z.object({
   caption: z.string().min(1).optional(),
 })
 
+/* Визуальные параметры вьювера: каждая модель переопределяет дефолты
+   компонента (в скобках — значения по умолчанию). Один и тот же набор нужен
+   и модели в шапке кейса (`model`), и модели внутри галереи (`kind: '3d'`),
+   поэтому живёт отдельно. */
+const modelSettingsShape = {
+  autoRotate: z.boolean().optional(),
+  /* Максимальная интенсивность пульсации свечения (эмишн) (5). */
+  emissivePulse: z.number().min(0).max(20).optional(),
+  /* Частота пульсации свечения, Гц (0.7). */
+  emissivePulseHz: z.number().min(0).max(5).optional(),
+  /* Множитель металличности: 1 = как в GLB, меньше = менее «зеркально» (0.88). */
+  metalness: z.number().min(0).max(1).optional(),
+  /* Подъём «чёрного» диффузной текстуры: тёмные участки становятся
+     тёмно-серыми, светлые почти не меняются (30). */
+  diffuseLift: z.number().min(0).max(120).optional(),
+  /* Разворот модели вокруг Y в градусах: каждая GLB может быть
+     экспортирована своей стороной к камере (0). */
+  rotation: z.number().min(-360).max(360).optional(),
+  /* Скорость автоповорота OrbitControls (1.2). */
+  autoRotateSpeed: z.number().min(0).max(10).optional(),
+  /* Интенсивность студийного окружения RoomEnvironment (0.5). */
+  environmentIntensity: z.number().min(0).max(2).optional(),
+  /* Ступор зума OrbitControls в долях от кадрирующей дистанции:
+     zoomMin — как близко можно приблизить (0.9), zoomMax — как далеко
+     отъехать (1.4). */
+  zoomMin: z.number().min(0.1).max(5).optional(),
+  zoomMax: z.number().min(0.1).max(5).optional(),
+  /* Зазор вокруг модели при кадрировании (1.25): меньше — модель
+     крупнее в кадре. Крупным объектам (дом) нужен зазор меньше. */
+  fit: z.number().min(0.3).max(3).optional(),
+  /* Интенсивности источников света: полусфера (0.5), ключевой (0.8),
+     мягкая подсветка (0.4). */
+  hemisphereLight: z.number().min(0).max(3).optional(),
+  keyLight: z.number().min(0).max(3).optional(),
+  fillLight: z.number().min(0).max(3).optional(),
+  /* Масштаб канваса рендера относительно контейнера (1.8): больше — запас
+     от обрезки модели при вращении, но прозрачная зона канваса перекрывает
+     соседние блоки. 1 — канвас ровно по контейнеру, ничего не наезжает
+     (нужно, когда модель стоит отдельно в галерее). */
+  canvasScale: z.number().min(1).max(3).optional(),
+}
+
 const mediaSchema = visualSchema.extend({
   kind: z.enum(['image', 'video', '3d']),
   poster: z.string().min(1).startsWith(MEDIA_PREFIX).optional(),
@@ -50,8 +92,8 @@ const mediaSchema = visualSchema.extend({
   quad: z.boolean().optional(),
   /* Материал для ряда из трёх на всю ширину (квадратные картинки, не резать). */
   triple: z.boolean().optional(),
-  /* 3D-вьювер: автоповорот модели (по умолчанию включён в компоненте). */
-  autoRotate: z.boolean().optional(),
+  /* 3D-вьювер: те же настройки, что и у модели в шапке кейса. */
+  ...modelSettingsShape,
   /* 3D: программный взрыв-вид по иерархии деталей (для кейсов со сборкой). */
   explode: z.boolean().optional(),
   /* 3D: автопроигрывание запечённой анимации из GLB. */
@@ -138,41 +180,13 @@ export default defineContentConfig({
         /* 3D-модель вместо обложки в hero кейса; постером вьювера служит сама обложка.
            Визуальные параметры вьювера — каждая модель может переопределять
            дефолты компонента (в скобках — значения по умолчанию). */
-        model: visualSchema.extend({
-          autoRotate: z.boolean().optional(),
-          /* Максимальная интенсивность пульсации свечения (эмишн) (5). */
-          emissivePulse: z.number().min(0).max(20).optional(),
-          /* Частота пульсации свечения, Гц (0.7). */
-          emissivePulseHz: z.number().min(0).max(5).optional(),
-          /* Множитель металличности: 1 = как в GLB, меньше = менее «зеркально» (0.88). */
-          metalness: z.number().min(0).max(1).optional(),
-          /* Подъём «чёрного» диффузной текстуры: тёмные участки становятся
-             тёмно-серыми, светлые почти не меняются (30). */
-          diffuseLift: z.number().min(0).max(120).optional(),
-          /* Разворот модели вокруг Y в градусах: каждая GLB может быть
-             экспортирована своей стороной к камере (0). */
-          rotation: z.number().min(-360).max(360).optional(),
-          /* Скорость автоповорота OrbitControls (1.2). */
-          autoRotateSpeed: z.number().min(0).max(10).optional(),
-          /* Интенсивность студийного окружения RoomEnvironment (0.5). */
-          environmentIntensity: z.number().min(0).max(2).optional(),
-          /* Ступор зума OrbitControls в долях от кадрирующей дистанции:
-             zoomMin — как близко можно приблизить (0.9), zoomMax — как далеко
-             отъехать (1.4). */
-          zoomMin: z.number().min(0.1).max(5).optional(),
-          zoomMax: z.number().min(0.1).max(5).optional(),
-          /* Интенсивности источников света: полусфера (0.5), ключевой (0.8),
-             мягкая подсветка (0.4). */
-          hemisphereLight: z.number().min(0).max(3).optional(),
-          keyLight: z.number().min(0).max(3).optional(),
-          fillLight: z.number().min(0).max(3).optional(),
-        }).optional(),
+        model: visualSchema.extend(modelSettingsShape).optional(),
         /* Живой WebGL-виджет вместо обложки в шапке кейса — по тому же принципу,
            что и `model`, только считается шейдером, а не грузится файлом.
            `params` уходят в виджет как есть. Тема страницы на них не влияет:
            подложка блока тёмная всегда, иначе аддитивное свечение теряется. */
         demo: z.object({
-          widget: z.enum(['pyramid', 'constellation', 'metaballs', 'particles', 'image-particles']),
+          widget: z.enum(['pyramid', 'constellation', 'metaballs', 'particles', 'image-particles', 'energy-fill']),
           alt: z.string().min(1),
           logo: z.string().startsWith('/media/').optional(),
           /* Модель для виджетов, которые её сэмплируют (`particles`). */

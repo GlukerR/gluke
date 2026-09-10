@@ -8,7 +8,7 @@ client: Fachwerk Stroy
 industry: Fachwerk house construction
 categories:
   - exteriors
-position: 21
+position: 22
 featured: false
 status: published
 navigation: false

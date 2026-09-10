@@ -1,13 +1,13 @@
 ---
 locale: en
 slug: pyramid
-title: Glowing pyramid — a pure WebGL 3D widget
+title: Glowing pyramid — a 3D widget in WebGL
 description: 'A volumetric pyramid computed by a shader rather than built from polygons: 30 KB with no dependencies and no build step, the logo fused into the material of the faces, dropped into any site with one line.'
 client: Web graphics
 industry: Widgets
 categories:
   - webgl
-position: 22
+position: 23
 featured: false
 status: published
 navigation: false

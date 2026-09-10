@@ -7,7 +7,7 @@ client: Alphatent
 industry: Tents and canopies
 categories:
   - industrial
-position: 12
+position: 13
 featured: false
 status: published
 navigation: false

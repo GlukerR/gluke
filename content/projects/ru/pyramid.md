@@ -1,13 +1,13 @@
 ---
 locale: ru
 slug: pyramid
-title: Светящаяся пирамида — 3D-виджет на чистом WebGL
+title: Светящаяся пирамида — 3D-виджет на WebGL
 description: 'Объёмная пирамида, посчитанная шейдером, а не полигонами: 30 КБ без зависимостей и сборки, логотип вплавлен в материал граней, вставляется в любой сайт одной строкой.'
 client: Веб-графика
 industry: Виджеты
 categories:
   - webgl
-position: 22
+position: 23
 featured: false
 status: published
 navigation: false

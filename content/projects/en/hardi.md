@@ -7,7 +7,7 @@ client: HARDI
 industry: Furniture hardware
 categories:
   - furniture
-position: 15
+position: 16
 featured: false
 status: published
 navigation: false

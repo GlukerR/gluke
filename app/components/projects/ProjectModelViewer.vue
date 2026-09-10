@@ -2,7 +2,7 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import type * as THREE from 'three'
 import { viewerCache } from '~/utils/modelViewerCache'
-import { applyTouchScrollPolicy } from '~/utils/touchScroll'
+import { applyTouchScrollPolicy, isCoarsePointer } from '~/utils/touchScroll'
 import type { CachedViewer } from '~/utils/modelViewerCache'
 
 const props = withDefaults(
@@ -31,6 +31,12 @@ const props = withDefaults(
        крупнее), zoomMax — как далеко можно отъехать. */
     zoomMin?: number
     zoomMax?: number
+    /* Зазор вокруг модели при кадрировании: меньше — модель крупнее в кадре. */
+    fit?: number
+    /* Масштаб канваса рендера относительно контейнера (1.8): 1 — канвас
+       ровно по контейнеру, модель стоит отдельно и не перекрывает соседние
+       блоки. */
+    canvasScale?: number
   }>(),
   {
     autoRotate: true,
@@ -47,6 +53,8 @@ const props = withDefaults(
     fillLight: 0.4,
     zoomMin: 0.9,
     zoomMax: 1.4,
+    fit: 1.25,
+    canvasScale: 1.8,
   },
 )
 
@@ -72,12 +80,17 @@ const EMISSIVE_PULSE_HZ = props.emissivePulseHz ?? 0.7
 
 /* Кадрирование: FIT_FILL умножается на дистанцию камеры — чем больше,
    тем дальше камера и тем меньше модель в кадре (с воздухом по краям).
-   ＞1 оставляет зазор вокруг габаритного бокса. */
-const FIT_FILL = 1.25
+   ＞1 оставляет зазор вокруг габаритного бокса. Дистанция считается по
+   канвасу, а он шире контейнера (CANVAS_SCALE), поэтому крупным объектам
+   вроде дома нужен зазор меньше единицы — значение приходит из контента. */
+const FIT_FILL = props.fit ?? 1.25
 /* Зона рендеринга шире контейнера: канвас центрируется на контейнере, поэтому
    модель остаётся в том же месте, но её края выходят за рамку — «окна» не видно.
-   На мобильных не масштабируем, чтобы не вылезать за вьюпорт. */
-const CANVAS_SCALE = 1.8
+   На мобильных не масштабируем, чтобы не вылезать за вьюпорт.
+   Масштаб настраивается по кейсу (canvasScale): 1 ставит канвас ровно по
+   контейнеру — для моделей, которые должны стоять отдельно и не наезжать
+   на соседние блоки. */
+const CANVAS_SCALE = props.canvasScale ?? 1.8
 
 let viewer: CachedViewer | undefined = cachedViewer
 let resizeObserver: ResizeObserver | undefined
@@ -119,6 +132,15 @@ function onDragStart() {
 
 function onDragEnd() {
   userDragging = false
+}
+
+/* Зум колесом — только с Ctrl/⌘. Без модификатора событие до OrbitControls
+   не доходит, страница прокручивается как обычно. preventDefault здесь не
+   зовём: колесо должно достаться браузеру. Ctrl + колесо пропускаем дальше —
+   OrbitControls сам погасит браузерный зум страницы. */
+function onWheelCapture(event: WheelEvent) {
+  if (event.ctrlKey || event.metaKey) return
+  event.stopPropagation()
 }
 
 /* Кадрирует камеру под текущие размеры канваса. Сохраняет направление взгляда
@@ -224,6 +246,11 @@ function attachViewer() {
 
   const canvas = viewer.renderer.domElement
   container.value.appendChild(canvas)
+  /* Колесо перехватываем на контейнере в фазе перехвата — до того, как его
+     увидит OrbitControls на самом канвасе. Простое колесо отдаём странице
+     (иначе мимо модели не пролистать: канвас шире рамки и перекрывает
+     половину экрана), зум остаётся на Ctrl/⌘ + колесо. */
+  container.value.addEventListener('wheel', onWheelCapture, { capture: true })
   canvas.addEventListener('pointerdown', markInteracted)
   canvas.addEventListener('pointerdown', onDragStart)
   canvas.addEventListener('pointerup', onDragEnd)
@@ -256,6 +283,7 @@ function detachViewer() {
     clearTimeout(dismissTimer)
     dismissTimer = undefined
   }
+  container.value?.removeEventListener('wheel', onWheelCapture, { capture: true })
   if (viewer) {
     const canvas = viewer.renderer.domElement
     canvas.removeEventListener('pointerdown', markInteracted)
@@ -340,6 +368,11 @@ async function mountViewer() {
        свайп вверх/вниз скроллит страницу, горизонтальный — вращает модель.
        Общая логика для всех вьюверов — utils/touchScroll. */
     applyTouchScrollPolicy(renderer.domElement)
+    /* На телефоне модель крутится только в стороны: вертикаль принадлежит
+       странице. Панорамирование двумя пальцами тоже выключаем — остаётся
+       зум щипком, как просили. Полярный угол запирается ниже, когда камера
+       уже встала на стартовый ракурс. */
+    if (isCoarsePointer()) controls.enablePan = false
     controls.enableDamping = true
     controls.dampingFactor = 0.08
     controls.autoRotate = props.autoRotate
@@ -417,7 +450,11 @@ async function mountViewer() {
            умножает карту металла — 0.88 приглушает зеркальность.
            Значение — из настроек модели (metalness). */
         standard.metalness = (standard.metalness ?? 1) * (props.metalness ?? 0.88)
-        if (standard.map) {
+        /* При нулевом подъёме не трогаем текстуры вовсе: на моделях с
+           запечённым светом (дома — десятки мегапикселей карт) попиксельный
+           проход по канвасу стоил бы сотни миллисекунд главного потока
+           и ничего не менял. */
+        if (standard.map && DIFFUSE_LIFT > 0) {
           standard.map = liftDiffuseTexture(standard.map)
           standard.map.needsUpdate = true
           standard.needsUpdate = true
@@ -437,6 +474,16 @@ async function mountViewer() {
     camera.position.copy(center).addScaledVector(direction, 1)
     controls.target.copy(center)
     controls.update()
+
+    /* Наклон запрещён на тач-устройствах: свайп вверх/вниз браузер забирает
+       под скролл (touch-action: pan-y), но диагональный жест успевал завалить
+       дом до того, как прилетит pointercancel. Запираем полярный угол на
+       стартовом — горизонтальное вращение и зум щипком остаются. */
+    if (isCoarsePointer()) {
+      const polar = controls.getPolarAngle()
+      controls.minPolarAngle = polar
+      controls.maxPolarAngle = polar
+    }
 
     viewer = {
       renderer,

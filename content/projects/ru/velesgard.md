@@ -7,7 +7,7 @@ client: Велесгард
 industry: Строительство и промышленные объекты
 categories:
   - industrial
-position: 13
+position: 14
 featured: false
 status: published
 navigation: false

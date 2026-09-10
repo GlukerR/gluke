@@ -224,6 +224,20 @@ onMounted(() => {
       :height="item.height"
       :poster="posterSrc"
       :auto-rotate="item.autoRotate ?? true"
+      :emissive-pulse="item.emissivePulse"
+      :emissive-pulse-hz="item.emissivePulseHz"
+      :metalness="item.metalness"
+      :diffuse-lift="item.diffuseLift"
+      :rotation="item.rotation"
+      :auto-rotate-speed="item.autoRotateSpeed"
+      :environment-intensity="item.environmentIntensity"
+      :hemisphere-light="item.hemisphereLight"
+      :key-light="item.keyLight"
+      :fill-light="item.fillLight"
+      :zoom-min="item.zoomMin"
+      :zoom-max="item.zoomMax"
+      :fit="item.fit"
+      :canvas-scale="item.canvasScale"
     />
 
     <NuxtPicture

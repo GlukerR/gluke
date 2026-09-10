@@ -7,7 +7,7 @@ client: Cascadia
 industry: Interactive real estate presentations
 categories:
   - exteriors
-position: 14
+position: 15
 featured: false
 status: published
 navigation: false

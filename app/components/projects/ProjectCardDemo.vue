@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { ProjectsCollectionItem } from '@nuxt/content'
 import { demoWidgetKey, getDemoWidget, setDemoWidget } from '~/utils/demoWidgetCache'
-import { CONSTELLATION_THEME_COLORS, IMAGE_PARTICLES_THEME_LOOK, METABALLS_THEME_LOOK, PARTICLES_THEME_LOOK, PYRAMID_THEME_LOOK } from '~/utils/widgetThemeLook'
+import { CONSTELLATION_THEME_COLORS, ENERGY_FILL_THEME_LOOK, IMAGE_PARTICLES_THEME_LOOK, METABALLS_THEME_LOOK, PARTICLES_THEME_LOOK, PYRAMID_THEME_LOOK } from '~/utils/widgetThemeLook'
 
 /* Живое превью на карточке кейса: у проектов с demo-виджетом (призма,
    звёздное поле) вместо статичной обложки после простоя страницы
@@ -160,6 +160,31 @@ async function boot() {
         respectReducedMotion: true,
       }) as DemoInstance
     }
+    else if (widget.value === 'energy-fill') {
+      const { default: GlukeEnergyFill } = await import('~/utils/gluke-energy-fill.js')
+      /* Знак берётся тем же способом, что и в лаборатории: движок печёт карту
+         прихода волны прямо из SVG, поэтому карточке нечего готовить заранее.
+         `markPick`/`markAlt` — это выбор ползунка, движку они не нужны. */
+      const params = { ...(props.demo.params as Record<string, unknown>) }
+      const alt = typeof params.markAlt === 'string' ? params.markAlt : null
+      const pick = Number(params.markPick ?? 0)
+      delete params.markPick
+      delete params.markAlt
+
+      created = GlukeEnergyFill.create(el, {
+        ...params,
+        ...ENERGY_FILL_THEME_LOOK[isLight.value ? 'light' : 'dark'],
+        mark: (pick > 0.5 && alt) ? alt : props.demo.logo,
+        /* На карточке сцена всегда идёт по кругу и никогда не стоит на
+           стоп-кадре: ползунки лаборатории сюда не относятся. */
+        loop: 1,
+        freeze: 0,
+        ratioCap: 1.5,
+        pixelBudget: 1.5e6,
+        pauseOffscreen: true,
+        respectReducedMotion: true,
+      }) as DemoInstance
+    }
     else if (widget.value === 'particles') {
       const { default: GlukeParticles } = await import('~/utils/gluke-particles.js')
       created = GlukeParticles.create(el, {
@@ -241,6 +266,9 @@ function applyTheme(w: DemoInstance): void {
   }
   else if (widget.value === 'particles') {
     w.set(PARTICLES_THEME_LOOK[isLight.value ? 'light' : 'dark'])
+  }
+  else if (widget.value === 'energy-fill') {
+    w.set(ENERGY_FILL_THEME_LOOK[isLight.value ? 'light' : 'dark'])
   }
 }
 

@@ -8,7 +8,7 @@ client: DYNOMINE (Dynomine AI)
 industry: Крипто-майнинг
 categories:
   - cinematics
-position: 17
+position: 18
 featured: false
 status: published
 navigation: false

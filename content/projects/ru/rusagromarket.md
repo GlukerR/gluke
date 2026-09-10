@@ -8,7 +8,7 @@ client: РусАгроМаркет
 industry: Оптово-распределительный центр
 categories:
   - exteriors
-position: 20
+position: 21
 featured: false
 status: published
 navigation: false

@@ -1,13 +1,13 @@
 ---
 locale: en
 slug: constellation
-title: Constellation — an interactive star field in pure WebGL
+title: Constellation — an interactive star field in WebGL
 description: 'A living star field with no dependencies and no build step: star-points drift slowly, close pairs join into glowing threads, and the cursor behaves like a warm hand — links near it flare up while the nearest stars gently step aside.'
 client: Web graphics
 industry: Widgets
 categories:
   - webgl
-position: 23
+position: 24
 featured: false
 status: published
 navigation: false
@@ -15,7 +15,7 @@ period: "2026"
 updated: 2026-09-06
 engagement: completed
 services:
-  - Pure WebGL with no dependencies
+  - WebGL with no dependencies
   - Star field with connecting threads
   - Cursor response
   - Optimization for mobile
@@ -45,7 +45,7 @@ An interactive background for a website usually means "engine plus model plus me
 
 ## The work
 
-- the field is rendered by a pair of shaders in pure WebGL — no three.js, no model files;
+- the field is rendered by a pair of shaders in WebGL — no three.js, no model files;
 - stars drift along their own paths and twinkle with different phases, so the motion never feels mechanical;
 - links are computed on the CPU by a distance threshold: there are only a couple of hundred pairs per frame, cheap even on a phone;
 - the cursor acts as a warm hand: threads near it flare up and the closest stars step aside smoothly;

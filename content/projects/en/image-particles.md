@@ -1,13 +1,13 @@
 ---
 locale: en
 slug: image-particles
-title: A portrait in particles — an interactive field in pure WebGL
-description: 'A photograph is broken into twenty thousand dots: the portrait assembles from particles and parts wherever the cursor passes. Pure WebGL, one draw call, zero dependencies.'
+title: A portrait in particles — an interactive field in WebGL
+description: 'A photograph is broken into twenty thousand dots: the portrait assembles from particles and parts wherever the cursor passes. WebGL, one draw call, zero dependencies.'
 client: Web graphics
 industry: Interactive widgets
 categories:
   - webgl
-position: 27
+position: 28
 featured: false
 status: published
 navigation: false
@@ -57,7 +57,7 @@ media: []
 
 Show a photograph so that it is not merely a photograph: the image is broken into twenty thousand dots, the portrait assembles from them and parts wherever the cursor passes.
 
-The condition is a lightweight 2D effect with no 3D scene and no build step: pure WebGL, one file, zero dependencies. All a page needs is the donor image and one line to load it.
+The condition is a lightweight 2D effect with no 3D scene and no build step: WebGL, one file, zero dependencies. All a page needs is the donor image and one line to load it.
 
 ## The work
 

@@ -8,7 +8,7 @@ client: Фахверк Строй
 industry: Строительство фахверк-домов
 categories:
   - exteriors
-position: 21
+position: 22
 featured: false
 status: published
 navigation: false

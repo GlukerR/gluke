@@ -1,13 +1,13 @@
 ---
 locale: ru
 slug: metaballs
-title: Лава-лампа из метаболлов — интерактивный фон на чистом WebGL
+title: Лава-лампа из метаболлов — интерактивный фон на WebGL
 description: 'Текущие капли лавы, которые плавно сливаются и разделяются: поле метаболлов считается фрагментным шейдером, 23 КБ без зависимостей, курсор тянет лаву за собой, цвета перекрашиваются под тему сайта.'
 client: Веб-графика
 industry: Виджеты
 categories:
   - webgl
-position: 26
+position: 27
 featured: false
 status: published
 navigation: false

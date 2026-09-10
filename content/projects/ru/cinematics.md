@@ -8,7 +8,7 @@ client: Одиночные проекты
 industry: Синематики
 categories:
   - cinematics
-position: 19
+position: 20
 featured: false
 status: published
 navigation: false

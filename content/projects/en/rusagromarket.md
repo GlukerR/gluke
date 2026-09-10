@@ -8,7 +8,7 @@ client: RusAgroMarket
 industry: Wholesale distribution center
 categories:
   - exteriors
-position: 20
+position: 21
 featured: false
 status: published
 navigation: false

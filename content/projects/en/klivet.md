@@ -7,7 +7,7 @@ client: Klivet (KERMI)
 industry: Heating equipment
 categories:
   - furniture
-position: 16
+position: 17
 featured: false
 status: published
 navigation: false

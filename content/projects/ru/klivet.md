@@ -7,7 +7,7 @@ client: Кливет (KERMI)
 industry: Отопительное оборудование
 categories:
   - furniture
-position: 16
+position: 17
 featured: false
 status: published
 navigation: false

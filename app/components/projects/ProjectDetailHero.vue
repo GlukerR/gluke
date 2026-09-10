@@ -39,6 +39,11 @@ const demoWidget = computed(() => (widgetDemoSpec(props.project.demo?.widget) ? 
    в своей колонке карточкой 16:9. Список общий для шаблона и страницы. */
 const isBleedHero = computed(() => isBleedDemoWidget(props.project.demo?.widget))
 
+/* Объектные виджеты (портрет) в обычном hero растягиваются на всю высоту
+   своей колонки: сцена перестаёт быть 16:9-карточкой и занимает половину
+   шапки целиком. На узком экране колонка уходит вторым блоком под текст. */
+const isHeroFill = computed(() => !isBleedHero.value && !!widgetDemoSpec(props.project.demo?.widget)?.heroFill)
+
 const clientLinkLabel = computed(() => t('project.clientLinkAria', { client: props.project.client }))
 </script>
 
@@ -48,6 +53,7 @@ const clientLinkLabel = computed(() => t('project.clientLinkAria', { client: pro
     :class="{
       'project-hero--model': (!!project.model || (!!project.demo && !!demoWidget)) && !isBleedHero,
       'project-hero--bleed': isBleedHero,
+      'project-hero--fill': isHeroFill,
       /* Канвас рисует обёртка страницы позади hero: весь hero-бокс прозрачен
          для указателя, иначе он перехватывал бы события и курсор-«планета»
          работал бы только в промежутках между блоками. */
@@ -159,6 +165,8 @@ const clientLinkLabel = computed(() => t('project.clientLinkAria', { client: pro
           :fill-light="project.model.fillLight"
           :zoom-min="project.model.zoomMin"
           :zoom-max="project.model.zoomMax"
+          :fit="project.model.fit"
+          :canvas-scale="project.model.canvasScale"
           priority
         />
         <!-- Без `preload`: `<link rel=preload imagesrcset>` Chrome грузит с Low
@@ -298,6 +306,44 @@ const clientLinkLabel = computed(() => t('project.clientLinkAria', { client: pro
 .project-hero--model .project-hero__text {
   position: relative;
   z-index: 1;
+}
+
+/* Объектный виджет (портрет, облако точек) в своей колонке справа.
+   Высота всего hero остаётся прежней: раньше её набирали крупные вертикальные
+   отступы плюс 16:9-карточка, теперь отступы минимальные, а освободившееся
+   место забирает сама сцена. Итоговый блок примерно той же высоты, но
+   интерактив в нём заметно крупнее. Текст — слева, отдельной колонкой:
+   сцена под него не заходит. */
+.project-hero--fill {
+  padding-block: clamp(8px, 1vw, 16px) clamp(12px, 1.5vw, 20px);
+}
+
+.project-hero--fill .project-hero__inner {
+  align-items: stretch;
+}
+
+.project-hero--fill .project-hero__text {
+  justify-content: center;
+}
+
+/* Узкий экран: колонка уходит вторым блоком под текст, высоту задаём сами —
+   тянуться там не за чем. */
+.project-hero--fill .project-hero__visual {
+  min-height: min(62vh, 520px);
+}
+
+@media (min-width: 1024px) {
+  /* Ряд получает реальную высоту, и сцена растягивается на неё целиком.
+     Без этого `height: 100%` у сцены упирался бы в высоту текстовой колонки
+     и виджет снова схлопывался бы в маленькую карточку.
+
+     Тянуть сцену вплотную к хедеру смысла не имеет: объект внутри вписан
+     по своим пропорциям и всё равно встаёт с отступом от краёв канваса —
+     видно было бы то же пустое место, только выше. Вместо этого даём сцене
+     больше высоты: объект вписан по высоте, поэтому растёт вместе с ней. */
+  .project-hero--fill .project-hero__visual {
+    min-height: min(74vh, 680px);
+  }
 }
 
 /* Полноформатный hero: канвас — фон всей шапки, текст ложится поверх слева.
