@@ -232,13 +232,26 @@ onMounted(() => {
      ждать простоя страницы незачем, карточка оживает без моргания обложки. */
   if (getDemoWidget(cacheKey.value)) {
     void boot()
-    return
   }
 
+  /* Observer живёт всё время, а не до первого запуска. Если виджет вытеснен
+     из кэша (LRU при переполнении — MAX_INSTANCES в demoWidgetCache),
+     destroy() удаляет его канвас и контекст, а карточка остаётся «живой»
+     с пустым слоем. При возврате в зону видимости такой виджет
+     пересоздаётся, иначе после прокрутки вниз и обратно часть превью
+     пропадала бы. */
   observer = new IntersectionObserver((entries) => {
     if (!entries.some(entry => entry.isIntersecting)) return
-    observer?.disconnect()
-    observer = null
+    /* Рендер уже на месте — виджет жив, ничего не делаем. */
+    if (host.value?.querySelector('canvas')) return
+    /* Инстанс в кэше есть (смена языка) — boot() перецепит его. */
+    if (getDemoWidget(cacheKey.value)) {
+      void boot()
+      return
+    }
+    /* Инстанса нет ни в host, ни в кэше — вытеснен. Сбрасываем флаг,
+       чтобы boot() создал виджет заново. */
+    if (booted) booted = false
     /* Дождались и простоя, и близости карточки к экрану. */
     whenReady()
       .then(whenIdle)

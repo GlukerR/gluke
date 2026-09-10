@@ -33,39 +33,29 @@ describe('demoWidgetCache', () => {
   })
 
   it('вытесняет самый давний инстанс при превышении лимита и освобождает его', () => {
-    const first = fakeWidget()
-    const second = fakeWidget()
-    const third = fakeWidget()
-    const fourth = fakeWidget()
-    const fifth = fakeWidget()
+    const widgets = Array.from({ length: 11 }, () => fakeWidget())
 
-    setDemoWidget('a', first)
-    setDemoWidget('b', second)
-    setDemoWidget('c', third)
-    setDemoWidget('d', fourth)
-    setDemoWidget('e', fifth)
+    widgets.forEach((widget, index) => setDemoWidget(String.fromCharCode(97 + index), widget))
 
+    /* Лимит 10: одиннадцатая запись вытесняет самую давнюю. */
     expect(getDemoWidget('a')).toBeUndefined()
-    expect(first.destroyed).toBe(true)
+    expect(widgets[0]?.destroyed).toBe(true)
     /* Пережившие лимит остаются целыми. */
-    expect(second.destroyed).toBe(false)
-    expect(getDemoWidget('e')).toBe(fifth)
+    expect(widgets[1]?.destroyed).toBe(false)
+    expect(getDemoWidget('k')).toBe(widgets[10])
   })
 
   it('get обновляет позицию в LRU: вытесняется давно не использованный, а не самый старый по добавлению', () => {
     const first = fakeWidget()
     const second = fakeWidget()
-    const third = fakeWidget()
-    const fourth = fakeWidget()
-    const fifth = fakeWidget()
 
     setDemoWidget('a', first)
     setDemoWidget('b', second)
-    setDemoWidget('c', third)
-    /* Обращение к `a` делает её самой свежей — теперь старейший это `b`. */
+    /* Добиваем до лимита 10 записями c..j, затем обращение к `a` делает её
+       самой свежей — теперь старейший это `b`. */
+    for (let i = 2; i < 10; i++) setDemoWidget(String.fromCharCode(97 + i), fakeWidget())
     getDemoWidget('a')
-    setDemoWidget('d', fourth)
-    setDemoWidget('e', fifth)
+    setDemoWidget('k', fakeWidget())
 
     expect(getDemoWidget('b')).toBeUndefined()
     expect(second.destroyed).toBe(true)
@@ -81,11 +71,10 @@ describe('demoWidgetCache', () => {
     setDemoWidget('b', second)
     setDemoWidget('a', replacement)
 
-    /* Порядок по свежести: [b, a] (a перезаписан последним). При лимите 4
-       пятая запись вытесняет старейшего — `b`. */
-    setDemoWidget('c', fakeWidget())
-    setDemoWidget('d', fakeWidget())
-    setDemoWidget('e', fakeWidget())
+    /* Порядок по свежести: [b, a] (a перезаписан последним). При лимите 10
+       одиннадцатая запись вытесняет старейшего — `b`. */
+    for (let i = 2; i < 10; i++) setDemoWidget(String.fromCharCode(97 + i), fakeWidget())
+    setDemoWidget('k', fakeWidget())
 
     expect(getDemoWidget('b')).toBeUndefined()
     expect(second.destroyed).toBe(true)
@@ -94,6 +83,6 @@ describe('demoWidgetCache', () => {
   })
 
   it('get по отсутствующему ключу возвращает undefined', () => {
-    expect(getDemoWidget('pyramid:hero')).toBeUndefined()
+    expect(getDemoWidget('zzz:never-set')).toBeUndefined()
   })
 })
