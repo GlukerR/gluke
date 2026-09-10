@@ -573,13 +573,23 @@ defineExpose({ failed })
   }
 }
 
-/* На десктопе панель уходит вправо от виджета. */
+/* На десктопе панель уходит вправо от виджета. Сцена «прилипает» к верху
+   вьюпорта под хедером и остаётся видимой, пока прокручивается длинная
+   панель ползунков — листаются настройки, а не экран с виджетом. */
 @media (min-width: 1024px) {
   .widget-demo--tunable {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(19rem, 22rem);
     align-items: start;
     gap: clamp(24px, 2.6vw, 40px);
+  }
+
+  .widget-demo--tunable .widget-demo__stage {
+    position: sticky;
+    top: clamp(72px, 9vh, 96px);
+    /* Не даём сцене вырасти выше вьюпорта — иначе sticky не сработает,
+       и она снова уедет за край при прокрутке ползунков. */
+    max-height: calc(100svh - 128px);
   }
 
   .widget-demo--tunable .widget-demo__controls {

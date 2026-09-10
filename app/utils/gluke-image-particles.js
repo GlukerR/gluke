@@ -2,6 +2,12 @@
  * GlukeImageParticles — «частицы из картинки» на чистом WebGL, без зависимостей.
  * Виджет кейса `image-particles`.
  *
+ * Автор: Александр Глухов (GLUKE, https://gluke.ru, @Gluke_art).
+ * © GLUKE, 2026. Свободное использование и доработка допускаются с сохранением
+ * этой шапки и ссылки на gluke.ru; перепродажа движка как самостоятельного
+ * продукта или выдача его за чужую разработку — без письменного согласия
+ * автора. При сомнениях — gluke_art@mail.ru.
+ *
  * Эффект по мотивам классического демо Bruno Imbrizi / Codrops
  * «Interactive Particles with three.js»
  * (https://tympanus.net/codrops/2019/01/17/interactive-particles-with-three-js/,

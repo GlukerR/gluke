@@ -34,6 +34,13 @@ const live = ref(false)
 const colorMode = useColorMode()
 const isLight = computed(() => colorMode.value === 'light')
 
+/* Реальный интерактив на карточке — только с точным курсором: на тач-экранах
+   виджет остаётся автопоказом (вертикальный свайп должен скроллить страницу,
+   а не крутить карточку). На десктопе курсор управляет виджетом прямо на
+   карточке: пирамида и звёзды реагируют на наведение, облако точек крутится
+   перетаскиванием. */
+const finePointer = import.meta.client && window.matchMedia('(pointer: fine)').matches
+
 let instance: DemoInstance | null = null
 let observer: IntersectionObserver | null = null
 let disposed = false
@@ -113,7 +120,7 @@ async function boot() {
         marks: props.demo.logo ? [props.demo.logo, props.demo.logo, props.demo.logo, props.demo.logo] : [],
         ratioCap: 1.5,
         pixelBudget: 1.5e6,
-        pointer: false,
+        pointer: finePointer,
         pointerFrom: 'self',
         pauseOffscreen: true,
         respectReducedMotion: true,
@@ -124,7 +131,7 @@ async function boot() {
       created = Constellation.create(el, {
         ...(props.demo.params as Record<string, unknown>),
         ...CONSTELLATION_THEME_COLORS[isLight.value ? 'light' : 'dark'],
-        pointer: false,
+        pointer: finePointer,
         dprCap: 1.5,
         pauseOffscreen: true,
         honorReducedMotion: true,
@@ -135,10 +142,11 @@ async function boot() {
       created = GlukeMetaballs.create(el, {
         ...(props.demo.params as Record<string, unknown>),
         ...METABALLS_THEME_LOOK[isLight.value ? 'light' : 'dark'],
-        /* Как и у остальных карточек: курсор не ловим, иначе все превью
-           разом начнут следить за указателем. Каплю-курсор тоже гасим. */
-        cursorLava: 0,
-        pointer: false,
+        /* На десктопе капли тянутся за курсором прямо на карточке;
+           на тач-экранах остаётся автопоказ без курсора. */
+        cursorLava: finePointer ? 1 : 0,
+        pointer: finePointer,
+        pointerFrom: 'self',
         ratioCap: 1.5,
         pixelBudget: 1.5e6,
         pauseOffscreen: true,
@@ -151,9 +159,11 @@ async function boot() {
         ...(props.demo.params as Record<string, unknown>),
         ...IMAGE_PARTICLES_THEME_LOOK[isLight.value ? 'light' : 'dark'],
         src: props.demo.src,
-        /* Карточка — превью: плотность поменьше, курсор не ловим. */
+        /* Карточка — превью: плотность поменьше; курсор ловим только
+           на десктопе (на тач-экранах остаётся автопоказ). */
         density: Math.max(1, ((props.demo.params as Record<string, number> | undefined)?.density ?? 1) + 1),
-        pointer: false,
+        pointer: finePointer,
+        pointerFrom: 'self',
         ratioCap: 1.5,
         pixelBudget: 1.5e6,
         pauseOffscreen: true,
@@ -191,9 +201,11 @@ async function boot() {
         ...(props.demo.params as Record<string, unknown>),
         ...PARTICLES_THEME_LOOK[isLight.value ? 'light' : 'dark'],
         model: props.demo.model,
-        /* Карточка — превью: вращение идёт само, перетаскивание и
-           глобальный ловец мыши не нужны (как у остальных карточек). */
+        /* На карточке олень — автопоказ без перетаскивания (интерактив
+           остаётся только в самом кейсе). Вращение вдвое быстрее штатного,
+           чтобы облако не стояло на месте. */
         drag: false,
+        spin: 0.3,
         ratioCap: 1.5,
         pixelBudget: 1.5e6,
         pauseOffscreen: true,
@@ -303,7 +315,10 @@ onBeforeUnmount(() => {
 <template>
   <div
     class="project-card-demo"
-    :class="{ 'project-card-demo--live': live }"
+    :class="{
+      'project-card-demo--live': live,
+      'project-card-demo--interactive': finePointer,
+    }"
     aria-hidden="true"
   >
     <div
@@ -330,6 +345,16 @@ onBeforeUnmount(() => {
 
 .project-card-demo--live {
   opacity: 1;
+}
+
+/* Живой канвас на десктопе ловит курсор: виджет реагирует на наведение
+   (пирамида, звёзды, лава, портрет) и перетаскивание (облако точек).
+   Клик по канвасу не перехватывается — событие всплывает до ссылки карточки.
+   На тач-экранах интерактива нет (свайп должен скроллить страницу), поэтому
+   слой остаётся прозрачным для указателя. Канвас создаётся движком через JS
+   и не получает data-v-атрибута — селектор идёт через :deep(). */
+.project-card-demo--interactive.project-card-demo--live :deep(canvas) {
+  pointer-events: auto;
 }
 
 .project-card-demo__host {
