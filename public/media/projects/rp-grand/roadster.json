@@ -4,7 +4,7 @@
  "lods": {
   "0": {
    "file": "roadster-lod0.glb",
-   "bytes": 182100,
+   "bytes": 182028,
    "tris": 36925,
    "nodes": {
     "body": {
