@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { isBleedDemoWidget } from '~/utils/demoWidgetCache'
 
+/* Конфигуратор автомобиля грузится лениво: его чанк (three.js + draco) нужен
+   только кейсу с `configurator` — на остальных страницах не качается. */
+const LazyCarConfigurator = defineAsyncComponent(() => import('~/components/projects/ProjectCarConfigurator.vue'))
+
 /* Плавный fade при переходе между кейсами: имя переходу задаёт CSS ниже,
    mode out-in не даёт страницам наползать друг на друга во время смены.
 
@@ -310,6 +314,24 @@ useSchemaOrg([
           :poster="project.cover.src"
           :poster-alt="project.cover.alt"
           variant="tunable"
+        />
+      </div>
+    </section>
+
+    <!-- Лаборатория автомобиля: конфигуратор целиком — и сцена («гараж»),
+         и панель настроек. В шапке его нет намеренно: там витрина, а покрутить
+         обвес и окраску приходит тот, кому интересно. -->
+    <section
+      v-if="project.configurator && project.model"
+      class="project-page__demo"
+    >
+      <div class="site-container">
+        <LazyCarConfigurator
+          :model="project.model"
+          :manifest="project.configurator.manifest"
+          :garage="project.configurator.garage"
+          :audio="project.configurator.audio"
+          :poster="project.cover.src"
         />
       </div>
     </section>

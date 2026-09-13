@@ -25,10 +25,10 @@ const { t } = useI18n()
    скачивается только на кейсах, где реально есть модель. На кейсах
    с обложкой вместо модели лишний мегабайт не тратится. */
 const LazyModelViewer = defineAsyncComponent(() => import('~/components/projects/ProjectModelViewer.vue'))
-/* Все WebGL-виджеты кейсов рисует одна оболочка: сцена, панель ползунков
-   и жизненный цикл у них общие, различия описаны в widgetDemoSpecs.
-   Компонент грузится лениво, а движок под конкретный виджет — своим чанком
-   уже изнутри: на странице с одним демо чужие движки не качаются. */
+/* Конфигуратор автомобиля живёт не здесь, а отдельным блоком-лабораторией
+   внизу страницы (см. `pages/projects/[slug].vue`): в шапке остаётся витрина,
+   все настройки и вся 3D-сцена — там. Поэтому кейс с `configurator` в шапке
+   показывается обложкой, а не вторым экземпляром модели. */
 const LazyWidgetDemo = defineAsyncComponent(() => import('~/components/projects/ProjectWidgetDemo.vue'))
 
 const demoWidget = computed(() => (widgetDemoSpec(props.project.demo?.widget) ? LazyWidgetDemo : null))
@@ -45,13 +45,17 @@ const isBleedHero = computed(() => isBleedDemoWidget(props.project.demo?.widget)
 const isHeroFill = computed(() => !isBleedHero.value && !!widgetDemoSpec(props.project.demo?.widget)?.heroFill)
 
 const clientLinkLabel = computed(() => t('project.clientLinkAria', { client: props.project.client }))
+
+/* Шапка показывает модель, только если у кейса нет конфигуратора: иначе
+   сцена и настройки живут в лаборатории внизу страницы. */
+const isModelHero = computed(() => (!!props.project.model && !props.project.configurator) || (!!props.project.demo && !!demoWidget.value))
 </script>
 
 <template>
   <section
     class="project-hero"
     :class="{
-      'project-hero--model': (!!project.model || (!!project.demo && !!demoWidget)) && !isBleedHero,
+      'project-hero--model': (isModelHero) && !isBleedHero,
       'project-hero--bleed': isBleedHero,
       'project-hero--fill': isHeroFill,
       /* Канвас рисует обёртка страницы позади hero: весь hero-бокс прозрачен
@@ -143,10 +147,13 @@ const clientLinkLabel = computed(() => t('project.clientLinkAria', { client: pro
           :poster-alt="project.cover.alt"
           variant="hero"
         />
+        <!-- Интерактивный конфигуратор живёт отдельным блоком ниже (см. шапку
+             страницы-кейса): здесь вместо него обложка, и вторая сцена на
+             странице не поднимается. -->
         <!-- Живая 3D-модель вместо обложки: постером служит сама обложка,
              модель плавно заменяет её после загрузки. -->
         <LazyModelViewer
-          v-else-if="project.model"
+          v-else-if="project.model && !project.configurator"
           :src="project.model.src"
           :alt="project.model.alt"
           :width="project.model.width"

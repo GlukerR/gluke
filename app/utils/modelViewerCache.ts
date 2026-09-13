@@ -40,9 +40,22 @@ function disposeMaterial(material: THREE.Material) {
    вьюверов — компонент уже снял канвас с DOM и остановил рендер-цикл. */
 function disposeViewer(viewer: CachedViewer) {
   viewer.controls.dispose()
+  disposeObjectResources(viewer.scene)
+  viewer.scene.environment?.dispose()
+  viewer.renderer.dispose()
+  viewer.renderer.forceContextLoss()
+  viewer.renderer.domElement.remove()
+}
 
+/**
+ * Освобождает ресурсы узла сцены: геометрию и материалы с их картами.
+ * Вынесено отдельно от disposeViewer, потому что вьювер может держать
+ * собранные, но не стоящие в сцене объекты (у конфигуратора — догруженные
+ * уровни детализации), и их надо отпускать той же дорогой.
+ */
+export function disposeObjectResources(root: THREE.Object3D): void {
   const seen = new Set<THREE.Material>()
-  viewer.scene.traverse((object) => {
+  root.traverse((object) => {
     const mesh = object as THREE.Mesh
     if (!mesh.isMesh) return
     mesh.geometry?.dispose()
@@ -53,11 +66,6 @@ function disposeViewer(viewer: CachedViewer) {
       disposeMaterial(material)
     }
   })
-
-  viewer.scene.environment?.dispose()
-  viewer.renderer.dispose()
-  viewer.renderer.forceContextLoss()
-  viewer.renderer.domElement.remove()
 }
 
 /**
@@ -65,10 +73,17 @@ function disposeViewer(viewer: CachedViewer) {
  * ограничен по памяти: при добавлении сверх лимита освобождается самый
  * давно не использованный (и не висящий сейчас в DOM) вьювер.
  */
-export class ViewerCache {
-  private readonly items = new Map<string, CachedViewer>()
+export class ViewerCache<T extends CachedViewer = CachedViewer> {
+  private readonly items = new Map<string, T>()
 
-  get(src: string): CachedViewer | undefined {
+  constructor(
+    private readonly max: number = MAX_VIEWERS,
+    /* Что освободить сверх сцены: у конфигуратора мимо неё остаются карты
+       тайлов и уже собранные, но не показанные сейчас уровни детализации. */
+    private readonly disposeExtra?: (viewer: T) => void,
+  ) {}
+
+  get(src: string): T | undefined {
     const viewer = this.items.get(src)
     if (viewer) {
       /* Обновляем позицию в LRU: переносим запись в конец. */
@@ -78,16 +93,19 @@ export class ViewerCache {
     return viewer
   }
 
-  set(src: string, viewer: CachedViewer) {
+  set(src: string, viewer: T) {
     this.items.delete(src)
     this.items.set(src, viewer)
 
-    while (this.items.size > MAX_VIEWERS) {
+    while (this.items.size > this.max) {
       const oldest = this.items.keys().next().value
       if (oldest === undefined) break
       const evicted = this.items.get(oldest)
       this.items.delete(oldest)
-      if (evicted) disposeViewer(evicted)
+      if (evicted) {
+        disposeViewer(evicted)
+        this.disposeExtra?.(evicted)
+      }
     }
   }
 }

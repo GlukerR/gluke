@@ -111,4 +111,22 @@ describe('ViewerCache', () => {
 
     expect(cache.get('missing')).toBeUndefined()
   })
+
+  it('вытесняя, отдаёт вьювер и своему disposeExtra', () => {
+    /* У конфигуратора сверх сцены живут карты тайлов и собранные уровни
+       детализации: их освобождает отдельный колбэк. */
+    const evicted: CachedViewer[] = []
+    const cache = new ViewerCache(1, (viewer) => {
+      evicted.push(viewer)
+    })
+    const first = fakeViewer()
+    const second = fakeViewer()
+
+    cache.set('a', first)
+    cache.set('b', second)
+
+    expect(evicted).toEqual([first])
+    expect(first.disposed).toContain('renderer')
+    expect(second.disposed).toEqual([])
+  })
 })

@@ -40,7 +40,7 @@ The average project budget starts from €500. Smaller standalone tasks are quot
 
 **Can I order an interactive 3D model for my website?** Yes, we prepare an optimized GLB and integrate it into a product page or catalogue with a WebGL viewer.
 
-## Case studies (26)
+## Case studies (29)
 
 Figures below are the ones published on each case page.
 
@@ -55,6 +55,7 @@ Figures below are the ones published on each case page.
 - [ГелиосСтолы](https://gluke.ru/projects/gelios-tables): 3D table models and interior renders for Gelios Tables. 8+ table models; renders in interiors; 3D models from drawings and samples. 2022-2024.
 - [Нитроген (Nitrogen)](https://gluke.ru/projects/nitrogen): 3D models and renders of Nitrogen agri-equipment. 4+ equipment models; renders catalogue and technical; 3D models from drawings and samples. 2025-2026.
 - [FPV FRAME](https://gluke.ru/projects/fpv-frame): 3D models and renders of FPV FRAME drones. 4 frame models built from scratch; 20+ renders for the catalogue; exploded views of every frame. 2025-2026.
+- [Hilbert](https://gluke.ru/projects/hilbert-house): Cottage 3D models for interactive viewing and AR. 4+ cottage models in one style; 3-4x less engine memory after optimisation; AR the house placed on the plot at full scale. 2026.
 - [Alphatent](https://gluke.ru/projects/alphatent): 3D canopy tent models and opening animation for Alphatent. 18 catalogue renders; animation of opening with cloth simulation; 6 base tent models. 2023.
 - [Velesgard](https://gluke.ru/projects/velesgard): 3D animation for Velesgard. 2 animations: logo and 3D painting; 6+ industrial objects in 3D; 8 months on the project. 2023-2024.
 - [Cascadia](https://gluke.ru/projects/cascadia): Interactive 3D residential environment in Unreal Engine 5. 3 residential complexes: Kaskada, Visioner, Greenwood; Optimization of the project for a stable 80 FPS; Interactive weather and time-of-day switching. 2025.
@@ -65,11 +66,13 @@ Figures below are the ones published on each case page.
 - [Standalone projects](https://gluke.ru/projects/cinematics): Cinematics and advertising videos. UE5 scene built in Unreal Engine; 40 s trailer duration. 2023.
 - [RusAgroMarket](https://gluke.ru/projects/rusagromarket): RusAgroMarket — 3D visualization of the wholesale distribution center. 5 warehouses of the complex; Bird's-eye main angle; Day and night visualization variants. 2022.
 - [Fachwerk Stroy](https://gluke.ru/projects/fachwerk-garden-city): Fachwerk Stroy — 3D visualization of the Garden City village. ~70 plots; 6 house types; 1 3D scene. 2023.
-- [Web graphics](https://gluke.ru/projects/pyramid): Glowing pyramid — a pure WebGL 3D widget. 30 KB widget size, 10 KB gzipped; 0 dependencies and build steps; SDF volume computed by a shader, not polygons. 2026.
-- [Web graphics](https://gluke.ru/projects/constellation): Constellation — an interactive star field in pure WebGL. 39 KB widget size, 12 KB gzipped; 0 dependencies and build steps; 8 stars per 100×100 px square — the density stays the same on any screen. 2026.
+- [Web graphics](https://gluke.ru/projects/pyramid): Glowing pyramid — a 3D widget in WebGL. 30 KB widget size, 10 KB gzipped; 0 dependencies and build steps; SDF volume computed by a shader, not polygons. 2026.
+- [Web graphics](https://gluke.ru/projects/constellation): Constellation — an interactive star field in WebGL. 39 KB widget size, 12 KB gzipped; 0 dependencies and build steps; 8 stars per 100×100 px square — the density stays the same on any screen. 2026.
 - [Web graphics](https://gluke.ru/projects/particles): A model in particles — surface-sampled point cloud in three.js. 21K triangles in the source model; 18 parameters you can turn right on the page; 21K points by default, up to 80 thousand in the lab. 2026.
-- [Web graphics](https://gluke.ru/projects/metaballs): Metaball lava lamp — an interactive background in pure WebGL. 23 KB widget size, 8 KB gzipped, no dependencies; 0 libraries — a single fragment shader; 14 blobs max in one field. 2026.
-- [Web graphics](https://gluke.ru/projects/image-particles): A portrait in particles — an interactive field in pure WebGL. ~21K particles in frame — donor pixels with the empty background dropped; 0 libraries — a single gl.POINTS draw call; 2D effect — particles from an image, not a 3D scene. 2026.
+- [Web graphics](https://gluke.ru/projects/metaballs): Metaball lava lamp — an interactive background in WebGL. 23 KB widget size, 8 KB gzipped, no dependencies; 0 libraries — a single fragment shader; 14 blobs max in one field. 2026.
+- [Web graphics](https://gluke.ru/projects/image-particles): A portrait in particles — an interactive field in WebGL. ~21K particles in frame — donor pixels with the empty background dropped; 0 libraries — a single gl.POINTS draw call; 2D effect — particles from an image, not a 3D scene. 2026.
+- [Web graphics](https://gluke.ru/projects/energy-fill): Filling a logo with energy — an engine in WebGL. 3 s the whole scene — beam, fill, pulse; 0 libraries — a single fragment shader; 1 file the logo is swapped as an SVG, nothing is baked ahead of time. 2026.
+- [RP Grand](https://gluke.ru/projects/rp-grand): Vehicle assets for a mobile open-world game — interactive 3D model. 9k triangles — full build at LOD0; 3×3×3 bumper, skirt and spoiler variants; LOD0/1/2 three levels of detail for draw distance. 2026.
 
 ## Contact
 

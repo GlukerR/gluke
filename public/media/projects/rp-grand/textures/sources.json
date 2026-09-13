@@ -1,0 +1,190 @@
+{
+  "license": "CC0 1.0 — без атрибуции для ambientCG; узор — материал заказчика",
+  "note": "Сгенерировано scripts/fetch-car-textures.mjs",
+  "textures": [
+    {
+      "id": "carbon",
+      "asset": "Fabric004",
+      "use": "Покрытие «Карбон», твил",
+      "source": "https://ambientcg.com/a/Fabric004",
+      "license": "CC0 1.0",
+      "maps": [
+        "color",
+        "normal",
+        "roughness"
+      ],
+      "bytes": {
+        "color": 8894,
+        "normal": 38524,
+        "roughness": 49428
+      }
+    },
+    {
+      "id": "brushed",
+      "asset": "Metal009",
+      "use": "Покрытие «Шлифованный металл», царапины",
+      "source": "https://ambientcg.com/a/Metal009",
+      "license": "CC0 1.0",
+      "maps": [
+        "color",
+        "normal",
+        "roughness"
+      ],
+      "bytes": {
+        "color": 36692,
+        "normal": 17396,
+        "roughness": 67034
+      }
+    },
+    {
+      "id": "camouflage",
+      "asset": "seamless tile",
+      "use": "Печать «Камуфляж»",
+      "source": "D:/Work/Clients/GAME_ART/RP Grand/Новая папка/1K-camouflage_3-diffuse.jpg",
+      "license": "© RP Grand — материал заказчика",
+      "maps": [
+        "color",
+        "thumb"
+      ],
+      "bytes": {
+        "color": 68594,
+        "thumb": 3070
+      }
+    },
+    {
+      "id": "memphis",
+      "asset": "seamless tile",
+      "use": "Печать «Мемфис»",
+      "source": "D:/Work/Clients/GAME_ART/RP Grand/Новая папка/abstract-memphis-multi-seamless-pattern.webp",
+      "license": "© RP Grand — материал заказчика",
+      "maps": [
+        "color",
+        "thumb"
+      ],
+      "bytes": {
+        "color": 38518,
+        "thumb": 3162
+      }
+    },
+    {
+      "id": "cherry",
+      "asset": "seamless tile",
+      "use": "Печать «Сакура»",
+      "source": "D:/Work/Clients/GAME_ART/RP Grand/Новая папка/botanical-cherry-blossom-pink-seamless-pattern.webp",
+      "license": "© RP Grand — материал заказчика",
+      "maps": [
+        "color",
+        "thumb"
+      ],
+      "bytes": {
+        "color": 34696,
+        "thumb": 1868
+      }
+    },
+    {
+      "id": "cow",
+      "asset": "seamless tile",
+      "use": "Печать «Корова»",
+      "source": "D:/Work/Clients/GAME_ART/RP Grand/Новая папка/cow-print-black-white-seamless-pattern.webp",
+      "license": "© RP Grand — материал заказчика",
+      "maps": [
+        "color",
+        "thumb"
+      ],
+      "bytes": {
+        "color": 35710,
+        "thumb": 3110
+      }
+    },
+    {
+      "id": "giraffe",
+      "asset": "seamless tile",
+      "use": "Печать «Жираф»",
+      "source": "D:/Work/Clients/GAME_ART/RP Grand/Новая папка/giraffe-print-amber-brown-seamless-pattern.webp",
+      "license": "© RP Grand — материал заказчика",
+      "maps": [
+        "color",
+        "thumb"
+      ],
+      "bytes": {
+        "color": 32708,
+        "thumb": 3838
+      }
+    },
+    {
+      "id": "tie-dye",
+      "asset": "seamless tile",
+      "use": "Печать «Тай-дай»",
+      "source": "D:/Work/Clients/GAME_ART/RP Grand/Новая папка/tie-dye-spiral-rainbow-seamless-pattern.webp",
+      "license": "© RP Grand — материал заказчика",
+      "maps": [
+        "color",
+        "thumb"
+      ],
+      "bytes": {
+        "color": 93996,
+        "thumb": 3654
+      }
+    },
+    {
+      "id": "tiger",
+      "asset": "seamless tile",
+      "use": "Печать «Тигр»",
+      "source": "D:/Work/Clients/GAME_ART/RP Grand/Новая папка/tiger-stripe-orange-black-seamless-pattern.webp",
+      "license": "© RP Grand — материал заказчика",
+      "maps": [
+        "color",
+        "thumb"
+      ],
+      "bytes": {
+        "color": 56220,
+        "thumb": 4996
+      }
+    },
+    {
+      "id": "tropical",
+      "asset": "seamless tile",
+      "use": "Печать «Тропика»",
+      "source": "D:/Work/Clients/GAME_ART/RP Grand/Новая папка/tropical-floral-bright-seamless-pattern.webp",
+      "license": "© RP Grand — материал заказчика",
+      "maps": [
+        "color",
+        "thumb"
+      ],
+      "bytes": {
+        "color": 87040,
+        "thumb": 4382
+      }
+    },
+    {
+      "id": "morris",
+      "asset": "seamless tile",
+      "use": "Печать «Моррис»",
+      "source": "D:/Work/Clients/GAME_ART/RP Grand/Новая папка/william-morris-sage-gold-seamless-pattern.webp",
+      "license": "© RP Grand — материал заказчика",
+      "maps": [
+        "color",
+        "thumb"
+      ],
+      "bytes": {
+        "color": 72332,
+        "thumb": 3892
+      }
+    },
+    {
+      "id": "chrysanthemum",
+      "asset": "seamless tile",
+      "use": "Печать «Хризантемы»",
+      "source": "D:/Work/Clients/GAME_ART/RP Grand/Новая папка/3.jpg",
+      "license": "© RP Grand — материал заказчика",
+      "maps": [
+        "color",
+        "thumb"
+      ],
+      "bytes": {
+        "color": 172634,
+        "thumb": 4586
+      }
+    }
+  ]
+}
