@@ -108,6 +108,15 @@ function contactShadowTexture(three: typeof import('three')): THREE.Texture {
   return texture
 }
 
+/** Тень по габариту машины: смена машины в гараже подгоняет ту же плоскость. */
+export function fitContactShadow(shadow: THREE.Object3D, carBox: THREE.Box3, floorY: number): void {
+  const size = carBox.getSize(shadow.position.clone())
+  const center = carBox.getCenter(shadow.position.clone())
+  /* Плоскость повёрнута на −90° по X: её локальная Y лежит вдоль мировой Z. */
+  shadow.scale.set(size.x * 1.22, size.z * 1.12, 1)
+  shadow.position.set(center.x, floorY + 0.004, center.z)
+}
+
 export function dressGarage(three: typeof import('three'), input: GarageDressInput): GarageDressing {
   const { scene, garage, hemisphere, key, fill, carBox, floorY } = input
 
@@ -144,10 +153,8 @@ export function dressGarage(three: typeof import('three'), input: GarageDressInp
     practicals.push(light)
   }
 
-  const footprintX = size.x * 1.22
-  const footprintZ = size.z * 1.12
   const shadow = new three.Mesh(
-    new three.PlaneGeometry(footprintX, footprintZ),
+    new three.PlaneGeometry(1, 1),
     new three.MeshBasicMaterial({
       map: contactShadowTexture(three),
       transparent: true,
@@ -159,7 +166,7 @@ export function dressGarage(three: typeof import('three'), input: GarageDressInp
   )
   shadow.name = 'garage-contact-shadow'
   shadow.rotation.x = -Math.PI / 2
-  shadow.position.set(center.x, floorY + 0.004, center.z)
+  fitContactShadow(shadow, carBox, floorY)
   shadow.renderOrder = 1
   scene.add(shadow)
 

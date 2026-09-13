@@ -194,7 +194,9 @@ async function checkManifest(manifestPath) {
   return { manifest, levels, issues, declared: manifest.parity ?? {} }
 }
 
-/** Пути манифестов из контента кейсов: `/media/...` → файл в `public/`. */
+/** Пути манифестов из контента кейсов: `/media/...` → файл в `public/`.
+ *  Ловит и основной `configurator.manifest`, и элементы списка машин
+ *  (`- manifest: …` в `configurator.vehicles`). */
 async function manifestPaths() {
   const contentDir = path.join(root, 'content', 'projects')
   const found = new Set()
@@ -204,7 +206,7 @@ async function manifestPaths() {
     for (const file of await readdir(dir)) {
       if (!file.endsWith('.md')) continue
       const markdown = await readFile(path.join(dir, file), 'utf8')
-      for (const match of markdown.matchAll(/^\s*manifest:\s*(\/media\/\S+)\s*$/gm)) {
+      for (const match of markdown.matchAll(/^\s*(?:-\s+)?manifest:\s*(\/media\/\S+)\s*$/gm)) {
         found.add(path.join(root, 'public', match[1]))
       }
     }

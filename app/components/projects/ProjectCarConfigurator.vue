@@ -2,6 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
 import type * as THREE from 'three'
 import { carConfiguratorCache, carPaintHandles, type CachedCarConfigurator, type CarLodModel } from '~/utils/carConfiguratorCache'
+import { disposeObjectResources } from '~/utils/modelViewerCache'
 import {
   applyVariantSelection,
   buildLods,
@@ -24,6 +25,7 @@ import {
   carTextureBase,
   createCarMaterials,
   defaultCarSelection,
+  disposeCarMaterials,
   lampSplitFromBumpers,
   PATTERN_SCALE_MAX,
   PATTERN_SCALE_MIN,
@@ -36,7 +38,8 @@ import {
 } from '~/utils/carMaterials'
 import { loadCarSelection, saveCarSelection } from '~/utils/carPaintStorage'
 import { createGarageAudio, type GarageAudio, type GarageAudioState, type GarageAudioTrack } from '~/utils/garageAudio'
-import { dressGarage } from '~/utils/garageAtmosphere'
+import { dressGarage, fitContactShadow } from '~/utils/garageAtmosphere'
+import { buildGarageVehicles, type GarageVehicle, type GarageVehicleInput } from '~/utils/garageVehicles'
 import {
   easeInOutCubic,
   focusAzimuth,
@@ -108,12 +111,16 @@ const props = withDefaults(defineProps<{
      и варианту относятся. HUD строится по нему — вторая машина подключается
      копией манифеста, без правок кода. */
   manifest: string
+  /* Машины гаража (`configurator.vehicles`): файлы уровней лежат рядом
+     с `model.src`. Без списка в гараже одна машина из `manifest`. */
+  vehicles?: GarageVehicleInput[]
   garage?: ConfiguratorGarage
   audio?: ConfiguratorAudio
   poster?: string
   /* Постер грузить сразу (hero-позиция, LCP), а не лениво. */
   priority?: boolean
 }>(), {
+  vehicles: undefined,
   garage: undefined,
   audio: undefined,
   poster: undefined,
@@ -140,12 +147,29 @@ const paint = ref<CarSelection>(defaultCarSelection())
 
 const textureBase = computed(() => carTextureBase(props.model.src))
 
+/* ───── Машины гаража ───── */
+
+const vehicleList = computed(() => buildGarageVehicles(props.manifest, props.vehicles))
+const activeVehicleId = ref(vehicleList.value.find(item => item.manifest === props.manifest)?.id ?? vehicleList.value[0]?.id ?? '')
+const activeVehicle = computed<GarageVehicle>(() => vehicleList.value.find(item => item.id === activeVehicleId.value) ?? vehicleList.value[0]!)
+/* Машина, которая сейчас грузится: её карточка в списке показывает загрузку. */
+const pendingVehicleId = ref<string | null>(null)
+
+function vehicleRotation(vehicle: GarageVehicle | undefined): number {
+  return vehicle?.rotation ?? props.model.rotation ?? 0
+}
+
+function degreesToRadians(degrees: number): number {
+  return (degrees * Math.PI) / 180
+}
+
 /* Загруженный конфигуратор переиспользуем между инстансами: при смене языка
    страница перемонтируется, но модель не грузим заново. */
 const CACHE_KEY = `${props.model.src}|${props.garage?.src ?? ''}|configurator`
 const cachedViewer = carConfiguratorCache.get(CACHE_KEY)
 const status = ref<'loading' | 'ready' | 'error'>(cachedViewer ? 'ready' : 'loading')
 if (cachedViewer) {
+  if (vehicleList.value.some(item => item.id === cachedViewer.vehicleId)) activeVehicleId.value = cachedViewer.vehicleId
   groups.value = cachedViewer.groups
   selection.value = { ...cachedViewer.selection }
   paint.value = { ...cachedViewer.paint }
@@ -175,7 +199,7 @@ const CANVAS_SCALE = props.model.canvasScale ?? 1
 
 let viewer: CachedCarConfigurator | undefined = cachedViewer
 let viewerGroups: CarVariantGroup[] = []
-let manifestPromise: Promise<CarManifest | null> | null = null
+const manifestPromises = new Map<string, Promise<CarManifest | null>>()
 let resizeObserver: ResizeObserver | undefined
 let intersectionObserver: IntersectionObserver | undefined
 let animationFrame = 0
@@ -241,11 +265,31 @@ function syncMenuIndicator() {
   menuIndicator.value = { x: button.offsetLeft, width: button.offsetWidth, visible: true }
 }
 
-/* Машина одна на кейс, имя берётся из слага манифеста (`coupe-gt` → COUPE GT):
-   марок в кейсе нет, а следующая машина получит имя тем же путём. */
-const vehicleSlug = props.manifest.split('/').pop()?.replace(/\.json$/i, '') ?? 'car'
-const vehicleName = vehicleSlug.replace(/[-_]+/g, ' ').toUpperCase()
-const vehicles = computed(() => [{ id: vehicleSlug, index: '01', name: vehicleName }])
+/* Имя и номер слота активной машины — в углу HUD и в строке контекста. */
+const vehicleName = computed(() => activeVehicle.value.name)
+const vehicleIndex = computed(() => activeVehicle.value.index)
+
+/* Манифесты машин для списка: лёгкие JSON, грузятся при первом открытии
+   раздела VEHICLES — цифры карточек берутся из них. */
+const vehicleManifests = shallowRef(new Map<string, CarManifest | null>())
+
+async function ensureVehicleManifests() {
+  const missing = vehicleList.value.filter(item => !vehicleManifests.value.has(item.id))
+  if (missing.length === 0) return
+  const loaded = await Promise.all(missing.map(item => fetchManifest(item.manifest)))
+  const next = new Map(vehicleManifests.value)
+  missing.forEach((item, index) => next.set(item.id, loaded[index] ?? null))
+  vehicleManifests.value = next
+}
+
+/* Трисы подробного уровня без колёс — тот же счёт, что у монитора (§56). */
+function vehicleTris(vehicle: GarageVehicle): number | undefined {
+  const manifest = vehicleManifests.value.get(vehicle.id)
+  const first = buildLods(manifest)[0]
+  const level = first ? manifest?.lods?.[first.id] : undefined
+  if (!level) return undefined
+  return Object.values(level.nodes).reduce((sum, node) => sum + (node.role === WHEEL_ROLE ? 0 : node.tris), 0)
+}
 
 /* ───── Кадр ───── */
 
@@ -753,10 +797,10 @@ async function buildLodModel(active: CachedCarConfigurator, entry: CarLodEntry):
     draco.dispose()
   }
 
-  root.rotation.y = ((props.model.rotation ?? 0) * Math.PI) / 180
+  root.rotation.y = degreesToRadians(active.carRotation)
   /* Уровень переносится тем же смещением, что и LOD0 (колёса есть только
-     у подробного уровня). */
-  root.position.y += active.seatOffsetY
+     у подробного уровня), и стоит в той же точке зала. */
+  root.position.set(active.carShift.x, active.seatOffsetY, active.carShift.z)
 
   const materials = createCarMaterials(active.three, root, {
     textureBase: carTextureBase(props.model.src),
@@ -774,6 +818,141 @@ async function buildLodModel(active: CachedCarConfigurator, entry: CarLodEntry):
   })
 
   return { root, materials, nodeByName }
+}
+
+/* Снимает машину со сцены и освобождает все её собранные уровни и колёса. */
+function releaseCar(active: CachedCarConfigurator): void {
+  active.scene.remove(active.model)
+  active.scene.remove(active.wheels)
+  const disposeWire = (root: THREE.Object3D) => root.traverse((object) => {
+    if (object.userData.garageWire) (object as THREE.LineSegments).geometry.dispose()
+  })
+  for (const model of active.lodModels.values()) {
+    disposeWire(model.root)
+    disposeObjectResources(model.root)
+    disposeCarMaterials(model.materials)
+  }
+  disposeWire(active.wheels)
+  disposeObjectResources(active.wheels)
+}
+
+/*
+ * Смена машины в том же гараже: грузится подробный уровень новой машины,
+ * разворачивается, ставится в ту же точку зала (центр по горизонтали —
+ * `anchor`) и садится на тот же пол. Старая машина снимается только когда
+ * новая уже собрана — в кадре не бывает пустого места. Окраска остаётся,
+ * обвес — сток новой машины, камера смещается вместе с центром машины.
+ */
+async function selectVehicle(id: string) {
+  const active = viewer
+  const vehicle = vehicleList.value.find(item => item.id === id)
+  if (!active || !vehicle || status.value !== 'ready' || id === activeVehicleId.value) return
+
+  pendingVehicleId.value = id
+  status.value = 'loading'
+  try {
+    const manifest = await fetchManifest(vehicle.manifest)
+    const levels = buildLods(manifest)
+    const first = levels[0]
+    if (!manifest || !first) throw new Error(`no levels in ${vehicle.manifest}`)
+
+    const { DRACOLoader } = await import('three/examples/jsm/loaders/DRACOLoader.js')
+    const draco = new DRACOLoader()
+    active.loader.setDRACOLoader(draco)
+    let root: THREE.Object3D
+    try {
+      root = (await active.loader.loadAsync(lodSrc(first))).scene
+    }
+    finally {
+      draco.dispose()
+    }
+    if (disposed || viewer !== active) {
+      disposeObjectResources(root)
+      return
+    }
+
+    const { three } = active
+    const rotation = vehicleRotation(vehicle)
+    root.rotation.y = degreesToRadians(rotation)
+    root.updateMatrixWorld(true)
+    const placed = new three.Box3().setFromObject(root)
+    const placedCenter = placed.getCenter(new three.Vector3())
+    const shift = { x: active.anchor.x - placedCenter.x, z: active.anchor.z - placedCenter.z }
+    root.position.set(shift.x, active.floorY - placed.min.y, shift.z)
+    active.scene.add(root)
+    root.updateMatrixWorld(true)
+
+    const lampSplit = lampSplitFromBumpers(three, root)
+    const materials = createCarMaterials(three, root, {
+      textureBase: textureBase.value,
+      anisotropy: active.renderer.capabilities.getMaxAnisotropy(),
+      selection: { ...paint.value },
+      lampSplit,
+      wheelNodes: nodeNamesByRole(buildNodeMeta(manifest, first.id), WHEEL_ROLE),
+    })
+    await setCarSelection(materials, { ...paint.value })
+    if (disposed || viewer !== active) {
+      active.scene.remove(root)
+      disposeObjectResources(root)
+      disposeCarMaterials(materials)
+      return
+    }
+
+    const nodeByName = new Map<string, THREE.Object3D>()
+    root.traverse((object) => {
+      if (object.name) nodeByName.set(object.name, object)
+    })
+
+    releaseCar(active)
+    active.scene.add(root)
+    active.model = root
+    active.materials = materials
+    active.nodeByName = nodeByName
+    active.manifest = manifest
+    active.lampSplit = lampSplit
+    active.seatOffsetY = root.position.y
+    active.carShift = shift
+    active.carRotation = rotation
+    active.lod = first.id
+    active.lodModels = new Map([[first.id, { root, materials, nodeByName }]])
+    active.wheels = new three.Group()
+    active.vehicleId = vehicle.id
+
+    lods.value = levels
+    lod.value = first.id
+    manifestData.value = manifest
+    const built = buildVariantGroups(manifest, first.id)
+    groups.value = built
+    active.groups = built
+    selection.value = defaultSelection(built)
+    ensureLod(active)
+    hoistWheels(active)
+    syncWheels(active)
+
+    const box = new three.Box3().setFromObject(root).union(new three.Box3().setFromObject(active.wheels))
+    const center = box.getCenter(new three.Vector3())
+    const move = center.clone().sub(active.controls.target)
+    active.controls.target.add(move)
+    active.camera.position.add(move)
+    active.center = center
+    active.size = box.getSize(new three.Vector3())
+    const shadow = active.scene.getObjectByName('garage-contact-shadow')
+    if (shadow) fitContactShadow(shadow, box, active.floorY)
+    frameCamera()
+
+    activeVehicleId.value = vehicle.id
+    focusRole.value = null
+    applySelection()
+    syncWireframe()
+    status.value = 'ready'
+  }
+  catch (error) {
+    status.value = 'ready'
+    console.error('[3d] garage vehicle failed:', id, error)
+  }
+  finally {
+    pendingVehicleId.value = null
+  }
 }
 
 /* Сброс возвращает и обвес, и окраску: «сток» плюс окраска по умолчанию. */
@@ -893,7 +1072,7 @@ const trail = computed(() => {
   const category = activeCategory.value
   if (!category) return items
   items.push(t(`project.configurator.hud.${category}`))
-  if (category === 'vehicles') items.push(vehicleName)
+  if (category === 'vehicles') items.push(vehicleName.value)
   if (category === 'body' && focusRole.value && selection.value[focusRole.value]) {
     items.push(`${roleLabel(focusRole.value)} · ${optionLabel(selection.value[focusRole.value]!)}`)
   }
@@ -953,15 +1132,17 @@ function detachViewer() {
   }
 }
 
-async function fetchManifest(): Promise<CarManifest | null> {
-  if (!manifestPromise) {
-    manifestPromise = $fetch<CarManifest>(props.manifest)
+async function fetchManifest(url = activeVehicle.value.manifest): Promise<CarManifest | null> {
+  let promise = manifestPromises.get(url)
+  if (!promise) {
+    promise = $fetch<CarManifest>(url)
       .catch((error) => {
-        console.error('[3d] car configurator manifest failed:', error)
+        console.error('[3d] car configurator manifest failed:', url, error)
         return null
       })
+    manifestPromises.set(url, promise)
   }
-  return manifestPromise
+  return promise
 }
 
 async function mountViewer() {
@@ -1053,12 +1234,15 @@ async function mountViewer() {
     }
 
     const model = gltf.scene
-    model.rotation.y = ((props.model.rotation ?? 0) * Math.PI) / 180
+    const carRotation = vehicleRotation(activeVehicle.value)
+    model.rotation.y = degreesToRadians(carRotation)
 
     /* Гараж встаёт в ту же сцену до машины, и машина садится на его пол. */
     let garage: THREE.Object3D | null = null
     let garageBox: THREE.Box3 | null = null
     let seatOffsetY = 0
+    /* Уровень пола под машиной: на него же садятся машины, выбранные потом. */
+    let floorLevel: number | null = null
     if (garageGltf) {
       garage = garageGltf.scene
       garage.scale.setScalar(props.garage?.scale ?? 1)
@@ -1072,6 +1256,7 @@ async function mountViewer() {
         from: carBox.max.y + 0.5,
       })
       const seatFloor = floorY ?? garageBox.min.y
+      floorLevel = seatFloor
       seatOffsetY = seatFloor - carBox.min.y
       model.position.y += seatOffsetY
       scene.add(garage)
@@ -1181,6 +1366,12 @@ async function mountViewer() {
       garageBox,
       wheels: new THREE.Group(),
       lodModels: new Map([[startLod, { root: model, materials: carMaterials, nodeByName }]]),
+      vehicleId: activeVehicle.value.id,
+      carRotation,
+      carShift: { x: 0, z: 0 },
+      /* Точка зала, где стоит машина, и пол под ней — общие для всех машин. */
+      anchor: { x: center.x, z: center.z },
+      floorY: floorLevel ?? box.min.y,
     }
     lod.value = startLod
     hoistWheels(viewer)
@@ -1278,6 +1469,7 @@ watch(status, (value) => {
 
 watch(activeCategory, async (category, previous) => {
   if (category !== 'body') focusRole.value = previous === 'body' ? null : focusRole.value
+  if (category === 'vehicles') void ensureVehicleManifests()
   await nextTick()
   syncMenuIndicator()
   updateViewShiftTarget()
@@ -1386,7 +1578,7 @@ onBeforeUnmount(() => {
       <!-- Слот гаража: компактно, машина важнее заголовка. -->
       <div class="garage__id">
         <span class="garage__eyebrow">{{ t('project.configurator.hud.garage') }}</span>
-        <span class="garage__slot">01</span>
+        <span class="garage__slot">{{ vehicleIndex }}</span>
         <span class="garage__car">{{ vehicleName }}</span>
       </div>
 
@@ -1416,7 +1608,7 @@ onBeforeUnmount(() => {
         class="garage__loading"
         role="status"
       >
-        <span class="garage__loading-label">{{ t('project.configurator.hud.loading') }}</span>
+        <span class="garage__loading-label">{{ t(pendingVehicleId ? 'project.configurator.hud.loadingVehicle' : 'project.configurator.hud.loading') }}</span>
         <span
           class="garage__loading-bar"
           aria-hidden="true"
@@ -1491,27 +1683,41 @@ onBeforeUnmount(() => {
                 class="garage__vehicles"
               >
                 <li
-                  v-for="vehicle in vehicles"
+                  v-for="vehicle in vehicleList"
                   :key="vehicle.id"
                 >
                   <button
                     type="button"
-                    class="garage__vehicle garage__vehicle--active"
-                    aria-pressed="true"
+                    class="garage__vehicle"
+                    :class="{
+                      'garage__vehicle--active': vehicle.id === activeVehicleId,
+                      'garage__vehicle--pending': vehicle.id === pendingVehicleId,
+                    }"
+                    :aria-pressed="vehicle.id === activeVehicleId"
+                    :aria-busy="vehicle.id === pendingVehicleId"
+                    :disabled="status !== 'ready' && vehicle.id !== pendingVehicleId"
+                    @click="selectVehicle(vehicle.id)"
                   >
                     <span
                       class="garage__vehicle-thumb"
-                      :style="poster ? { backgroundImage: `url(${poster})` } : undefined"
+                      :style="vehicle.thumb ? { backgroundImage: `url(${vehicle.thumb}), radial-gradient(90% 80% at 50% 60%, #2a211a, #120e0b)` } : undefined"
                       aria-hidden="true"
                     />
                     <span class="garage__vehicle-info">
                       <span class="garage__vehicle-index">{{ vehicle.index }}</span>
                       <span class="garage__vehicle-name">{{ vehicle.name }}</span>
                       <span class="garage__vehicle-meta">
-                        LOD {{ lods.map(item => item.id).join(' · ') || '0' }}
+                        {{ formatNumber(vehicleTris(vehicle)) }} {{ t('project.configurator.hud.tris') }}
                       </span>
                     </span>
-                    <span class="garage__tag">{{ t('project.configurator.hud.inGarage') }}</span>
+                    <span
+                      v-if="vehicle.id === pendingVehicleId"
+                      class="garage__tag garage__tag--pending"
+                    >{{ t('project.configurator.hud.loadingVehicle') }}</span>
+                    <span
+                      v-else-if="vehicle.id === activeVehicleId"
+                      class="garage__tag"
+                    >{{ t('project.configurator.hud.inGarage') }}</span>
                   </button>
                 </li>
               </ul>
@@ -2451,16 +2657,35 @@ onBeforeUnmount(() => {
   gap: 8px 12px;
   width: 100%;
   padding: 8px;
-  color: var(--g-text);
+  color: var(--g-text-2);
   text-align: left;
+}
+
+.garage__vehicle:hover:not(:disabled, .garage__vehicle--active) {
+  border-color: var(--g-line-strong);
+  background: rgb(255 255 255 / 0.05);
+  color: var(--g-text);
+}
+
+.garage__vehicle--active {
+  color: var(--g-text);
   cursor: default;
+}
+
+.garage__vehicle:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.garage__vehicle--pending {
+  border-color: var(--g-accent-2);
 }
 
 .garage__vehicle-thumb {
   grid-row: 1 / 3;
   aspect-ratio: 16 / 10;
-  background: #120e0b center / cover no-repeat;
-  filter: saturate(0.85);
+  background: radial-gradient(90% 80% at 50% 60%, #2a211a, #120e0b) center / cover no-repeat;
+  background-size: contain, cover;
 }
 
 .garage__vehicle-info {
@@ -2498,6 +2723,12 @@ onBeforeUnmount(() => {
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
+}
+
+.garage__tag--pending {
+  color: var(--g-accent-2);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--g-accent-2);
 }
 
 /* Окраска */

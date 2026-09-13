@@ -136,6 +136,11 @@ frontmatter. Требования к моделям (GLB, Draco, WebP-текст
 ```yaml
 configurator:
   manifest: /media/projects/<slug>/<file>.json   # манифест ролей и вариантов
+  vehicles:                    # машины гаража (раздел VEHICLES), необязательно
+    - manifest: /media/projects/<slug>/<car>.json   # файлы уровней — рядом с model.src
+      rotation: 90             # разворот этой машины (дефолт — model.rotation)
+      thumb: /media/projects/<slug>/vehicles/<car>.webp
+      # name: Coupe            # подпись (дефолт — слаг манифеста прописными)
   garage:                      # необязательное окружение вокруг машины
     src: /media/projects/<slug>/garage.glb
     scale: 1                   # единицы окружения (дефолт 1)

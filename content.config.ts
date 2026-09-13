@@ -187,6 +187,19 @@ export default defineContentConfig({
            строятся по нему, поэтому вторая машина подключается копией файла. */
         configurator: z.object({
           manifest: z.string().min(1).startsWith(MEDIA_PREFIX),
+          /* Машины гаража (раздел VEHICLES). Файлы уровней лежат рядом
+             с `model.src`, имена — в манифесте. `rotation` — разворот именно
+             этой машины (у части выгрузок длинная ось повёрнута), без него
+             берётся `model.rotation`; `name` — подпись в HUD (по умолчанию из
+             слага манифеста); `thumb` — миниатюра для списка. Машина
+             с `manifest`, равным `configurator.manifest`, открывается первой;
+             без списка в гараже одна эта машина. */
+          vehicles: z.array(z.object({
+            manifest: z.string().min(1).startsWith(MEDIA_PREFIX),
+            name: z.string().min(1).optional(),
+            rotation: z.number().min(-360).max(360).optional(),
+            thumb: z.string().min(1).startsWith(MEDIA_PREFIX).optional(),
+          })).min(1).optional(),
           /* Окружение вокруг машины: GLB «гараж» встаёт в ту же сцену, машина
              садится на его пол (пол ищется пробами под габаритом машины —
              низ габарита гаража задаёт плинтус, а не плита), а камера

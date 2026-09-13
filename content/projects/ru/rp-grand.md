@@ -52,6 +52,23 @@ model:
   canvasScale: 1
 configurator:
   manifest: /media/projects/rp-grand/coupe-gt.json
+  vehicles:
+    - manifest: /media/projects/rp-grand/coupe-gt.json
+      thumb: /media/projects/rp-grand/vehicles/coupe-gt.webp
+    - manifest: /media/projects/rp-grand/coupe-sport.json
+      thumb: /media/projects/rp-grand/vehicles/coupe-sport.webp
+    # длинная ось этой выгрузки повёрнута на 90° относительно остальных
+    - manifest: /media/projects/rp-grand/coupe-jdm.json
+      rotation: 90
+      thumb: /media/projects/rp-grand/vehicles/coupe-jdm.webp
+    - manifest: /media/projects/rp-grand/roadster.json
+      thumb: /media/projects/rp-grand/vehicles/roadster.webp
+    - manifest: /media/projects/rp-grand/sedan.json
+      thumb: /media/projects/rp-grand/vehicles/sedan.webp
+    - manifest: /media/projects/rp-grand/sedan-awd.json
+      thumb: /media/projects/rp-grand/vehicles/sedan-awd.webp
+    - manifest: /media/projects/rp-grand/crossover-ev.json
+      thumb: /media/projects/rp-grand/vehicles/crossover-ev.webp
   garage:
     src: /media/projects/rp-grand/garage.glb
     # зал большой, а реквизит (верстак, антресоль, чужие машины) стоит уже

@@ -1,0 +1,395 @@
+{
+ "slug": "coupe-jdm",
+ "source": "Nissan_Skyline_GTR_34_1.blend",
+ "lods": {
+  "0": {
+   "file": "coupe-jdm-lod0.glb",
+   "bytes": 178052,
+   "tris": 36198,
+   "nodes": {
+    "body": {
+     "role": "body",
+     "variant": "",
+     "tris": 5920,
+     "pivot": [
+      3.201,
+      -0.5911,
+      0.7823
+     ],
+     "dims": [
+      2.13,
+      5.415,
+      1.431
+     ]
+    },
+    "bumper_front_a": {
+     "role": "bumper_front",
+     "variant": "a",
+     "tris": 420,
+     "pivot": [
+      3.201,
+      -0.5911,
+      0.7823
+     ],
+     "dims": [
+      2.115,
+      0.749,
+      0.491
+     ]
+    },
+    "bumper_front_b": {
+     "role": "bumper_front",
+     "variant": "b",
+     "tris": 720,
+     "pivot": [
+      3.201,
+      -0.5924,
+      0.7823
+     ],
+     "dims": [
+      2.16,
+      0.786,
+      0.496
+     ]
+    },
+    "bumper_front_c": {
+     "role": "bumper_front",
+     "variant": "c",
+     "tris": 772,
+     "pivot": [
+      3.201,
+      -0.5907,
+      0.7823
+     ],
+     "dims": [
+      2.26,
+      0.847,
+      0.491
+     ]
+    },
+    "bumper_rear_a": {
+     "role": "bumper_rear",
+     "variant": "a",
+     "tris": 402,
+     "pivot": [
+      3.201,
+      -0.5911,
+      0.7823
+     ],
+     "dims": [
+      2.13,
+      0.8,
+      0.582
+     ]
+    },
+    "bumper_rear_b": {
+     "role": "bumper_rear",
+     "variant": "b",
+     "tris": 294,
+     "pivot": [
+      3.201,
+      -0.5905,
+      0.7823
+     ],
+     "dims": [
+      2.131,
+      0.799,
+      0.582
+     ]
+    },
+    "bumper_rear_c": {
+     "role": "bumper_rear",
+     "variant": "c",
+     "tris": 536,
+     "pivot": [
+      3.201,
+      -0.5905,
+      0.7823
+     ],
+     "dims": [
+      2.307,
+      0.802,
+      0.583
+     ]
+    },
+    "door_l_front": {
+     "role": "door",
+     "variant": "l_front",
+     "tris": 572,
+     "pivot": [
+      1.473,
+      0.4195,
+      0.6941
+     ],
+     "dims": [
+      0.49,
+      1.627,
+      1.171
+     ]
+    },
+    "door_r_front": {
+     "role": "door",
+     "variant": "r_front",
+     "tris": 572,
+     "pivot": [
+      -1.473,
+      0.4195,
+      0.6941
+     ],
+     "dims": [
+      0.49,
+      1.627,
+      1.171
+     ]
+    },
+    "glass_a": {
+     "role": "glass",
+     "variant": "a",
+     "tris": 84,
+     "pivot": [
+      3.201,
+      -0.5911,
+      0.7823
+     ],
+     "dims": [
+      1.705,
+      0.902,
+      0.434
+     ]
+    },
+    "glass_c": {
+     "role": "glass",
+     "variant": "c",
+     "tris": 104,
+     "pivot": [
+      3.1999,
+      -0.5949,
+      0.7823
+     ],
+     "dims": [
+      1.462,
+      0.821,
+      0.354
+     ]
+    },
+    "glass_door_l": {
+     "role": "glass",
+     "variant": "door_l",
+     "tris": 40,
+     "pivot": [
+      3.201,
+      -0.5911,
+      0.7823
+     ],
+     "dims": [
+      0.254,
+      1.454,
+      0.451
+     ]
+    },
+    "glass_door_r": {
+     "role": "glass",
+     "variant": "door_r",
+     "tris": 40,
+     "pivot": [
+      3.201,
+      -0.591,
+      0.7823
+     ],
+     "dims": [
+      0.254,
+      1.454,
+      0.451
+     ]
+    },
+    "skirt_a": {
+     "role": "skirt",
+     "variant": "a",
+     "tris": 564,
+     "pivot": [
+      3.201,
+      -0.5911,
+      0.7823
+     ],
+     "dims": [
+      2.13,
+      4.118,
+      0.691
+     ]
+    },
+    "skirt_b": {
+     "role": "skirt",
+     "variant": "b",
+     "tris": 600,
+     "pivot": [
+      3.201,
+      -0.591,
+      0.7823
+     ],
+     "dims": [
+      2.15,
+      4.118,
+      0.691
+     ]
+    },
+    "skirt_c": {
+     "role": "skirt",
+     "variant": "c",
+     "tris": 1190,
+     "pivot": [
+      3.201,
+      -0.591,
+      0.7823
+     ],
+     "dims": [
+      2.242,
+      4.118,
+      0.691
+     ]
+    },
+    "spoiler_a": {
+     "role": "spoiler",
+     "variant": "a",
+     "tris": 352,
+     "pivot": [
+      -1.8221,
+      0.1911,
+      1.2685
+     ],
+     "dims": [
+      1.618,
+      0.348,
+      0.222
+     ]
+    },
+    "Wheel": {
+     "role": "wheel",
+     "variant": "",
+     "tris": 5754,
+     "pivot": [
+      2.1546,
+      -1.5534,
+      0.2773
+     ],
+     "dims": [
+      0.825,
+      0.825,
+      0.275
+     ]
+    },
+    "Wheel.001": {
+     "role": "wheel",
+     "variant": "",
+     "tris": 5754,
+     "pivot": [
+      -1.0054,
+      -1.5534,
+      0.2773
+     ],
+     "dims": [
+      0.825,
+      0.825,
+      0.275
+     ]
+    },
+    "Wheel.002": {
+     "role": "wheel",
+     "variant": "",
+     "tris": 5754,
+     "pivot": [
+      -1.0054,
+      0.3713,
+      0.2773
+     ],
+     "dims": [
+      0.825,
+      0.825,
+      0.275
+     ]
+    },
+    "Wheel.003": {
+     "role": "wheel",
+     "variant": "",
+     "tris": 5754,
+     "pivot": [
+      2.1546,
+      0.3713,
+      0.2773
+     ],
+     "dims": [
+      0.825,
+      0.825,
+      0.275
+     ]
+    }
+   }
+  },
+  "1": {
+   "file": "coupe-jdm-lod1.glb",
+   "bytes": 40944,
+   "tris": 5222,
+   "nodes": {
+    "body": {
+     "role": "body",
+     "variant": "",
+     "tris": 5222,
+     "pivot": [
+      0.4291,
+      -0.5852,
+      -0.1597
+     ],
+     "dims": [
+      2.253,
+      5.421,
+      1.424
+     ]
+    }
+   }
+  },
+  "2": {
+   "file": "coupe-jdm-lod2.glb",
+   "bytes": 4688,
+   "tris": 210,
+   "nodes": {
+    "body": {
+     "role": "body",
+     "variant": "",
+     "tris": 210,
+     "pivot": [
+      -1.939,
+      -0.5834,
+      0.7326
+     ],
+     "dims": [
+      2.19,
+      5.419,
+      1.361
+     ]
+    }
+   }
+  }
+ },
+ "removed": [
+  "Cloth_Boots (MESH)",
+  "Cloth_Tank_Top (MESH)",
+  "Coth_Jeans (MESH)",
+  "Hair_1 (MESH)",
+  "M_Africa_Body_Hand (MESH)",
+  "M_Africa_Body_Head (MESH)",
+  "M_Africa_BodyArms (MESH)",
+  "M_Africa_BodyTors (MESH)",
+  "root.002 (ARMATURE)"
+ ],
+ "parity": {
+  "1": "прежний упрощённый экспорт: только кузов — ни обвеса, ни стёкол, ни оптики, ни колёс",
+  "2": "самый дальний уровень прежнего экспорта: только кузов и один UV-набор (TEXCOORD_0)"
+ },
+ "warnings": [
+  "LOD0: пивот двери r_front был [1.479, -1.602, 0.694], зеркалю от левой -> [-1.473, 0.420, 0.694]",
+  "LOD0 подготовлен автоматически (_export/prepare_car.py по образцу coupe-gt): колпаки m_Lamp — 174 трис., свечение white_emissive — 746, red_emissive — 780. Свечение взято с запасом (весь корпус фонаря за колпаком) — доводится руками.",
+  "Колёса — модель coupe-gt (Wheel…Wheel.003), радиус 0.4126 м по окружности арок; размер и высота общие на обе оси.",
+  "LOD1/LOD2 — прежние: колёс и разделённой оптики в них нет; вьювер держит колёса LOD0 в сцене на всех уровнях.",
+  "Длинная ось модели — X (у остальных Y): в кейсе понадобится `model.rotation` 90 или −90.",
+  "Файлы уровней пережаты для сайта (_export/optimize_for_site.py): draco — позиции 12 бит, нормали 10, UV 10, уровень 10; одинаковые колёса делят одну геометрию."
+ ]
+}

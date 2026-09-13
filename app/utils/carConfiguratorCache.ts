@@ -55,6 +55,15 @@ export interface CachedCarConfigurator extends CachedViewer {
   /* Собранные уровни: возврат на просмотренный LOD — мгновенный, без
      повторной загрузки GLB и пересборки материалов. */
   lodModels: Map<string, CarLodModel>
+  /* Машина гаража, стоящая в сцене (слаг манифеста), её разворот и сдвиг
+     по горизонтали: упрощённые уровни ставятся тем же разворотом и сдвигом. */
+  vehicleId: string
+  carRotation: number
+  carShift: { x: number, z: number }
+  /* Точка зала, в которую ставится любая машина (центр по горизонтали),
+     и пол под ней. */
+  anchor: { x: number, z: number }
+  floorY: number
 }
 
 /**

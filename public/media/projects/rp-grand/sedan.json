@@ -1,0 +1,454 @@
+{
+ "slug": "sedan",
+ "source": "Nissan_Altima.blend",
+ "lods": {
+  "0": {
+   "file": "sedan-lod0.glb",
+   "bytes": 178460,
+   "tris": 35161,
+   "nodes": {
+    "body": {
+     "role": "body",
+     "variant": "",
+     "tris": 5419,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.861,
+      4.848,
+      1.225
+     ]
+    },
+    "bumper_front_a": {
+     "role": "bumper_front",
+     "variant": "a",
+     "tris": 628,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.842,
+      0.665,
+      0.524
+     ]
+    },
+    "bumper_front_b": {
+     "role": "bumper_front",
+     "variant": "b",
+     "tris": 640,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.842,
+      0.71,
+      0.524
+     ]
+    },
+    "bumper_front_c": {
+     "role": "bumper_front",
+     "variant": "c",
+     "tris": 708,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.842,
+      0.665,
+      0.524
+     ]
+    },
+    "bumper_rear_a": {
+     "role": "bumper_rear",
+     "variant": "a",
+     "tris": 384,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.835,
+      0.806,
+      0.551
+     ]
+    },
+    "bumper_rear_b": {
+     "role": "bumper_rear",
+     "variant": "b",
+     "tris": 414,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.835,
+      0.806,
+      0.551
+     ]
+    },
+    "bumper_rear_c": {
+     "role": "bumper_rear",
+     "variant": "c",
+     "tris": 558,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.835,
+      0.792,
+      0.551
+     ]
+    },
+    "door_l_front": {
+     "role": "door",
+     "variant": "l_front",
+     "tris": 634,
+     "pivot": [
+      0.8647,
+      -0.9797,
+      0.7656
+     ],
+     "dims": [
+      0.433,
+      1.268,
+      1.103
+     ]
+    },
+    "door_l_rear": {
+     "role": "door",
+     "variant": "l_rear",
+     "tris": 450,
+     "pivot": [
+      0.9011,
+      0.1408,
+      0.7069
+     ],
+     "dims": [
+      0.333,
+      1.198,
+      1.093
+     ]
+    },
+    "door_r_front": {
+     "role": "door",
+     "variant": "r_front",
+     "tris": 634,
+     "pivot": [
+      -0.8647,
+      -0.9797,
+      0.7656
+     ],
+     "dims": [
+      0.433,
+      1.268,
+      1.103
+     ]
+    },
+    "door_r_rear": {
+     "role": "door",
+     "variant": "r_rear",
+     "tris": 450,
+     "pivot": [
+      -0.9011,
+      0.1408,
+      0.7069
+     ],
+     "dims": [
+      0.333,
+      1.198,
+      1.093
+     ]
+    },
+    "glass_a": {
+     "role": "glass",
+     "variant": "a",
+     "tris": 160,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.482,
+      0.83,
+      0.352
+     ]
+    },
+    "glass_c": {
+     "role": "glass",
+     "variant": "c",
+     "tris": 172,
+     "pivot": [
+      0,
+      0,
+      -0.0066
+     ],
+     "dims": [
+      1.241,
+      0.824,
+      0.291
+     ]
+    },
+    "glass_door_l": {
+     "role": "glass",
+     "variant": "door_l",
+     "tris": 44,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      0.185,
+      0.872,
+      0.398
+     ]
+    },
+    "glass_door_r": {
+     "role": "glass",
+     "variant": "door_r",
+     "tris": 44,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      0.185,
+      0.872,
+      0.398
+     ]
+    },
+    "skirt_a": {
+     "role": "skirt",
+     "variant": "a",
+     "tris": 58,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.814,
+      2.041,
+      0.27
+     ]
+    },
+    "skirt_b": {
+     "role": "skirt",
+     "variant": "b",
+     "tris": 330,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.814,
+      2.041,
+      0.27
+     ]
+    },
+    "skirt_c": {
+     "role": "skirt",
+     "variant": "c",
+     "tris": 110,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.814,
+      2.041,
+      0.27
+     ]
+    },
+    "spoiler_a": {
+     "role": "spoiler",
+     "variant": "a",
+     "tris": 64,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.256,
+      0.197,
+      0.085
+     ]
+    },
+    "spoiler_b": {
+     "role": "spoiler",
+     "variant": "b",
+     "tris": 136,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.272,
+      0.322,
+      0.154
+     ]
+    },
+    "spoiler_c": {
+     "role": "spoiler",
+     "variant": "c",
+     "tris": 108,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.256,
+      0.283,
+      0.128
+     ]
+    },
+    "Wheel": {
+     "role": "wheel",
+     "variant": "",
+     "tris": 5754,
+     "pivot": [
+      0.8429,
+      -1.4826,
+      0.2827
+     ],
+     "dims": [
+      0.735,
+      0.735,
+      0.245
+     ]
+    },
+    "Wheel.001": {
+     "role": "wheel",
+     "variant": "",
+     "tris": 5754,
+     "pivot": [
+      0.8429,
+      1.3174,
+      0.2827
+     ],
+     "dims": [
+      0.735,
+      0.735,
+      0.245
+     ]
+    },
+    "Wheel.002": {
+     "role": "wheel",
+     "variant": "",
+     "tris": 5754,
+     "pivot": [
+      -0.8429,
+      1.3174,
+      0.2827
+     ],
+     "dims": [
+      0.735,
+      0.735,
+      0.245
+     ]
+    },
+    "Wheel.003": {
+     "role": "wheel",
+     "variant": "",
+     "tris": 5754,
+     "pivot": [
+      -0.8429,
+      -1.4826,
+      0.2827
+     ],
+     "dims": [
+      0.735,
+      0.735,
+      0.245
+     ]
+    }
+   }
+  },
+  "1": {
+   "file": "sedan-lod1.glb",
+   "bytes": 40620,
+   "tris": 4549,
+   "nodes": {
+    "body": {
+     "role": "body",
+     "variant": "",
+     "tris": 4549,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      2.05,
+      4.89,
+      1.225
+     ]
+    }
+   }
+  },
+  "2": {
+   "file": "sedan-lod2.glb",
+   "bytes": 4680,
+   "tris": 196,
+   "nodes": {
+    "body": {
+     "role": "body",
+     "variant": "",
+     "tris": 196,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.857,
+      4.84,
+      1.222
+     ]
+    }
+   }
+  }
+ },
+ "removed": [
+  "BelAZ 75710 (ARMATURE)",
+  "WGT-CarRig.DriftHandle (MESH)",
+  "WGT-CarRig.GroundSensor (MESH)",
+  "WGT-CarRig.GroundSensor.Axle (MESH)",
+  "WGT-CarRig.Root (MESH)",
+  "WGT-CarRig.Steering (MESH)",
+  "WGT-CarRig.Suspension (MESH)",
+  "WGT-CarRig.Wheel (MESH)",
+  "WGT-CarRig.WheelBrake (MESH)",
+  "WGT-CarRig.WheelDamper (MESH)"
+ ],
+ "parity": {
+  "1": "прежний упрощённый экспорт: только кузов — ни обвеса, ни стёкол, ни оптики, ни колёс",
+  "2": "самый дальний уровень прежнего экспорта: только кузов и один UV-набор (TEXCOORD_0)"
+ },
+ "warnings": [
+  "LOD0 подготовлен автоматически (_export/prepare_car.py по образцу coupe-gt): колпаки m_Lamp — 158 трис., свечение white_emissive — 300, red_emissive — 412. Свечение взято с запасом (весь корпус фонаря за колпаком) — доводится руками.",
+  "Колёса — модель coupe-gt (Wheel…Wheel.003), радиус 0.3676 м по окружности арок; размер и высота общие на обе оси.",
+  "LOD1/LOD2 — прежние: колёс и разделённой оптики в них нет; вьювер держит колёса LOD0 в сцене на всех уровнях.",
+  "Файлы уровней пережаты для сайта (_export/optimize_for_site.py): draco — позиции 12 бит, нормали 10, UV 10, уровень 10; одинаковые колёса делят одну геометрию."
+ ]
+}

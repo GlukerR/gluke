@@ -1,0 +1,443 @@
+{
+ "slug": "crossover-ev",
+ "source": "Nissan_Ariya (1).blend",
+ "lods": {
+  "0": {
+   "file": "crossover-ev-lod0.glb",
+   "bytes": 170680,
+   "tris": 34321,
+   "nodes": {
+    "body": {
+     "role": "body",
+     "variant": "",
+     "tris": 5199,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.896,
+      4.462,
+      1.375
+     ]
+    },
+    "bumper_front_a": {
+     "role": "bumper_front",
+     "variant": "a",
+     "tris": 406,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.775,
+      0.454,
+      0.273
+     ]
+    },
+    "bumper_front_b": {
+     "role": "bumper_front",
+     "variant": "b",
+     "tris": 528,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.775,
+      0.426,
+      0.273
+     ]
+    },
+    "bumper_front_c": {
+     "role": "bumper_front",
+     "variant": "c",
+     "tris": 268,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.775,
+      0.446,
+      0.273
+     ]
+    },
+    "bumper_rear_a": {
+     "role": "bumper_rear",
+     "variant": "a",
+     "tris": 408,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.833,
+      0.504,
+      0.386
+     ]
+    },
+    "bumper_rear_b": {
+     "role": "bumper_rear",
+     "variant": "b",
+     "tris": 370,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.833,
+      0.504,
+      0.386
+     ]
+    },
+    "bumper_rear_c": {
+     "role": "bumper_rear",
+     "variant": "c",
+     "tris": 612,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.833,
+      0.504,
+      0.386
+     ]
+    },
+    "door_l_front": {
+     "role": "door",
+     "variant": "l_front",
+     "tris": 537,
+     "pivot": [
+      0.8772,
+      -0.9336,
+      0.9762
+     ],
+     "dims": [
+      0.504,
+      1.195,
+      1.257
+     ]
+    },
+    "door_l_rear": {
+     "role": "door",
+     "variant": "l_rear",
+     "tris": 482,
+     "pivot": [
+      0.8775,
+      0.1961,
+      1.0314
+     ],
+     "dims": [
+      0.278,
+      1.143,
+      1.252
+     ]
+    },
+    "door_r_front": {
+     "role": "door",
+     "variant": "r_front",
+     "tris": 537,
+     "pivot": [
+      -0.8772,
+      -0.9336,
+      0.9762
+     ],
+     "dims": [
+      0.504,
+      1.195,
+      1.257
+     ]
+    },
+    "door_r_rear": {
+     "role": "door",
+     "variant": "r_rear",
+     "tris": 482,
+     "pivot": [
+      -0.8775,
+      0.1963,
+      1.0314
+     ],
+     "dims": [
+      0.278,
+      1.143,
+      1.252
+     ]
+    },
+    "glass_a": {
+     "role": "glass",
+     "variant": "a",
+     "tris": 136,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.574,
+      0.822,
+      0.37
+     ]
+    },
+    "glass_door_l": {
+     "role": "glass",
+     "variant": "door_l",
+     "tris": 56,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      0.143,
+      1.021,
+      0.404
+     ]
+    },
+    "glass_door_r": {
+     "role": "glass",
+     "variant": "door_r",
+     "tris": 56,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      0.143,
+      1.021,
+      0.404
+     ]
+    },
+    "glass_x": {
+     "role": "glass",
+     "variant": "x",
+     "tris": 192,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.452,
+      0.703,
+      0.305
+     ]
+    },
+    "skirt_a": {
+     "role": "skirt",
+     "variant": "a",
+     "tris": 92,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.809,
+      1.887,
+      0.197
+     ]
+    },
+    "skirt_b": {
+     "role": "skirt",
+     "variant": "b",
+     "tris": 244,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.809,
+      1.887,
+      0.197
+     ]
+    },
+    "skirt_c": {
+     "role": "skirt",
+     "variant": "c",
+     "tris": 124,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.809,
+      1.887,
+      0.197
+     ]
+    },
+    "spoiler_a": {
+     "role": "spoiler",
+     "variant": "a",
+     "tris": 142,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.377,
+      0.387,
+      0.178
+     ]
+    },
+    "spoiler_b": {
+     "role": "spoiler",
+     "variant": "b",
+     "tris": 310,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.452,
+      0.436,
+      0.3
+     ]
+    },
+    "spoiler_c": {
+     "role": "spoiler",
+     "variant": "c",
+     "tris": 124,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.377,
+      0.413,
+      0.246
+     ]
+    },
+    "Wheel": {
+     "role": "wheel",
+     "variant": "",
+     "tris": 5754,
+     "pivot": [
+      0.8535,
+      -1.4124,
+      0.3799
+     ],
+     "dims": [
+      0.777,
+      0.777,
+      0.259
+     ]
+    },
+    "Wheel.001": {
+     "role": "wheel",
+     "variant": "",
+     "tris": 5754,
+     "pivot": [
+      0.8535,
+      1.3076,
+      0.3799
+     ],
+     "dims": [
+      0.777,
+      0.777,
+      0.259
+     ]
+    },
+    "Wheel.002": {
+     "role": "wheel",
+     "variant": "",
+     "tris": 5754,
+     "pivot": [
+      -0.8534,
+      1.3076,
+      0.3799
+     ],
+     "dims": [
+      0.777,
+      0.777,
+      0.259
+     ]
+    },
+    "Wheel.003": {
+     "role": "wheel",
+     "variant": "",
+     "tris": 5754,
+     "pivot": [
+      -0.8534,
+      -1.4124,
+      0.3799
+     ],
+     "dims": [
+      0.777,
+      0.777,
+      0.259
+     ]
+    }
+   }
+  },
+  "1": {
+   "file": "crossover-ev-lod1.glb",
+   "bytes": 37480,
+   "tris": 4338,
+   "nodes": {
+    "body": {
+     "role": "body",
+     "variant": "",
+     "tris": 4338,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      2.279,
+      4.496,
+      1.372
+     ]
+    }
+   }
+  },
+  "2": {
+   "file": "crossover-ev-lod2.glb",
+   "bytes": 4644,
+   "tris": 201,
+   "nodes": {
+    "body": {
+     "role": "body",
+     "variant": "",
+     "tris": 201,
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "dims": [
+      1.887,
+      4.428,
+      1.374
+     ]
+    }
+   }
+  }
+ },
+ "removed": [],
+ "parity": {
+  "1": "прежний упрощённый экспорт: только кузов — ни обвеса, ни стёкол, ни оптики, ни колёс",
+  "2": "самый дальний уровень прежнего экспорта: только кузов и один UV-набор (TEXCOORD_0)"
+ },
+ "warnings": [
+  "LOD0 подготовлен автоматически (_export/prepare_car.py по образцу coupe-gt): колпаки m_Lamp — 60 трис., свечение white_emissive — 330, red_emissive — 448. Свечение взято с запасом (весь корпус фонаря за колпаком) — доводится руками.",
+  "Колёса — модель coupe-gt (Wheel…Wheel.003), радиус 0.3886 м по окружности арок; размер и высота общие на обе оси.",
+  "LOD1/LOD2 — прежние: колёс и разделённой оптики в них нет; вьювер держит колёса LOD0 в сцене на всех уровнях.",
+  "Файлы уровней пережаты для сайта (_export/optimize_for_site.py): draco — позиции 12 бит, нормали 10, UV 10, уровень 10; одинаковые колёса делят одну геометрию."
+ ]
+}

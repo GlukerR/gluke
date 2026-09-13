@@ -370,6 +370,7 @@ export default {
         wireframe: 'Wireframe',
         inGarage: 'In garage',
         loading: 'Loading garage',
+        loadingVehicle: 'Loading vehicle',
         kitsLocked: 'Body kit lives on LOD 0',
         value: 'Value',
         scope: 'Car only · wheels excluded',

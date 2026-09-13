@@ -370,6 +370,7 @@ export default {
         wireframe: 'Сетка',
         inGarage: 'В гараже',
         loading: 'Загрузка гаража',
+        loadingVehicle: 'Загрузка машины',
         kitsLocked: 'Обвес есть только на LOD 0',
         value: 'Значение',
         scope: 'Только машина · без колёс',

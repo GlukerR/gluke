@@ -328,6 +328,7 @@ useSchemaOrg([
       <LazyCarConfigurator
         :model="project.model"
         :manifest="project.configurator.manifest"
+        :vehicles="project.configurator.vehicles"
         :garage="project.configurator.garage"
         :audio="project.configurator.audio"
         :poster="project.cover.src"
