@@ -231,7 +231,9 @@ const focusRole = ref<string | null>(null)
 const hudRoot = ref<HTMLElement | null>(null)
 const panelEl = ref<HTMLElement | null>(null)
 const menuButtons = ref<HTMLElement[]>([])
-const menuIndicator = ref({ x: 0, width: 0, visible: false })
+/* Индикатор знает обе оси: на телефоне меню — столбик, и полоса идёт слева
+   от раздела по вертикали, на остальных экранах — сверху по горизонтали. */
+const menuIndicator = ref({ x: 0, y: 0, width: 0, height: 0, visible: false })
 /* Узкая раскладка: панель — шторка снизу, подписи меню короче. */
 const HUD_NARROW = 900
 const narrow = ref(false)
@@ -262,7 +264,13 @@ function syncMenuIndicator() {
     menuIndicator.value = { ...menuIndicator.value, visible: false }
     return
   }
-  menuIndicator.value = { x: button.offsetLeft, width: button.offsetWidth, visible: true }
+  menuIndicator.value = {
+    x: button.offsetLeft,
+    y: button.offsetTop,
+    width: button.offsetWidth,
+    height: button.offsetHeight,
+    visible: true,
+  }
 }
 
 /* Имя и номер слота активной машины — в углу HUD и в строке контекста. */
@@ -2099,7 +2107,12 @@ onBeforeUnmount(() => {
         <span
           class="garage__menu-indicator"
           :class="{ 'garage__menu-indicator--visible': menuIndicator.visible }"
-          :style="{ transform: `translateX(${menuIndicator.x}px)`, width: `${menuIndicator.width}px` }"
+          :style="{
+            '--ind-x': `${menuIndicator.x}px`,
+            '--ind-y': `${menuIndicator.y}px`,
+            '--ind-w': `${menuIndicator.width}px`,
+            '--ind-h': `${menuIndicator.height}px`,
+          }"
           aria-hidden="true"
         />
         <button
@@ -3278,11 +3291,17 @@ onBeforeUnmount(() => {
   position: absolute;
   top: -1px;
   left: 0;
+  width: var(--ind-w, 0);
   height: 2px;
   background: var(--g-accent);
   box-shadow: 0 0 14px rgb(255 122 26 / 0.7);
   opacity: 0;
-  transition: transform 280ms cubic-bezier(0.2, 0.8, 0.2, 1), width 280ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 200ms ease;
+  transform: translateX(var(--ind-x, 0));
+  transition:
+    transform 280ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    width 280ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    height 280ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 200ms ease;
   pointer-events: none;
 }
 
@@ -3538,5 +3557,53 @@ onBeforeUnmount(() => {
 .garage--narrow .garage-panel-enter-from,
 .garage--narrow .garage-panel-leave-to {
   transform: translateY(16px);
+}
+
+/* Телефон: полоса разделов по низу не помещается без прокрутки и спорит со
+   шторкой панели, поэтому меню встаёт столбиком слева под слотом машины,
+   а шторка остаётся внизу. Индикатор — вертикальная полоса у раздела. */
+@media (max-width: 600px) {
+  .garage--narrow .garage__menu {
+    top: calc(var(--g-pad) + 68px);
+    right: auto;
+    bottom: auto;
+    left: 8px;
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  .garage--narrow .garage__menu-item {
+    flex: none;
+    align-items: flex-start;
+    min-width: 0;
+    padding: 9px 14px 9px 12px;
+  }
+
+  .garage--narrow .garage__menu-item + .garage__menu-item::before {
+    top: 0;
+    right: 10px;
+    bottom: auto;
+    left: 10px;
+    width: auto;
+    height: 1px;
+  }
+
+  .garage--narrow .garage__menu-item--active {
+    background: linear-gradient(90deg, rgb(255 122 26 / 0.16), transparent);
+  }
+
+  .garage--narrow .garage__menu-indicator {
+    top: 0;
+    left: -1px;
+    width: 2px;
+    height: var(--ind-h, 0);
+    transform: translateY(var(--ind-y, 0));
+  }
+
+  /* Шторка не заходит на столбик меню: её верх не выше ~300 px от верха кадра. */
+  .garage--narrow .garage__panel {
+    bottom: 8px;
+    max-height: min(46%, calc(100% - 300px));
+  }
 }
 </style>

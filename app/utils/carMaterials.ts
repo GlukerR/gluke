@@ -30,12 +30,12 @@ import type * as THREE from 'three'
  * материал стопов. Оптика без указания стороны (`m_Lamp` на обе оси) делится
  * по положению — внутри такого примитива действительно только фары и стопы.
  *
- * Тайл читается не по UV1, а проекцией на мировые координаты: развёртки у
- * деталей разные (у вариантов обвеса b/c тайловой нет вовсе, у кузова острова
- * посажены в своём масштабе), и UV-тайл давал бы свой размер рисунка на каждой
- * панели. Проекция даёт одну общую обёртку на всю машину: и на кузов, и на
- * любой бампер, и на юбки — с одинаковым масштабом и без стыков на скруглениях.
- * Поэтому `repeat` измеряется в тайлах на метр, а не в UV-единицах.
+ * Узор и detail-карта покрытия ложатся строго по UV0 — основной развёртке,
+ * которая есть у каждой детали, включая варианты обвеса b/c (решение владельца,
+ * 13.09.2026; до этого тайл шёл проекцией по мировым координатам). Рисунок
+ * следует развёртке как есть: размер и направление на панели задают острова
+ * UV. `repeat` в данных остаётся «тайлов на метр» и переводится в тайлы на
+ * единицу UV множителем `UV_REPEAT_PER_METER`.
  */
 
 /** Зона детали, выбранная по квадранту маски. */
@@ -145,6 +145,12 @@ export function patternScale(scale: number | undefined): number {
 export function patternRepeat(pattern: CarPattern, scale: number | undefined): number {
   return pattern.repeat / patternScale(scale)
 }
+
+/* Перевод «тайлов на метр» в тайлы на единицу UV0. Развёртки машин RP Grand
+   в среднем дают ≈0,12 единицы UV на метр поверхности, поэтому метровый тайл
+   занимает ≈8 тайлов на единицу UV: размеры мотивов остаются близкими к тем,
+   что подбирались под машину ≈5 м. */
+export const UV_REPEAT_PER_METER = 8
 
 export interface CarCoverage {
   id: string
@@ -740,25 +746,19 @@ function patchMaterial(
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
-        '#include <common>\nvarying vec3 vCarWorld;\nvarying vec3 vCarNormalW;',
-      )
-      .replace(
-        '#include <beginnormal_vertex>',
-        `#include <beginnormal_vertex>
-  vCarNormalW = mat3( modelMatrix ) * objectNormal;`,
+        '#include <common>\nvarying vec2 vCarUv;',
       )
       .replace(
         '#include <begin_vertex>',
         `#include <begin_vertex>
-  vCarWorld = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz;`,
+  vCarUv = uv;`,
       )
 
     shader.fragmentShader = shader.fragmentShader
       .replace(
         '#include <common>',
         `#include <common>
-varying vec3 vCarWorld;
-varying vec3 vCarNormalW;
+varying vec2 vCarUv;
 uniform vec3 uPaintColor;
 uniform vec3 uTrimColor;
 uniform vec3 uInteriorColor;
@@ -780,19 +780,10 @@ uniform float uPatternRepeat;
 uniform float uPatternOn;
 uniform float uPatternTint;
 
-/* Проекция по мировым координатам вместо UV: одна обёртка на всю машину.
-   У деталей разные развёртки (у вариантов обвеса b/c тайловой нет вовсе), по UV
-   рисунок получался бы своего размера на каждой панели. Здесь же масштаб задаёт
-   repeat в тайлах на метр, одинаковый для кузова и для любого обвеса.
-   Три проекции смешиваются по нормали, поэтому на скруглениях не видно стыка,
-   а рисунок продолжается с соседней панели. */
-vec3 carProjected( sampler2D map, float repeat ) {
-  vec3 carAxis = pow( abs( normalize( vCarNormalW ) ), vec3( 4.0 ) );
-  carAxis /= ( carAxis.x + carAxis.y + carAxis.z );
-  vec3 carPoint = vCarWorld * repeat;
-  return texture2D( map, carPoint.zy ).rgb * carAxis.x
-       + texture2D( map, carPoint.xz ).rgb * carAxis.y
-       + texture2D( map, carPoint.xy ).rgb * carAxis.z;
+/* Тайл по основной развёртке (UV0): рисунок следует островам UV детали.
+   repeat — тайлов на единицу UV (см. UV_REPEAT_PER_METER). */
+vec3 carUvTile( sampler2D map, float repeat ) {
+  return texture2D( map, vCarUv * repeat ).rgb;
 }`,
       )
       .replace(
@@ -810,7 +801,7 @@ vec3 carProjected( sampler2D map, float repeat ) {
   /* Порядок как у настоящей окраски: цвет кузова, затем detail-карта покрытия
      («затемнить»), затем узор поверх всего. Покрытие остаётся свободным —
      узор не привязан к нему и ложится на любое. */
-  vec3 carCover = carProjected( uCoverTex, uCoverRepeat );
+  vec3 carCover = carUvTile( uCoverTex, uCoverRepeat );
   vec3 carPaint = uPaintColor * mix( vec3( 1.0 ), carCover, uCoverMix );
   if ( uPatternOn > 0.0 ) {
     /* Печать приносит собственный цвет целиком: с ней ничего не складывается.
@@ -818,7 +809,7 @@ vec3 carProjected( sampler2D map, float repeat ) {
        тождество, поэтому узор ложится ровно таким, каким лежит в файле.
        Рельефную карту покрытия сюда не тянем: печать непрозрачная, карбон
        съел бы рисунок, а характер отделки задают roughness / metalness / лак. */
-    vec3 carPattern = carProjected( uPatternTex, uPatternRepeat );
+    vec3 carPattern = carUvTile( uPatternTex, uPatternRepeat );
     carPaint = carPattern * mix( vec3( 1.0 ), uPaintColor, uPatternTint );
   }
   diffuseColor.rgb = carPaint * carIsPaint + uInteriorColor * carIsInterior + uTrimColor * carIsTrim;`,
@@ -1358,10 +1349,10 @@ function applySelection(
     /* Карты нужны только зоне краски. Без карты сэмплер всё равно должен быть
        живым — тогда mix с белым даёт чистый результат. */
     uniforms.uCoverTex.value = cover ?? handle.neutral
-    uniforms.uCoverRepeat.value = coverage.tileRepeat
+    uniforms.uCoverRepeat.value = coverage.tileRepeat * UV_REPEAT_PER_METER
     uniforms.uCoverMix.value = coverMix
     uniforms.uPatternTex.value = pattern ?? handle.neutral
-    uniforms.uPatternRepeat.value = patternRepeat(patternChoice, selection.scale)
+    uniforms.uPatternRepeat.value = patternRepeat(patternChoice, selection.scale) * UV_REPEAT_PER_METER
     uniforms.uPatternOn.value = patternOn
     /* «Без цвета» — белый: подмешивание белого оставляет печать как в файле. */
     uniforms.uPatternTint.value = patternOn > 0 ? patternChoice.tint : 0
