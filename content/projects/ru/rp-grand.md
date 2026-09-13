@@ -69,7 +69,16 @@ configurator:
   # музыка зала: трек подхватывается только после сборки сцены, играет
   # с нулевой громкости и набирает её за 4 с; выключается кнопкой в углу сцены
   audio:
-    src: /media/projects/rp-grand/audio/night-street-racing.mp3
+    tracks:
+      - src: /media/projects/rp-grand/audio/night-street-racing.mp3
+        title: Night Street Racing
+        artist: GVIDON
+      - src: /media/projects/rp-grand/audio/race-till-sunset.mp3
+        title: Race Till Sunset
+        artist: LemonMusicStudio
+      - src: /media/projects/rp-grand/audio/call-of-the-streets.mp3
+        title: The Call of the Streets
+        artist: LemonMusicStudio
     volume: 0.35
     fadeIn: 4
 media: []

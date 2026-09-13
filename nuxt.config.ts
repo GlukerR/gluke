@@ -124,6 +124,15 @@ export default defineNuxtConfig({
         styles: ['normal'],
         subsets: ['latin', 'latin-ext', 'cyrillic'],
       },
+      /* Узкий технический шрифт игрового HUD гаража (RP Grand), с кириллицей:
+         файлы качаются только на странице, где шрифт реально используется. */
+      {
+        name: 'Roboto Condensed',
+        provider: 'google',
+        weights: [400, 500, 600, 700],
+        styles: ['normal'],
+        subsets: ['latin', 'cyrillic'],
+      },
     ],
   },
   i18n: {

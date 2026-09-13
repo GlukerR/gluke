@@ -187,3 +187,84 @@ describe('createGarageAudio', () => {
     expect(target.listeners.size).toBe(0)
   })
 })
+
+/*
+ * Плейлист: у элемента нужен ещё `load` и позиция — HUD переключает треки
+ * кнопками и ждёт, что очередь пойдёт дальше сама.
+ */
+describe('createGarageAudio — плейлист', () => {
+  const tracks = [
+    { id: 'a', title: 'A', artist: 'X', src: '/a.mp3' },
+    { id: 'b', title: 'B', artist: 'Y', src: '/b.mp3' },
+    { id: 'c', title: 'C', src: '/c.mp3' },
+  ]
+
+  function playlistElement() {
+    return Object.assign(fakeElement(), { load: vi.fn(), currentTime: 0, duration: 120 })
+  }
+
+  function listener(el: FakeElement, type: string): () => void {
+    const call = el.addEventListener.mock.calls.find(([name]) => name === type)
+    return call?.[1] as () => void
+  }
+
+  it('очередь не крутится петлёй и начинается с первого трека', async () => {
+    const el = playlistElement()
+    const handle = createGarageAudio({ tracks }, { createElement: () => asElement(el) })
+    handle.start()
+    await vi.advanceTimersByTimeAsync(0)
+    expect(el.loop).toBe(false)
+    expect(el.src).toBe('/a.mp3')
+    expect(handle.trackId).toBe('a')
+  })
+
+  it('«вперёд» и «назад» ходят по кругу и не глушат играющий трек', async () => {
+    const el = playlistElement()
+    const handle = createGarageAudio({ tracks }, { createElement: () => asElement(el) })
+    handle.start()
+    await vi.advanceTimersByTimeAsync(0)
+
+    handle.next()
+    await vi.advanceTimersByTimeAsync(0)
+    expect(el.src).toBe('/b.mp3')
+    expect(handle.state).toBe('playing')
+
+    handle.previous()
+    handle.previous()
+    await vi.advanceTimersByTimeAsync(0)
+    expect(el.src).toBe('/c.mp3')
+  })
+
+  it('«назад» на середине трека возвращает в его начало', async () => {
+    const el = playlistElement()
+    const handle = createGarageAudio({ tracks }, { createElement: () => asElement(el) })
+    handle.start()
+    await vi.advanceTimersByTimeAsync(0)
+    el.currentTime = 40
+    listener(el, 'timeupdate')()
+
+    handle.previous()
+    expect(el.src).toBe('/a.mp3')
+    expect(el.currentTime).toBe(0)
+  })
+
+  it('кончившийся трек сменяется следующим', async () => {
+    const el = playlistElement()
+    const handle = createGarageAudio({ tracks }, { createElement: () => asElement(el) })
+    handle.start()
+    await vi.advanceTimersByTimeAsync(0)
+    listener(el, 'ended')()
+    expect(handle.trackId).toBe('b')
+    expect(el.src).toBe('/b.mp3')
+  })
+
+  it('трек, выбранный до старта, играет первым', async () => {
+    const el = playlistElement()
+    const handle = createGarageAudio({ tracks }, { createElement: () => asElement(el) })
+    handle.next()
+    expect(el.src).toBe('')
+    expect(handle.trackId).toBe('b')
+    handle.start()
+    expect(el.src).toBe('/b.mp3')
+  })
+})

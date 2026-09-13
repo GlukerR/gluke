@@ -69,7 +69,16 @@ configurator:
   # hall music: the track is picked up only after the scene is built, starts at
   # zero volume and ramps up over 4 s; toggled by the button in the stage corner
   audio:
-    src: /media/projects/rp-grand/audio/night-street-racing.mp3
+    tracks:
+      - src: /media/projects/rp-grand/audio/night-street-racing.mp3
+        title: Night Street Racing
+        artist: GVIDON
+      - src: /media/projects/rp-grand/audio/race-till-sunset.mp3
+        title: Race Till Sunset
+        artist: LemonMusicStudio
+      - src: /media/projects/rp-grand/audio/call-of-the-streets.mp3
+        title: The Call of the Streets
+        artist: LemonMusicStudio
     volume: 0.35
     fadeIn: 4
 media: []

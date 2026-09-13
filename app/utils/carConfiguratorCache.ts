@@ -86,6 +86,14 @@ export function carPaintHandles(
  * проходят по пустому словарю.
  */
 function disposeCarViewerExtra(viewer: CachedCarConfigurator): void {
+  /* Сетка режима TECH — линии, а не меши: общий disposeObjectResources их
+     пропускает, поэтому их геометрию отпускаем здесь, по всем уровням. */
+  const roots = [viewer.scene, ...[...viewer.lodModels.values()].map(model => model.root)]
+  for (const root of roots) {
+    root.traverse((object) => {
+      if (object.userData.garageWire) (object as THREE.LineSegments).geometry.dispose()
+    })
+  }
   for (const model of viewer.lodModels.values()) {
     if (model.root === viewer.model) continue
     disposeObjectResources(model.root)

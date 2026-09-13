@@ -22,6 +22,8 @@ export type GarageAudioState = 'playing' | 'muted' | 'waiting'
 export interface GarageAudioTrack {
   id: string
   title: string
+  /** Исполнитель — строка «NOW PLAYING» в музыкальном HUD. */
+  artist?: string
   src: string
 }
 
@@ -45,6 +47,10 @@ export interface GarageAudio {
   toggle(): void
   /** Выбрать трек из очереди и начать его. */
   selectTrack(trackId: string): void
+  /** Следующий трек очереди (по кругу). */
+  next(): void
+  /** Предыдущий трек; если текущий играет дольше нескольких секунд — его начало. */
+  previous(): void
   /** Перейти к позиции в текущем треке. */
   seek(ratio: number): void
   /** Уход со страницы: остановиться и снять слушателей. */
@@ -68,6 +74,9 @@ const FADE_STEP_MS = 40
 /* Выключение короткое: кнопку нажали, тишины ждут сразу. */
 const MUTE_FADE_S = 0.4
 const GESTURE_EVENTS = ['pointerdown', 'keydown', 'touchstart'] as const
+/* «Назад» в первые секунды трека уходит на предыдущий, позже — в начало
+   текущего: так ведут себя любые плееры, и иначе кнопка ощущается сломанной. */
+const RESTART_THRESHOLD_S = 3
 
 function clampVolume(value: number): number {
   if (!Number.isFinite(value)) return DEFAULT_VOLUME
@@ -97,6 +106,7 @@ export function createGarageAudio(
   let currentTime = 0
   let duration = 0
   let onTimeUpdate: (() => void) | null = null
+  let onEnded: (() => void) | null = null
 
   function setState(next: GarageAudioState) {
     if (state === next) return
@@ -139,9 +149,14 @@ export function createGarageAudio(
       duration = Number.isFinite(element?.duration ?? NaN) ? element?.duration ?? 0 : 0
       deps.onChange?.(state)
     }
+    /* Очередь из нескольких треков идёт дальше сама; один трек крутится
+       петлёй (`loop`), и `ended` у него не наступает. */
+    onEnded = () => {
+      if (tracks.length > 1) next()
+    }
     element.addEventListener('timeupdate', onTimeUpdate)
     element.addEventListener('loadedmetadata', onTimeUpdate)
-    element.addEventListener('ended', onTimeUpdate)
+    element.addEventListener('ended', onEnded)
   }
 
   function setTrack(track: GarageAudioTrack) {
@@ -157,14 +172,14 @@ export function createGarageAudio(
   }
 
   function currentTrack(): GarageAudioTrack | undefined {
-    return tracks.find(track => track.id === currentTrackId) ?? firstTrack  }
+    return tracks.find(track => track.id === currentTrackId) ?? firstTrack
+  }
 
   function releaseGesture() {
     if (!listener || !target) return
     for (const type of GESTURE_EVENTS) target.removeEventListener(type, listener)
     listener = null
   }
-
 
   /* Взвод на жест: браузеры без взаимодействия со страницей не дают звука,
      и без этого трек молчал бы до перезагрузки. */
@@ -198,23 +213,54 @@ export function createGarageAudio(
     started = true
     element = createElement()
     element.preload = 'none'
-    element.loop = true
+    element.loop = tracks.length <= 1
     element.volume = 0
     bindTimeEvents()
-    if (firstTrack) {
-      currentTrackId = firstTrack.id
-      element.src = firstTrack.src
+    /* Трек мог быть выбран в HUD ещё до старта — тогда начинаем с него. */
+    const track = currentTrack()
+    if (track) {
+      currentTrackId = track.id
+      element.src = track.src
     }
     void play()
   }
 
   function selectTrack(trackId: string) {
     const track = tracks.find(item => item.id === trackId)
-    if (!track || !element) return
-    const shouldPlay = state === 'playing'
+    if (!track || disposed) return
+    /* До старта элемента нет: запоминаем выбор, `start` начнёт с него. */
+    if (!element) {
+      currentTrackId = track.id
+      deps.onChange?.(state)
+      return
+    }
+    const shouldPlay = state === 'playing' || state === 'waiting'
     setTrack(track)
     if (shouldPlay) void play()
-    else setState('muted')
+    else deps.onChange?.(state)
+  }
+
+  function step(offset: number) {
+    if (tracks.length === 0) return
+    const index = Math.max(0, tracks.findIndex(track => track.id === currentTrack()?.id))
+    const nextTrack = tracks[(index + offset + tracks.length) % tracks.length]
+    if (nextTrack) selectTrack(nextTrack.id)
+  }
+
+  function next() {
+    if (tracks.length <= 1) {
+      seek(0)
+      return
+    }
+    step(1)
+  }
+
+  function previous() {
+    if (tracks.length <= 1 || currentTime > RESTART_THRESHOLD_S) {
+      seek(0)
+      return
+    }
+    step(-1)
   }
 
   function seek(ratio: number) {
@@ -250,10 +296,11 @@ export function createGarageAudio(
     if (element && onTimeUpdate) {
       element.removeEventListener('timeupdate', onTimeUpdate)
       element.removeEventListener('loadedmetadata', onTimeUpdate)
-      element.removeEventListener('ended', onTimeUpdate)
     }
+    if (element && onEnded) element.removeEventListener('ended', onEnded)
     element = null
     onTimeUpdate = null
+    onEnded = null
   }
 
   return {
@@ -267,11 +314,13 @@ export function createGarageAudio(
       return duration
     },
     get trackId() {
-      return currentTrackId
+      return currentTrack()?.id ?? null
     },
     start,
     toggle,
     selectTrack,
+    next,
+    previous,
     seek,
     stop,
   }

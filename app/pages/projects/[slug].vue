@@ -318,22 +318,20 @@ useSchemaOrg([
       </div>
     </section>
 
-    <!-- Лаборатория автомобиля: конфигуратор целиком — и сцена («гараж»),
-         и панель настроек. В шапке его нет намеренно: там витрина, а покрутить
-         обвес и окраску приходит тот, кому интересно. -->
+    <!-- Гараж: конфигуратор на всю ширину и высоту экрана — сцена и игровой
+         HUD поверх неё. Без site-container: это не блок страницы, а окно
+         в зал; шапка кейса остаётся над ним, история проекта — под ним. -->
     <section
       v-if="project.configurator && project.model"
-      class="project-page__demo"
+      class="project-page__garage"
     >
-      <div class="site-container">
-        <LazyCarConfigurator
-          :model="project.model"
-          :manifest="project.configurator.manifest"
-          :garage="project.configurator.garage"
-          :audio="project.configurator.audio"
-          :poster="project.cover.src"
-        />
-      </div>
+      <LazyCarConfigurator
+        :model="project.model"
+        :manifest="project.configurator.manifest"
+        :garage="project.configurator.garage"
+        :audio="project.configurator.audio"
+        :poster="project.cover.src"
+      />
     </section>
 
     <ProjectsProjectDetailStory
@@ -372,6 +370,13 @@ useSchemaOrg([
 
 .project-page__demo {
   padding-block: var(--project-space, clamp(28px, 3.2vw, 56px));
+}
+
+/* Гараж во всю ширину окна: полоса между соседними секциями без отступов по
+   бокам — зал начинается от края экрана, а не от колонки контента. */
+.project-page__garage {
+  margin-block: var(--project-space, clamp(28px, 3.2vw, 56px));
+  scroll-margin-top: 64px;
 }
 
 .project-page__back {

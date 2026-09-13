@@ -216,11 +216,20 @@ export default defineContentConfig({
              сам набирает громкость с нуля и выключается кнопкой со скрипичным
              ключом в углу сцены. */
           audio: z.object({
-            src: z.string().min(1).startsWith(MEDIA_PREFIX),
+            /* Один трек (`src`) или очередь (`tracks`): музыкальный HUD
+               в углу гаража листает очередь кнопками и идёт по ней сам. */
+            src: z.string().min(1).startsWith(MEDIA_PREFIX).optional(),
+            tracks: z.array(z.object({
+              src: z.string().min(1).startsWith(MEDIA_PREFIX),
+              title: z.string().min(1),
+              artist: z.string().min(1).optional(),
+            })).min(1).optional(),
             /* Громкость, до которой доходит появление (0…1). */
             volume: z.number().min(0).max(1).optional(),
             /* Сколько секунд трек набирает громкость. */
             fadeIn: z.number().min(0).max(30).optional(),
+          }).refine(audio => !!audio.src || !!audio.tracks?.length, {
+            message: 'configurator.audio: нужен src или tracks',
           }).optional(),
         }).optional(),
         /* Живой WebGL-виджет вместо обложки в шапке кейса — по тому же принципу,
