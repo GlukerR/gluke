@@ -12,7 +12,7 @@ featured: false
 status: published
 navigation: false
 period: "2026"
-updated: 2026-09-11
+updated: 2026-09-14
 engagement: completed
 clientUrl: https://rpgrand.com
 services:
@@ -29,7 +29,7 @@ metrics:
     label: три уровня детализации под дистанцию
 cover:
   src: /media/projects/rp-grand/rp-grand-cover.jpg
-  alt: Спортивный купе с тёмным кузовом, повёрнутое в три четверти, на тёмном фоне
+  alt: Купе с узором сакуры в гараже — под 3D-сценой ряд разделов конфигуратора и счётчики сцены
   width: 1680
   height: 945
 model:

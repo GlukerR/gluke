@@ -12,7 +12,7 @@ featured: false
 status: published
 navigation: false
 period: "2026"
-updated: 2026-09-11
+updated: 2026-09-14
 engagement: completed
 clientUrl: https://rpgrand.com
 services:
@@ -29,7 +29,7 @@ metrics:
     label: three levels of detail for draw distance
 cover:
   src: /media/projects/rp-grand/rp-grand-cover.jpg
-  alt: A sports coupe with a dark body, turned three-quarters, on a dark background
+  alt: A cherry-blossom coupe in the garage — the configurator section row and scene counters under the 3D scene
   width: 1680
   height: 945
 model:
