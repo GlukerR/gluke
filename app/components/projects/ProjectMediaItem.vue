@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { ProjectsCollectionItem } from '@nuxt/content'
+import { ipxVersionModifier } from '~/utils/imageVersion'
+import { withShareImageVersion } from '~/utils/shareImage'
 
 type ProjectMedia = ProjectsCollectionItem['media'][number]
 
@@ -26,8 +28,19 @@ const isModel = computed(() => props.item.kind === '3d')
 const isLoop = computed(() => props.item.kind === 'video' && Boolean(props.item.loop))
 const isAutoplayVideo = computed(() => props.item.kind === 'video' && Boolean(props.item.autoplay))
 
+/* Отпечатки картинок контента: постер — обычная ссылка на файл, поэтому
+   версия едет параметром адреса (`?v=…`), а варианты `/_ipx/**` получают её
+   модификатором. См. `app/utils/imageVersion.ts`. */
+const imageVersions = useRuntimeConfig().public.imageVersions
+
 /* Собственный `poster` материала всегда приоритетнее обложки кейса. */
-const posterSrc = computed(() => props.item.poster ?? props.fallbackVideoPoster)
+const posterSrc = computed(() => withShareImageVersion(
+  props.item.poster ?? props.fallbackVideoPoster,
+  imageVersions,
+))
+
+/* Картинка галереи идёт через `NuxtPicture`, то есть вариантом `/_ipx/**`. */
+const imageModifiers = computed(() => ipxVersionModifier(props.item.src, imageVersions))
 
 const videoType = computed(() => {
   const extension = props.item.src.split('.').pop()?.toLowerCase() ?? ''
@@ -247,6 +260,7 @@ onMounted(() => {
       :width="item.width"
       :height="item.height"
       :sizes="sizes"
+      :modifiers="imageModifiers"
       format="avif,webp"
       loading="lazy"
       decoding="async"

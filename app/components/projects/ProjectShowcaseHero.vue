@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import type { ProjectsCollectionItem } from '@nuxt/content'
+import { ipxVersionModifier } from '~/utils/imageVersion'
 
 const props = defineProps<{ project: ProjectsCollectionItem }>()
 
 /* Картинка в шапке: отдельное поле `hero`, если задано, иначе обложка кейса. */
 const heroVisual = computed(() => props.project.hero ?? props.project.cover)
+
+/* Шапка идёт вариантом `/_ipx/**`: версия в адресе не даёт кэшу залипнуть на
+   прежней картинке после её замены. См. `app/utils/imageVersion.ts`. */
+const imageVersions = useRuntimeConfig().public.imageVersions
+const heroModifiers = computed(() => ipxVersionModifier(heroVisual.value.src, imageVersions))
 </script>
 
 <template>
@@ -38,6 +44,7 @@ const heroVisual = computed(() => props.project.hero ?? props.project.cover)
           :alt="heroVisual.alt"
           :width="heroVisual.width"
           :height="heroVisual.height"
+          :modifiers="heroModifiers"
           sizes="100vw lg:58vw xl:1000px"
           format="avif,webp"
           loading="eager"

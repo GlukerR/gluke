@@ -42,6 +42,7 @@ import {
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { MeshSurfaceSampler } from 'three/examples/jsm/math/MeshSurfaceSampler.js'
+import { attachRunSources, createRunGate } from './widgetRunGate'
 
 const DEFAULTS = {
   /** Путь к .glb. Модель обязательна: без неё виджету нечего сэмплировать. */
@@ -172,7 +173,11 @@ class Widget {
     this.o = Object.assign({}, DEFAULTS, options || {})
     this.ready = false
     this.raf = null
-    this.visible = true
+    /* Сторож кадров живёт вместе с виджетом (переживает detach/reattach),
+       а источники и подписка создаются в bindRunSources(). */
+    this.gate = null
+    this.gateOff = null
+    this.sources = null
     /* Поворот складывается из двух слагаемых: накопленного автоповорота
        и того, что пользователь накрутил перетаскиванием. На время драга
        автоповорот ставится на паузу — как у вьюверов моделей на сайте. */
@@ -701,17 +706,29 @@ class Widget {
       this.canvas.style.cursor = 'grab'
     }
 
-    this.onVisibility = () => (document.hidden ? this.stop() : this.start())
-    document.addEventListener('visibilitychange', this.onVisibility)
+    this.bindRunSources()
+  }
 
-    if (this.o.pauseOffscreen && window.IntersectionObserver) {
-      this.io = new IntersectionObserver((entries) => {
-        this.visible = entries[0].isIntersecting
-        if (this.visible) this.start()
-        else this.stop()
-      }, { threshold: 0 })
-      this.io.observe(this.el)
-    }
+  /* Источники кадров: активность вкладки и пересечение с вьюпортом — два
+     независимых признака (utils/widgetRunGate). Раньше оба писали в один
+     this.visible, а detach() его не сбрасывал: кэшированный виджет после
+     снятия канваса оживал по возвращении на вкладку и рисовал в никуда. */
+  bindRunSources() {
+    if (!this.gate) this.gate = createRunGate({ pauseOffscreen: this.o.pauseOffscreen })
+    this.gateOff = this.gate.subscribe((run) => {
+      if (run) this.start()
+      else this.stop()
+    })
+    this.sources = attachRunSources(this.el, this.gate, {
+      pauseOffscreen: this.o.pauseOffscreen,
+    })
+  }
+
+  unbindRunSources() {
+    if (this.sources) this.sources.disconnect()
+    this.sources = null
+    if (this.gateOff) this.gateOff()
+    this.gateOff = null
   }
 
   set(patch) {
@@ -805,7 +822,7 @@ class Widget {
   }
 
   start() {
-    if (this.raf || !this.visible || !this.ready || document.hidden) return
+    if (this.raf || !this.gate || !this.gate.shouldRun() || !this.ready) return
     this.raf = requestAnimationFrame(t => this.loop(t))
   }
 
@@ -819,7 +836,9 @@ class Widget {
   detach() {
     this.stop()
     if (this.ro) this.ro.disconnect()
-    if (this.io) this.io.disconnect()
+    /* Снятый виджет обязан отписать источники: иначе слушатель вкладки
+       переживёт свой канвас и снова запустит цикл. */
+    this.unbindRunSources()
     if (this.canvas.parentNode) this.canvas.parentNode.removeChild(this.canvas)
     if (this.el.__glukeParticles === this) delete this.el.__glukeParticles
   }
@@ -829,14 +848,13 @@ class Widget {
     el.appendChild(this.canvas)
     el.__glukeParticles = this
     if (this.ro) this.ro.observe(el)
-    if (this.io) this.io.observe(el)
+    this.bindRunSources()
     this.resize()
     this.start()
   }
 
   destroy() {
     this.detach()
-    document.removeEventListener('visibilitychange', this.onVisibility)
     if (this.onPointerDown) {
       this.canvas.removeEventListener('pointerdown', this.onPointerDown)
       this.canvas.removeEventListener('pointermove', this.onPointerMove)
@@ -853,6 +871,10 @@ class Widget {
     this.material.dispose()
     this.renderer.dispose()
     this.renderer = null
+    /* Реестр не должен держать уничтоженный инстанс: вытеснение из кэша
+       виджетов зовёт destroy(), и без этого массив рос бы всю сессию. */
+    const at = GlukeParticles.instances.indexOf(this)
+    if (at > -1) GlukeParticles.instances.splice(at, 1)
   }
 }
 

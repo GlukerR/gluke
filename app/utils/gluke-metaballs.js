@@ -17,6 +17,8 @@
  * и тянет остальные к себе — «капли за курсором».
  */
 
+import { attachRunSources, createRunGate } from './widgetRunGate'
+
 const GlukeMetaballs = (function (global) {
   'use strict'
 
@@ -256,7 +258,11 @@ const GlukeMetaballs = (function (global) {
     this._blobPos = new Float32Array(MAX_BLOBS * 2)
     this._blobs = []
     this._aspect = 1
-    this._visible = true
+    /* Сторож кадров живёт вместе с движком (переживает detach/reattach),
+       а источники и подписка создаются в _bind(). */
+    this._gate = null
+    this._gateOff = null
+    this._sources = null
     this._running = false
     this._elapsed = 0
     this._hover = { x: 0.5, y: 0.5, inside: false }
@@ -344,18 +350,20 @@ const GlukeMetaballs = (function (global) {
       global.addEventListener('resize', this._onResize)
     }
 
-    if (typeof IntersectionObserver !== 'undefined' && this.o.pauseOffscreen) {
-      this._io = new IntersectionObserver(function (entries) {
-        var visible = entries[0] && entries[0].isIntersecting
-        self._setVisible(!!visible)
-      })
-      this._io.observe(this.el)
+    /* Кадры разрешает единый сторож: «вкладка активна» и «блок в кадре» —
+       два независимых признака (utils/widgetRunGate). Раньше оба источника
+       писали в один флаг `_visible`, и возврат на вкладку запускал блок,
+       стоящий за экраном. */
+    if (!this._gate) {
+      this._gate = createRunGate({ pauseOffscreen: this.o.pauseOffscreen })
     }
-
-    this._onVis = function () {
-      self._setVisible(!document.hidden)
-    }
-    document.addEventListener('visibilitychange', this._onVis)
+    this._gateOff = this._gate.subscribe(function (run) {
+      if (run) self.start()
+      else self.stop()
+    })
+    this._sources = attachRunSources(this.el, this._gate, {
+      pauseOffscreen: this.o.pauseOffscreen,
+    })
 
     if (this.o.pointer) {
       this._onMove = function (e) {
@@ -380,12 +388,6 @@ const GlukeMetaballs = (function (global) {
       host.addEventListener('touchmove', this._onMove, { passive: true })
       this._hoverHost = host
     }
-  }
-
-  Widget.prototype._setVisible = function (visible) {
-    this._visible = visible
-    if (visible) this.start()
-    else this.stop()
   }
 
   Widget.prototype._frame = function (now) {
@@ -461,7 +463,7 @@ const GlukeMetaballs = (function (global) {
   }
 
   Widget.prototype.start = function () {
-    if (this._running || document.hidden || !this._visible) return
+    if (this._running || !this._gate || !this._gate.shouldRun()) return
     this._running = true
     var self = this
     this._t0 = performance.now() - (this._elapsed || 0) * 1000
@@ -490,14 +492,17 @@ const GlukeMetaballs = (function (global) {
   Widget.prototype._unbind = function () {
     if (this._ro) this._ro.disconnect()
     else if (this._onResize) global.removeEventListener('resize', this._onResize)
-    if (this._io) this._io.disconnect()
-    document.removeEventListener('visibilitychange', this._onVis)
+    /* Снятый движок обязан отписать источники: иначе слушатель вкладки
+       пережил бы свой канвас и снова запустил цикл. */
+    if (this._sources) this._sources.disconnect()
+    if (this._gateOff) this._gateOff()
     if (this._onMove && this._hoverHost) {
       this._hoverHost.removeEventListener('mousemove', this._onMove)
       this._hoverHost.removeEventListener('touchmove', this._onMove)
     }
     this._ro = null
-    this._io = null
+    this._sources = null
+    this._gateOff = null
     this._onResize = null
     this._onMove = null
     this._hoverHost = null
@@ -519,7 +524,6 @@ const GlukeMetaballs = (function (global) {
     this.el = node
     if (getComputedStyle(node).position === 'static') node.style.position = 'relative'
     node.appendChild(this.canvas)
-    this._visible = true
     this.resize()
     this._bind()
     this.start()
@@ -530,8 +534,8 @@ const GlukeMetaballs = (function (global) {
     this.stop()
     if (this._ro) this._ro.disconnect()
     else global.removeEventListener('resize', this._onResize)
-    if (this._io) this._io.disconnect()
-    document.removeEventListener('visibilitychange', this._onVis)
+    if (this._sources) this._sources.disconnect()
+    if (this._gateOff) this._gateOff()
     if (this._onMove && this._hoverHost) {
       this._hoverHost.removeEventListener('mousemove', this._onMove)
       this._hoverHost.removeEventListener('touchmove', this._onMove)
@@ -539,6 +543,10 @@ const GlukeMetaballs = (function (global) {
     var ext = this.gl.getExtension('WEBGL_lose_context')
     if (ext) ext.loseContext()
     if (this.canvas.parentNode) this.canvas.parentNode.removeChild(this.canvas)
+    /* Реестр не должен держать уничтоженный инстанс: вытеснение из кэша
+       виджетов зовёт destroy(), и без этого массив рос бы всю сессию. */
+    var at = API.instances.indexOf(this)
+    if (at > -1) API.instances.splice(at, 1)
   }
 
   var API = {

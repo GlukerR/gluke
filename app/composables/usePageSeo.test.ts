@@ -19,6 +19,9 @@ let metaCalls: Meta[] = []
 let siteUrl = 'https://gluke.ru'
 let requestOrigin = 'http://localhost:3000'
 let currentLocale = 'ru'
+/* Отпечатки картинок приходят из runtimeConfig (их считает сборка).
+   По умолчанию карта пустая: адреса обязаны оставаться рабочими и без неё. */
+let imageVersions: Record<string, string> = {}
 
 const globals = globalThis as Record<string, unknown>
 
@@ -28,6 +31,7 @@ beforeEach(() => {
   siteUrl = 'https://gluke.ru'
   requestOrigin = 'http://localhost:3000'
   currentLocale = 'ru'
+  imageVersions = {}
 
   globals.computed = computed
   globals.toValue = toValue
@@ -37,13 +41,14 @@ beforeEach(() => {
     },
   })
   globals.useRequestURL = () => new URL(requestOrigin)
+  globals.useRuntimeConfig = () => ({ public: { imageVersions } })
   globals.useI18n = () => ({ locale: computed(() => currentLocale) })
   globals.useHead = (value: Meta) => headCalls.push(value)
   globals.useSeoMeta = (value: Meta) => metaCalls.push(value)
 })
 
 afterEach(() => {
-  for (const key of ['computed', 'toValue', 'useSiteConfig', 'useRequestURL', 'useI18n', 'useHead', 'useSeoMeta']) {
+  for (const key of ['computed', 'toValue', 'useSiteConfig', 'useRequestURL', 'useRuntimeConfig', 'useI18n', 'useHead', 'useSeoMeta']) {
     Reflect.deleteProperty(globals, key)
   }
 })
@@ -83,6 +88,24 @@ describe('useSiteUrls', () => {
     expect(useSiteUrls().toAbsolute('/media/cover.jpg')).toBe('http://localhost:3000/media/cover.jpg')
   })
 
+  /* Сборка без NUXT_SITE_URL (превью-деплой, второй проект на том же коде)
+     кладёт в поле `url` не адрес, а строку вида
+     `https://() => resolveI18nUrl(i18n)`. Проверяем поведение на ней, а не
+     только на пустом значении: `new URL(путь, такая строка)` бросает
+     `Invalid URL`, то есть страница падала бы целиком. */
+  it('не-URL в Site Config не ломает адреса, а уступает origin запроса', () => {
+    siteUrl = 'https://() => resolveI18nUrl(i18n)'
+
+    expect(() => useSiteUrls().toAbsolute('/media/cover.jpg')).not.toThrow()
+    expect(useSiteUrls().toAbsolute('/media/cover.jpg')).toBe('http://localhost:3000/media/cover.jpg')
+  })
+
+  it('относительное значение без схемы тоже не принимается за origin', () => {
+    siteUrl = 'gluke.ru'
+
+    expect(useSiteUrls().toAbsolute('/media/cover.jpg')).toBe('http://localhost:3000/media/cover.jpg')
+  })
+
   it('уже абсолютный адрес не переклеивает на свой домен', () => {
     expect(useSiteUrls().toAbsolute('https://cdn.example.com/a.jpg')).toBe('https://cdn.example.com/a.jpg')
   })
@@ -118,6 +141,26 @@ describe('usePageSeo', () => {
     expect(meta('ogImageWidth')).toBe(1680)
     expect(meta('ogImageHeight')).toBe(945)
     expect(meta('ogImageAlt')).toBe('Обложка')
+  })
+
+  /* Версия в адресе обложки — не косметика: мессенджер держит превью ссылки
+     по адресу картинки, и без версии заменённая обложка остаётся в чате старой.
+     Версия обязана попасть и в Open Graph, и в Twitter — иначе превью
+     разъедется между сетями. */
+  it('адрес обложки получает версию, когда сборка её посчитала', () => {
+    imageVersions = { '/media/cover.jpg': '1a2b3c4d' }
+    run('/ru/projects/pyramid')
+
+    expect(meta('ogImage')).toBe('https://gluke.ru/media/cover.jpg?v=1a2b3c4d')
+    expect(meta('twitterImage')).toBe('https://gluke.ru/media/cover.jpg?v=1a2b3c4d')
+  })
+
+  /* Картинки без отпечатка (логотип, чужой адрес) уходят как есть: версия —
+     добавка к адресу, а не обязательное условие его существования. */
+  it('без отпечатка адрес остаётся чистым', () => {
+    run('/ru/projects/pyramid')
+
+    expect(meta('ogImage')).toBe('https://gluke.ru/media/cover.jpg')
   })
 
   /* Open Graph хочет `ru_RU`, а не `ru-RU`, и альтернативой указывается

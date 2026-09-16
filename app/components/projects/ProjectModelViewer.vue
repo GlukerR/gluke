@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import type * as THREE from 'three'
+import { diffuseLiftMix } from '~/utils/diffuseLift'
+import { createFrameLimiter, createQualityGovernor, physicalPixelRatio } from '~/utils/framePacing'
 import { viewerCache } from '~/utils/modelViewerCache'
 import { applyTouchScrollPolicy, isCoarsePointer } from '~/utils/touchScroll'
 import type { CachedViewer } from '~/utils/modelViewerCache'
@@ -95,15 +97,31 @@ const CANVAS_SCALE = props.canvasScale ?? 1.8
 let viewer: CachedViewer | undefined = cachedViewer
 let resizeObserver: ResizeObserver | undefined
 let intersectionObserver: IntersectionObserver | undefined
+/* Наблюдатель приближения: пока блок далеко за экраном, сцена не создаётся. */
+let startObserver: IntersectionObserver | undefined
 let animationFrame = 0
 /* Накопленное время активного рендера: пауза вне вьюпорта не сбивает
    фазу пульсации эмишн-материалов. */
 let accumulatedMs = 0
 let lastFrameAt = 0
-/* Лимит кадров 30fps в покое: автоповорот медленный, 60fps не видно,
-   но каждый кадр — работа главного потока на слабых устройствах. */
-let lastRenderAt = 0
-const FRAME_INTERVAL = 1000 / 30
+/* Лимит кадров в покое: автоповорот медленный, 60fps не видно, но каждый
+   кадр — работа главного потока. Интервал считается с переносом остатка
+   (utils/framePacing): при простой разнице с моментом последнего кадра
+   лимит 30fps на 60-герцовом rAF превращался в 20. */
+const frameLimiter = createFrameLimiter(30)
+/* Регулятор качества: если устройство не успевает кадры, плотность буфера
+   опускается на ступень (utils/framePacing). Опора — частота самого экрана,
+   поэтому экран 30 Гц за перегрузку не принимается. */
+const quality = createQualityGovernor()
+/* Канвас вьювера больше контейнера (CANVAS_SCALE), и эти пиксели видно —
+   «вылет» модели за колонку и есть замысел. Но на большом блоке и экране
+   высокой плотности их набегает вчетверо больше без пользы, поэтому кадр
+   ограничен бюджетом физических пикселей; ниже плотности 1 вьювер не
+   опускается — размытая модель хуже лишних пикселей. */
+const DESKTOP_DPR_CAP = 2
+const MOBILE_DPR_CAP = 1.5
+const DESKTOP_PIXEL_BUDGET = 3_200_000
+const MOBILE_PIXEL_BUDGET = 1_600_000
 /* Во время ручного вращения рендерим каждый кадр — инерция OrbitControls
    требует непрерывного цикла, иначе поворот «дёргается». */
 let userDragging = false
@@ -115,6 +133,9 @@ let dismissTimer: ReturnType<typeof setTimeout> | undefined
    показаться первым. */
 let idleId: number | null = null
 const IDLE_TIMEOUT = 2500
+/* Отступ, с которого блок считается «подходящим»: примерно один экран
+   промотки, чтобы к моменту показа модель уже грузилась. */
+const START_MARGIN = '300px 0px'
 
 function markInteracted() {
   if (interacted.value) return
@@ -175,6 +196,21 @@ function frameCamera() {
   viewer.fitDistance = fit
 }
 
+/* Плотность кадра: не выше потолка устройства и не выше бюджета пикселей,
+   но не ниже 1 — иначе модель на большом блоке превращается в кашу. */
+function pixelRatioFor(cssWidth: number, cssHeight: number): number {
+  const narrow = window.innerWidth < 1024
+  return physicalPixelRatio({
+    cssWidth,
+    cssHeight,
+    dpr: window.devicePixelRatio || 1,
+    cap: narrow ? MOBILE_DPR_CAP : DESKTOP_DPR_CAP,
+    budget: narrow ? MOBILE_PIXEL_BUDGET : DESKTOP_PIXEL_BUDGET,
+    floor: 1,
+    scale: quality.scale(),
+  })
+}
+
 function resizeRenderer() {
   if (!viewer || !container.value) return
   const w = container.value.clientWidth
@@ -183,6 +219,7 @@ function resizeRenderer() {
   const scale = window.innerWidth >= 1024 ? CANVAS_SCALE : 1
   const cw = Math.round(w * scale)
   const ch = Math.round(h * scale)
+  viewer.renderer.setPixelRatio(pixelRatioFor(cw, ch))
   viewer.renderer.setSize(cw, ch)
   viewer.camera.aspect = cw / ch
   viewer.camera.updateProjectionMatrix()
@@ -191,16 +228,18 @@ function resizeRenderer() {
 
 function startLoop() {
   if (!viewer || animationFrame) return
+  /* Возврат к экрану рисует кадр сразу, а не через интервал лимита. */
+  frameLimiter.reset(performance.now())
   lastFrameAt = performance.now()
   const animate = () => {
     if (disposed || !viewer) return
     animationFrame = requestAnimationFrame(animate)
 
     const now = performance.now()
+    if (quality.sample(now)) resizeRenderer()
     /* В покое рендерим не чаще 30fps (автоповорот плавный и на 30);
        при ручном вращении — каждый кадр, чтобы инерция не дёргалась. */
-    if (!userDragging && now - lastRenderAt < FRAME_INTERVAL) return
-    lastRenderAt = now
+    if (!userDragging && !frameLimiter.shouldRender(now)) return
 
     accumulatedMs += now - lastFrameAt
     lastFrameAt = now
@@ -221,6 +260,7 @@ function startLoop() {
 function stopLoop() {
   if (animationFrame) cancelAnimationFrame(animationFrame)
   animationFrame = 0
+  quality.pause()
 }
 
 /* Рендерим, только когда вьювер виден: вне вьюпорта цикл останавливается,
@@ -321,10 +361,10 @@ async function mountViewer() {
     const height = container.value.clientHeight || props.height
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
-    /* DPR-потолок ниже на мобильных: 2× на маленьком экране — вчетверо больше
-       пикселей, чем нужно, а модель на телефоне занимает ~пол-экрана. */
-    const dprCap = window.innerWidth < 1024 ? 1.5 : 2
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, dprCap))
+    /* Точную плотность кадра ставит resizeRenderer() по бюджету пикселей;
+       здесь — только стартовое приближение, чтобы первый кадр не рисовался
+       в полную плотность экрана. */
+    renderer.setPixelRatio(pixelRatioFor(width, height))
     renderer.setSize(width, height)
     renderer.outputColorSpace = THREE.SRGBColorSpace
     renderer.toneMapping = THREE.ACESFilmicToneMapping
@@ -406,35 +446,41 @@ async function mountViewer() {
 
     /* Диффузная текстура корпуса почти чисто чёрная (медиана яркости ~1/255):
        тени на таком материале не читаются, форма «проваливается». Поднимаем
-       уровень чёрного через canvas: тёмные участки → тёмно-серые, светлые
-       (логотип) почти не меняются. Сила подъёма — из настроек модели (diffuseLift). */
+       уровень чёрного: тёмные участки → тёмно-серые, светлые (логотип) почти
+       не меняются. Сила подъёма — из настроек модели (diffuseLift).
+
+       Это микс в шейдере, а не попиксельный проход по canvas: у Softlogic
+       карта 4096², то есть ~50 млн операций на главном потоке плюс вторая
+       копия текстуры в памяти — на первом показе это заметный фриз, а не
+       «экономия на качестве». Формула та же и в том же пространстве sRGB:
+       sRGBTransferOETF/EOTF three подключает в префикс любого фрагментного
+       шейдера (WebGLProgram → colorspace_pars_fragment). */
     const DIFFUSE_LIFT = props.diffuseLift ?? 30
 
-    const liftDiffuseTexture = (texture: THREE.Texture): THREE.Texture => {
-      const image = texture.image as HTMLImageElement | ImageBitmap
-      const canvas = document.createElement('canvas')
-      canvas.width = image.width
-      canvas.height = image.height
-      const ctx = canvas.getContext('2d')
-      if (!ctx) return texture
-      ctx.drawImage(image, 0, 0)
-      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-      const data = imgData.data
-      for (let i = 0; i < data.length; i += 4) {
-        for (let c = 0; c < 3; c++) {
-          const v = data[i + c] ?? 0
-          data[i + c] = Math.round(v + DIFFUSE_LIFT * (1 - v / 255))
-        }
+    const applyDiffuseLift = (material: THREE.MeshStandardMaterial, lift: number) => {
+      material.onBeforeCompile = (shader) => {
+        /* `lift` — в единицах канала 0–255 (как в контенте), а mix нужна
+           доля: сырое 30 выбивало карту в белый (utils/diffuseLift). */
+        shader.uniforms.uDiffuseLift = { value: diffuseLiftMix(lift) }
+        shader.fragmentShader = shader.fragmentShader
+          .replace('#include <common>', '#include <common>\nuniform float uDiffuseLift;')
+          .replace(
+            '#include <map_fragment>',
+            `#include <map_fragment>
+            {
+              /* Карта пришла в линейном пространстве: поднимаем уровень
+                 чёрного в sRGB, как это делал canvas-проход, и возвращаем
+                 обратно — так результат совпадает с прежним. */
+              vec3 liftedSrgb = sRGBTransferOETF(vec4(diffuseColor.rgb, 1.0)).rgb;
+              diffuseColor.rgb = sRGBTransferEOTF(vec4(mix(liftedSrgb, vec3(1.0), uDiffuseLift), 1.0)).rgb;
+            }`,
+          )
       }
-      ctx.putImageData(imgData, 0, 0)
-      const newTex = new THREE.CanvasTexture(canvas)
-      newTex.colorSpace = THREE.SRGBColorSpace
-      newTex.flipY = texture.flipY
-      newTex.wrapS = texture.wrapS
-      newTex.wrapT = texture.wrapT
-      newTex.anisotropy = texture.anisotropy
-      texture.dispose()
-      return newTex
+      /* Разные значения подъёма — разные программы: без своего ключа three
+         переиспользовал бы программу модели с другим подъёмом и чужим
+         юниформом. */
+      material.customProgramCacheKey = () => `diffuseLift:${lift}`
+      material.needsUpdate = true
     }
 
     /* Материалы со свечением: их `emissiveIntensity` пульсирует в цикле рендера. */
@@ -450,15 +496,10 @@ async function mountViewer() {
            умножает карту металла — 0.88 приглушает зеркальность.
            Значение — из настроек модели (metalness). */
         standard.metalness = (standard.metalness ?? 1) * (props.metalness ?? 0.88)
-        /* При нулевом подъёме не трогаем текстуры вовсе: на моделях с
-           запечённым светом (дома — десятки мегапикселей карт) попиксельный
-           проход по канвасу стоил бы сотни миллисекунд главного потока
-           и ничего не менял. */
-        if (standard.map && DIFFUSE_LIFT > 0) {
-          standard.map = liftDiffuseTexture(standard.map)
-          standard.map.needsUpdate = true
-          standard.needsUpdate = true
-        }
+        /* При нулевом подъёме хук не вешаем вовсе: на моделях с запечённым
+           светом (дома) поднимать нечего, а лишний вариант шейдера — лишняя
+           компиляция. */
+        if (standard.map && DIFFUSE_LIFT > 0) applyDiffuseLift(standard, DIFFUSE_LIFT)
         if (standard.emissiveMap || standard.emissive.getHex() !== 0) {
           emissiveMaterials.push(standard)
         }
@@ -504,10 +545,12 @@ async function mountViewer() {
   }
 }
 
-onMounted(() => {
-  /* Вьювер стартует в простой браузера: постер и текст рендерятся без
-     конкуренции за главный поток. requestIdleCallback — где есть; иначе
-     setTimeout с тем же таймаутом. */
+/* Старт отложен вдвойне: сначала ждём, пока блок подойдёт к экрану, потом —
+   простоя браузера. Постер держит кадр вместо модели, поэтому ожидание не
+   читается как пустое место, а three.js с декодером (~1,4 МБ) не отнимают
+   главный поток у текста и первой отрисовки. */
+function scheduleMount() {
+  if (disposed) return
   if ('requestIdleCallback' in window) {
     idleId = window.requestIdleCallback(mountViewer, { timeout: IDLE_TIMEOUT })
   }
@@ -515,9 +558,29 @@ onMounted(() => {
     /* setTimeout напрямую: после проверки `in` TS сужает window до never. */
     idleId = setTimeout(mountViewer, IDLE_TIMEOUT)
   }
+}
+
+onMounted(() => {
+  /* У кейса с двумя моделями обе GLB раньше уходили в сеть сразу после
+     навигации, хотя вторая стоит на две тысячи пикселей ниже (Hilbert —
+     4,3 МБ). Теперь загрузку открывает приближение блока к окну. */
+  if (typeof IntersectionObserver === 'undefined' || !container.value) {
+    scheduleMount()
+    return
+  }
+  startObserver = new IntersectionObserver((entries) => {
+    const entry = entries[entries.length - 1]
+    if (entry && !entry.isIntersecting) return
+    startObserver?.disconnect()
+    startObserver = undefined
+    scheduleMount()
+  }, { rootMargin: START_MARGIN })
+  startObserver.observe(container.value)
 })
 onBeforeUnmount(() => {
   /* Отменяем отложенный старт, если вьювер ещё не инициализировался. */
+  startObserver?.disconnect()
+  startObserver = undefined
   if (idleId !== null) {
     if ('requestIdleCallback' in window) window.cancelIdleCallback(idleId)
     else clearTimeout(idleId)

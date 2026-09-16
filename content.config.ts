@@ -172,7 +172,14 @@ export default defineContentConfig({
         clientUrl: z.string().url().optional(),
         services: z.array(z.string().min(1)).min(1),
         deliverables: z.array(z.string().min(1)).optional(),
-        cover: visualSchema,
+        /* Обложка карточки. `mobile` — необязательная вторая композиция для
+           узких экранов: там карточка сжимает общий кадр так, что не читается
+           ни объект, ни подписи на нём, и кейс может положить отдельный кроп
+           (`docs/dev-guide.md` §5). На превью ссылки он не влияет: в соцсети
+           уходит общий кадр (`cover.src`). */
+        cover: visualSchema.extend({
+          mobile: visualSchema.optional(),
+        }),
         /* Картинка в шапке кейса: по умолчанию совпадает с `cover` (карточкой
            категории), но может быть отдельной — когда на хабе проектов стоит
            одна заставка, а в самом кейсе хочется показать другую. */

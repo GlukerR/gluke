@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ProjectsCollectionItem } from '@nuxt/content'
 import { isBleedDemoWidget } from '~/utils/demoWidgetCache'
+import { ipxVersionModifier } from '~/utils/imageVersion'
 import { widgetDemoSpec } from '~/utils/widgetDemoSpecs'
 
 /* Звёздное поле в полноформатной шапке грузится не лениво, а статически: там
@@ -43,6 +44,11 @@ const isBleedHero = computed(() => isBleedDemoWidget(props.project.demo?.widget)
    своей колонки: сцена перестаёт быть 16:9-карточкой и занимает половину
    шапки целиком. На узком экране колонка уходит вторым блоком под текст. */
 const isHeroFill = computed(() => !isBleedHero.value && !!widgetDemoSpec(props.project.demo?.widget)?.heroFill)
+
+/* Обложка шапки идёт вариантом `/_ipx/**`: версия в адресе не даёт кэшу
+   залипнуть на прежней картинке после её замены. См. `app/utils/imageVersion.ts`. */
+const imageVersions = useRuntimeConfig().public.imageVersions
+const coverModifiers = computed(() => ipxVersionModifier(props.project.cover.src, imageVersions))
 
 const clientLinkLabel = computed(() => t('project.clientLinkAria', { client: props.project.client }))
 
@@ -186,6 +192,7 @@ const isModelHero = computed(() => (!!props.project.model && !props.project.conf
           :alt="project.cover.alt"
           :width="project.cover.width"
           :height="project.cover.height"
+          :modifiers="coverModifiers"
           sizes="100vw lg:58vw xl:1000px"
           format="avif,webp"
           loading="eager"

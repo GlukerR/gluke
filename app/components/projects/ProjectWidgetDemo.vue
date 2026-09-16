@@ -10,6 +10,7 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch } from 'vue'
 import type { ProjectsCollectionItem } from '@nuxt/content'
 import { demoWidgetKey, getDemoWidget, setDemoWidget } from '~/utils/demoWidgetCache'
+import { ipxVersionModifier } from '~/utils/imageVersion'
 import { applyTouchScrollPolicy, isCoarsePointer } from '~/utils/touchScroll'
 import type { WidgetDemoInstance, WidgetParams } from '~/utils/widgetDemoSpecs'
 import { widgetDemoSpec } from '~/utils/widgetDemoSpecs'
@@ -26,6 +27,11 @@ const props = defineProps<{
 }>()
 
 const { t, te } = useI18n()
+
+/* Постер идёт через `NuxtImg`, то есть вариантом `/_ipx/**`: версия в адресе не
+   даёт кэшу залипнуть на прежней обложке после её замены. */
+const imageVersions = useRuntimeConfig().public.imageVersions
+const posterModifiers = computed(() => ipxVersionModifier(props.poster, imageVersions))
 
 const spec = computed(() => widgetDemoSpec(props.demo.widget))
 
@@ -135,6 +141,10 @@ async function mount() {
 
   try {
     const { default: factory } = await current.load()
+    /* Пока грузился движок, компонент могли размонтировать (быстрая
+       навигация): канвас создался бы в уже снятом узле и остался без
+       владельца — вместе с WebGL-контекстом. */
+    if (unmounted || !el.isConnected) return
     const options: WidgetParams = {
       ...currentParams(),
       ...(current.createTheme?.(isLight.value) ?? {}),
@@ -217,9 +227,38 @@ async function copyJson() {
 }
 
 let stageObserver: ResizeObserver | null = null
+/* Снят ли компонент. Загрузка движка асинхронная: за это время страницу
+   успевают покинуть, и создавать виджет тогда уже некому. */
+let unmounted = false
+/* Ждёт приближения сцены к окну. Hero и лаборатория стоят на одной странице,
+   и раньше обе создавались при монтировании: движок, шейдеры и подготовка
+   карт (у energy-fill — сетка 2048²) шли для лаборатории, до которой ещё
+   нужно прокрутить. Кэшированный виджет цепляется сразу — он уже готов. */
+let startObserver: IntersectionObserver | null = null
+const START_MARGIN = '300px 0px'
+
+/* Блок уже в окне или в пределах отступа старта. Hero стоит на первом экране
+   всегда — ждать для него обратного вызова наблюдателя незачем. */
+function nearViewport(el: HTMLElement): boolean {
+  const r = el.getBoundingClientRect()
+  return r.top < window.innerHeight + 300 && r.bottom > -300
+}
 
 onMounted(() => {
-  mount()
+  const el = host.value
+  if (!el || getDemoWidget(cacheKey.value) || typeof IntersectionObserver === 'undefined' || nearViewport(el)) {
+    void mount()
+  }
+  else {
+    startObserver = new IntersectionObserver((entries) => {
+      const entry = entries[entries.length - 1]
+      if (entry && !entry.isIntersecting) return
+      startObserver?.disconnect()
+      startObserver = null
+      void mount()
+    }, { rootMargin: START_MARGIN })
+    startObserver.observe(el)
+  }
 
   /* Площадь сцены нужна только оценке под панелью. */
   if (isTuner.value && spec.value?.estimate && stageEl.value && typeof ResizeObserver !== 'undefined') {
@@ -234,6 +273,9 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  unmounted = true
+  startObserver?.disconnect()
+  startObserver = null
   stageObserver?.disconnect()
   stageObserver = null
   /* Виджет не уничтожаем — отцепляем и оставляем в кэше (demoWidgetCache):
@@ -268,6 +310,7 @@ defineExpose({ failed })
         v-if="props.variant !== 'bleed'"
         :src="props.poster"
         :alt="props.posterAlt"
+        :modifiers="posterModifiers"
         sizes="100vw lg:58vw xl:1000px"
         format="avif,webp"
         loading="eager"

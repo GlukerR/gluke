@@ -1,4 +1,5 @@
 import { DEFAULT_LOCALE, SITE_LOCALES } from './shared/i18n'
+import { collectImageVersions } from './scripts/media-versions.mjs'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -54,6 +55,18 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       yandexMetrikaId: '',
+      /* Отпечатки картинок контента: «адрес → версия содержимого».
+
+         Мессенджер держит картинку превью по её URL и страницу не
+         переспрашивает, поэтому адрес share-картинки получает отпечаток: иначе
+         клиенту уходит закэшированная старая картинка, даже если файл заменён.
+         Тот же отпечаток уходит в адрес варианта `/_ipx/**` модификатором
+         (см. app/utils/imageVersion.ts) — иначе кэш браузера и CDN не заметил
+         бы замену картинки: адрес варианта от содержимого не зависит.
+
+         Карта считается один раз при сборке или старте dev-сервера
+         (scripts/media-versions.mjs), в рантайме файлы не читаются. */
+      imageVersions: collectImageVersions(),
     },
   },
   /* Production-сборка (scripts/nuxt-run.mjs) идёт в отдельный каталог `.nuxt-build`:
@@ -61,6 +74,37 @@ export default defineNuxtConfig({
      что dev-шаблоны (createRequire из @nuxt/icon) протекали в прод-бандл и
      ломали prerender на Windows. Dev и typecheck (`.nuxt-typecheck`) не меняются. */
   buildDir: import.meta.env.NUXT_BUILD_DIR || '.nuxt',
+  /* Кэш ответов.
+
+     Страницы одинаковы для всех: язык лежит в пути, а единственный
+     персонализированный маршрут — корень — закрыт `private, no-store` в
+     server/middleware/locale-redirect.ts. Поэтому их можно держать на CDN:
+     `s-maxage=60` — окно свежести, дальше Vercel отдаёт копию из ближайшего PoP
+     и пересобирает её в фоне (`stale-while-revalidate`), а если зона вычислений
+     недоступна — отдаёт устаревшую копию (`stale-if-error`) вместо пустого
+     экрана.
+
+     Почему это важнее «второй зоны»: серверные функции на Vercel исполняются в
+     одной зоне (на Hobby — только в одной, мультирегион доступен с Pro), а
+     кэш CDN работает на любом плане. Так зависимость от зоны снимается не
+     переездом вычислений, а тем, что до зоны дело доходит только на промахе
+     кэша. Почему `regions` остаётся `["fra1"]` — docs/dev-guide.md §5.
+
+     Картинки `/_ipx/**` кэшируются отдельно и надолго: их адрес версионируется
+     отпечатком исходника, поэтому замена картинки даёт новый адрес, а не старую
+     копию из кэша. */
+  routeRules: {
+    '/**': {
+      headers: {
+        'cache-control': 'public, max-age=0, s-maxage=60, stale-while-revalidate=86400, stale-if-error=604800',
+      },
+    },
+    '/_ipx/**': {
+      headers: {
+        'cache-control': 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=604800, stale-if-error=604800',
+      },
+    },
+  },
   experimental: {
     /* Типизированные маршруты нужны локализованным ссылкам: имя маршрута и его
        параметры проверяются компилятором вместо ручной сборки путей строками. */

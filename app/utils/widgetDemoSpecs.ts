@@ -110,10 +110,10 @@ export interface WidgetDemoSpec {
 }
 
 /* Одинаковые для всех движков потолки производительности. */
-function perfOptions(narrow: boolean, budget = 2.2e6): WidgetParams {
+function perfOptions(narrow: boolean, budget = 2.2e6, desktopBudget = 2.2e6): WidgetParams {
   return {
     ratioCap: narrow ? 1.5 : 2,
-    pixelBudget: narrow ? budget : 2.2e6,
+    pixelBudget: narrow ? budget : desktopBudget,
     pauseOffscreen: true,
     respectReducedMotion: true,
   }
@@ -346,7 +346,13 @@ export const WIDGET_DEMO_SPECS: Record<string, WidgetDemoSpec> = {
     createOptions: ({ demo, narrow }) => ({
       /* Логотип кейса вплавляется во все четыре грани. */
       marks: demo.logo ? [demo.logo, demo.logo, demo.logo, demo.logo] : [],
-      ...perfOptions(narrow, 0.7e6),
+      /* Пирамида — самый дорогой пиксель сайта: до 100 шагов raymarch на
+         каждый. Число шагов не урезаем — свечение копится вдоль всего луча, и
+         меньший потолок обрезает саму картинку; вместо этого луч выходит,
+         когда ушёл далеко за объект (шейдер, в среднем ~половина шагов).
+         Урезаем и площадь: на десктопе 1,6 млн пикселей вместо общих 2,2 млн.
+         Свечение мягкое, и разница плотности на нём не читается. */
+      ...perfOptions(narrow, 0.7e6, 1.6e6),
       pointer: true,
       pointerFrom: 'window',
     }),

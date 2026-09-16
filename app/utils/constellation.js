@@ -17,8 +17,8 @@
  *
  * Один кадр — два прохода одной парой шейдеров:
  *   — звёзды рисуются как GL_POINTS с мягким кругом-гало во фрагменте;
- *   — связи собираются на CPU (порог дистанции держит их число в пределах
- *     пары сотен) и идут как GL_LINES.
+ *   — связи собираются на CPU (соседи ищутся по сетке ячеек, см.
+ *     collectLinks) и идут как GL_LINES.
  *
  * Координаты: позиции ведутся в CSS-пикселях контейнера, а в буфер уходят
  * в физических пикселях (CSS × масштаб dpr) — шейдер делит позицию на
@@ -26,6 +26,8 @@
  *
  *   Constellation.create(el, { palette: ['#7dd3fc', '#818cf8', '#e879f9'] })
  */
+
+import { attachRunSources, createRunGate } from './widgetRunGate'
 
 const DEFAULTS = {
   // --- звёзды ---
@@ -109,6 +111,156 @@ function hexToRgb(hex) {
   return [((int >> 16) & 255) / 255, ((int >> 8) & 255) / 255, (int & 255) / 255]
 }
 
+/* Разбор цвета в кадре — только из кэша: нити, аура и ядро планеты берут
+   цвет из опций каждый кадр, а строк там считаные единицы. Массив общий,
+   менять его нельзя. */
+const RGB_CACHE = new Map()
+function rgbOf(hex) {
+  let rgb = RGB_CACHE.get(hex)
+  if (!rgb) {
+    rgb = hexToRgb(hex)
+    RGB_CACHE.set(hex, rgb)
+  }
+  return rgb
+}
+
+/* Хранилище нитей кадра: плоские типизированные массивы вместо объекта на
+   каждую пару. Растёт удвоением и между кадрами не пересоздаётся — раньше
+   каждый кадр рождал сотни объектов-связей и отдавал их сборщику мусора. */
+export function createLinkStore() {
+  return {
+    count: 0,
+    a: new Int32Array(256),
+    b: new Int32Array(256),
+    alpha: new Float32Array(256),
+    kx: new Int8Array(256),
+    ky: new Int8Array(256),
+    cellStart: new Int32Array(0),
+    cellItems: new Int32Array(0),
+    cellOf: new Int32Array(0),
+  }
+}
+
+function pushLink(store, i, j, alpha, kx, ky) {
+  if (store.count === store.a.length) {
+    const cap = store.a.length * 2
+    const grow = (Arr, from) => {
+      const next = new Arr(cap)
+      next.set(from)
+      return next
+    }
+    store.a = grow(Int32Array, store.a)
+    store.b = grow(Int32Array, store.b)
+    store.alpha = grow(Float32Array, store.alpha)
+    store.kx = grow(Int8Array, store.kx)
+    store.ky = grow(Int8Array, store.ky)
+  }
+  const k = store.count++
+  store.a[k] = i
+  store.b[k] = j
+  store.alpha[k] = alpha
+  store.kx[k] = kx
+  store.ky[k] = ky
+}
+
+/*
+ * Нити поля: пары звёзд ближе `linkR` по тору.
+ *
+ * Раньше сравнивались все пары: при потолке 2000 звёзд — почти 2 млн проверок
+ * на кадр, и цена росла квадратом площади блока. Теперь звёзды раскладываются
+ * по сетке ячеек со стороной не меньше `linkR`: сосед ближе порога может
+ * лежать только в своей или одной из восьми соседних ячеек (с переходом через
+ * края — поле замкнуто). Проверок остаётся порядка 20 на звезду при любом
+ * размере поля. Раскладка — сортировка подсчётом по массивам, которые живут
+ * в `store` между кадрами.
+ *
+ * Если ячеек меньше трёх по стороне, соседние ячейки совпали бы через край,
+ * и одна пара проверялась бы дважды, — там звёзд мало, и честный перебор
+ * дешевле.
+ */
+export function collectLinks(pts, w, h, linkR, linkAlpha, store) {
+  store.count = 0
+  const n = pts.length
+  /* Нить не ярче `linkAlpha`, а тусклее 0,02 не рисуется: при таком пороге
+     связей не будет вовсе, считать их незачем. */
+  if (n < 2 || !(linkR > 0) || !(linkAlpha >= 0.02)) return store
+  const distSq = linkR * linkR
+
+  const consider = (i, j) => {
+    const a = pts[i]
+    const b = pts[j]
+    /* Ближайший образ второй точки на торе; kx/ky — через какой край
+       идёт связь, чтобы отрисовать её двумя сегментами у шва. */
+    const dx = wrapDelta(b.x - a.x, w)
+    const dy = wrapDelta(b.y - a.y, h)
+    const d2 = dx * dx + dy * dy
+    if (d2 > distSq) return
+    /* Затухание плавное, но щедрое: до 65% радиуса нить светит в полную
+       силу, дальше — мягкий smoothstep-спад к нулю у порога. Так связи не
+       «щелкают» при расхождении пар и не гаснут на середине дистанции. */
+    const alpha = linkAlpha * (1 - smoothstep(0.65, 1, Math.sqrt(d2) / linkR))
+    if (alpha < 0.02) return
+    pushLink(store, i, j, alpha, Math.round((b.x - a.x) / w), Math.round((b.y - a.y) / h))
+  }
+
+  const cols = Math.floor(w / linkR)
+  const rows = Math.floor(h / linkR)
+  if (cols < 3 || rows < 3) {
+    for (let i = 0; i < n; i++) {
+      for (let j = i + 1; j < n; j++) consider(i, j)
+    }
+    return store
+  }
+
+  const cells = cols * rows
+  if (store.cellStart.length < cells + 1) store.cellStart = new Int32Array(cells + 1)
+  else store.cellStart.fill(0, 0, cells + 1)
+  if (store.cellOf.length < n) {
+    store.cellOf = new Int32Array(n)
+    store.cellItems = new Int32Array(n)
+  }
+  const start = store.cellStart
+  const cellOf = store.cellOf
+  const items = store.cellItems
+  const cellW = w / cols
+  const cellH = h / rows
+
+  /* Звезда может стоять чуть за краем (облёт в _step срабатывает с запасом
+     6 px), поэтому ячейку берём от координаты, приведённой в [0, w). */
+  for (let i = 0; i < n; i++) {
+    const p = pts[i]
+    const cx = Math.min(cols - 1, Math.floor((((p.x % w) + w) % w) / cellW))
+    const cy = Math.min(rows - 1, Math.floor((((p.y % h) + h) % h) / cellH))
+    const c = cy * cols + cx
+    cellOf[i] = c
+    start[c + 1]++
+  }
+  for (let c = 0; c < cells; c++) start[c + 1] += start[c]
+  /* Раскладка: start[c] служит курсором записи и после цикла указывает на
+     конец ячейки — сдвигаем на одну позицию, и он снова начало. */
+  for (let i = 0; i < n; i++) items[start[cellOf[i]]++] = i
+  for (let c = cells; c > 0; c--) start[c] = start[c - 1]
+  start[0] = 0
+
+  for (let i = 0; i < n; i++) {
+    const c = cellOf[i]
+    const cx = c % cols
+    const cy = (c - cx) / cols
+    for (let oy = -1; oy <= 1; oy++) {
+      const row = ((cy + oy + rows) % rows) * cols
+      for (let ox = -1; ox <= 1; ox++) {
+        const nc = row + (cx + ox + cols) % cols
+        for (let k = start[nc], end = start[nc + 1]; k < end; k++) {
+          const j = items[k]
+          /* Каждая пара встречается дважды — берём её у младшей звезды. */
+          if (j > i) consider(i, j)
+        }
+      }
+    }
+  }
+  return store
+}
+
 /* Формат вершины: aPos(2) + aColor(3) + aAlpha(1) + aSize(1), 28 байт. */
 const VERT = `
   attribute vec2  aPos;     // физические px, y вверх
@@ -176,6 +328,13 @@ function buildProgram(gl, vertSrc, fragSrc) {
 }
 
 const STRIDE = (2 + 3 + 1 + 1) * 4 // 28 байт
+/* Раскладка вершины: имя атрибута, число компонент, смещение в байтах. */
+const ATTRIBS = [
+  ['aPos', 2, 0],
+  ['aColor', 3, 8],
+  ['aAlpha', 1, 20],
+  ['aSize', 1, 24],
+]
 
 class Constellation {
   constructor(container, options) {
@@ -187,6 +346,11 @@ class Constellation {
     this.paused = true
     this._raf = 0
     this._lastMs = 0
+    /* Сторож кадров живёт вместе с виджетом (переживает detach/reattach),
+       а источники и подписка создаются в _bind(). */
+    this._gate = null
+    this._gateOff = null
+    this._sources = null
     this.cursor = null
 
     if (this.opts.honorReducedMotion
@@ -223,7 +387,12 @@ class Constellation {
 
     this.buffer = gl.createBuffer()
     this.points = null
-    this.links = null
+    this._links = createLinkStore()
+    /* Буферы кадра переиспользуются: см. _scratch. */
+    this._starFloats = null
+    this._lineFloats = null
+    this._orb = new Float32Array(2 * 7)
+    this._attribLoc = new Map()
 
     this._bind()
     /* Размер нужен до расстановки звёзд: позиции живут в пикселях контейнера. */
@@ -295,7 +464,7 @@ class Constellation {
         size: opts.size * (1 - opts.sizeSpread / 2 + Math.random() * opts.sizeSpread),
       }
     })
-    this.links = []
+    this._links.count = 0
   }
 
   /* --- слушатели --- */
@@ -330,18 +499,20 @@ class Constellation {
       this.cursor = null
     }
 
-    /* Сворачиваем рендер, когда блока нет в окне: поле тихое, считать его
-       вне экрана незачем. IntersectionObserver дешевле проверки в кадре. */
-    if (typeof IntersectionObserver !== 'undefined' && this.opts.pauseOffscreen) {
-      this._observer = new IntersectionObserver((entries) => {
-        ctx._visible = entries[0]?.isIntersecting !== false
-      }, { threshold: 0 })
-      this._observer.observe(this.el)
-      this._visible = true
+    /* Останавливаем цикл, когда блока нет в окне: поле тихое, считать его вне
+       экрана незачем. Раньше цикл продолжал тикать, а _loop сам пропускал
+       кадры; теперь пауза и возобновление — одно решение сторожа
+       (utils/widgetRunGate), как у остальных движков. */
+    if (!this._gate) {
+      this._gate = createRunGate({ pauseOffscreen: this.opts.pauseOffscreen })
     }
-    else {
-      this._visible = true
-    }
+    this._gateOff = this._gate.subscribe((run) => {
+      if (run) this.start()
+      else this.stop()
+    })
+    this._sources = attachRunSources(this.el, this._gate, {
+      pauseOffscreen: this.opts.pauseOffscreen,
+    })
 
     /* Блок может менять размер вместе с раскладкой страницы (окно, колонки):
        следим за контейнером и пересчитываем буфер, иначе канвас растянется
@@ -459,40 +630,12 @@ class Constellation {
       }
     }
 
-    /* Связи: попарно, с порогом в пикселях. O(n²) при n=550 — ~150k проверок,
-       на кадр это дёшево даже на телефоне. Расстояние считается по тору:
-       пара у левого и правого краёв соединяется так же, как соседи в центре,
-       — поле замкнуто, «шва» на границах нет. */
-    const links = []
-    const distSq = linkR * linkR
-    for (let i = 0; i < pts.length; i++) {
-      const a = pts[i]
-      for (let j = i + 1; j < pts.length; j++) {
-        const b = pts[j]
-        /* Ближайший образ второй точки на торе; kx/ky — через какой край
-           идёт связь, чтобы отрисовать её двумя сегментами у шва. */
-        const dx = wrapDelta(b.x - a.x, w)
-        const dy = wrapDelta(b.y - a.y, h)
-        const d2 = dx * dx + dy * dy
-        if (d2 > distSq) continue
-        const d = Math.sqrt(d2) /* Затухание плавное, но щедрое: до 65% радиуса нить светит в полную
-           силу (как раньше), дальше — мягкий smoothstep-спад к нулю у порога.
-           Так связи не «щелкают» при расхождении пар и при этом не гаснут
-           на середине дистанции. */
-        const alpha = opts.linkAlpha * (1 - smoothstep(0.65, 1, d / linkR))
-        if (alpha < 0.02) continue
-        /* Разогрев от курсора применяется не здесь, а в _draw — к каждому
-           видимому сегменту нити отдельно (см. pushSeg): у нитей через шов
-           два сегмента лежат у разных краёв, и греется только тот, что
-           рядом с курсором. */
-        links.push({
-          a, b, alpha,
-          kx: Math.round((b.x - a.x) / w),
-          ky: Math.round((b.y - a.y) / h),
-        })
-      }
-    }
-    this.links = links
+    /* Связи — по сетке ячеек, см. collectLinks. Расстояние считается по
+       тору: пара у левого и правого краёв соединяется так же, как соседи в
+       центре, — поле замкнуто, «шва» на границах нет. Разогрев от курсора
+       применяется не здесь, а в _draw — к каждому видимому сегменту нити
+       отдельно (см. pushSeg). */
+    collectLinks(pts, w, h, linkR, opts.linkAlpha, this._links)
   }
 
   /* --- отрисовка --- */
@@ -519,7 +662,7 @@ class Constellation {
     const progP = this.progPoints
     gl.useProgram(progP)
     gl.uniform2f(this._viewLoc.get(progP), this.bw, this.bh)
-    const floats = new Float32Array(pts.length * 4 * 7)
+    const floats = this._scratch('_starFloats', pts.length * 4 * 7)
     let o = 0
     let count = 0
     const edgeM = opts.edgePad * minSide
@@ -567,7 +710,7 @@ class Constellation {
       if (w11 >= 0.03) emit(p.x + w, p.y + h, w11, cr, cg, cb, ca, cs)
     }
     gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer)
-    gl.bufferData(gl.ARRAY_BUFFER, floats, gl.DYNAMIC_DRAW)
+    gl.bufferData(gl.ARRAY_BUFFER, floats.subarray(0, count * 7), gl.DYNAMIC_DRAW)
     this._setupAttribs(progP)
     gl.drawArrays(gl.POINTS, 0, count)
 
@@ -575,16 +718,16 @@ class Constellation {
     const cursorR = opts.cursorRadius * minSide
 
     /* Нити. */
-    const links = this.links
-    if (links.length) {
+    const links = this._links
+    if (links.count) {
       const progL = this.progLines
       gl.useProgram(progL)
       gl.uniform2f(this._viewLoc.get(progL), this.bw, this.bh)
-      const linkCol = hexToRgb(opts.linkColor)
+      const linkCol = rgbOf(opts.linkColor)
       /* Каждая нить рисуется одним-двумя сегментами: основной и, если пара
          сидит у разных краёв тора, «продолжение» с той стороны шва. Так
          связи не обрываются на границах поля. */
-      const lf = new Float32Array(links.length * 2 * 2 * 7)
+      const lf = this._scratch('_lineFloats', links.count * 2 * 2 * 7)
       o = 0
       let lv = 0
       /* Разогрев сегмента: середину берём у самого сегмента (в его части
@@ -619,15 +762,17 @@ class Constellation {
         lf[o++] = 1
         lv += 2
       }
-      for (let i = 0; i < links.length; i++) {
-        const l = links[i]
-        const a = l.a
-        const b = l.b
+      for (let i = 0; i < links.count; i++) {
+        const a = pts[links.a[i]]
+        const b = pts[links.b[i]]
+        const kx = links.kx[i]
+        const ky = links.ky[i]
+        const alpha = links.alpha[i]
         /* Ближайший образ второй точки и образ первой у того же шва. */
-        pushSeg(a.x, a.y, b.x - l.kx * w, b.y - l.ky * h, l.alpha)
-        if (l.kx || l.ky) pushSeg(a.x + l.kx * w, a.y + l.ky * h, b.x, b.y, l.alpha)
+        pushSeg(a.x, a.y, b.x - kx * w, b.y - ky * h, alpha)
+        if (kx || ky) pushSeg(a.x + kx * w, a.y + ky * h, b.x, b.y, alpha)
       }
-      gl.bufferData(gl.ARRAY_BUFFER, lf, gl.DYNAMIC_DRAW)
+      gl.bufferData(gl.ARRAY_BUFFER, lf.subarray(0, lv * 7), gl.DYNAMIC_DRAW)
       this._setupAttribs(progL)
       gl.drawArrays(gl.LINES, 0, lv)
     }
@@ -649,9 +794,9 @@ class Constellation {
       /* Аура — мягкий индиго, ядро — почти белое: светящийся «газовый гигант»
          вместо утилитарного курсора. Цвета предумножены (блендинг уже
          ONE, 1−SRC_ALPHA). */
-      const orb = new Float32Array(2 * 7)
-      const aura = hexToRgb(opts.auraColor || '#818cf8')
-      const core = hexToRgb(opts.coreColor || '#e0e7ff')
+      const orb = this._orb
+      const aura = rgbOf(opts.auraColor || '#818cf8')
+      const core = rgbOf(opts.coreColor || '#e0e7ff')
       let q = 0
       const putOrb = (px, py, radius, color, alpha) => {
         orb[q++] = px * sx
@@ -673,20 +818,33 @@ class Constellation {
     }
   }
 
+  /* Буфер кадра нужного размера: растёт удвоением и живёт между кадрами.
+     Раньше Float32Array под звёзды и нити создавался заново каждый кадр —
+     при 2000 звёздах это сотни килобайт мусора в секунду. */
+  _scratch(name, size) {
+    let buf = this[name]
+    if (!buf || buf.length < size) {
+      buf = new Float32Array(Math.max(size, buf ? buf.length * 2 : 0))
+      this[name] = buf
+    }
+    return buf
+  }
+
   _setupAttribs(prog) {
     const gl = this.gl
     /* Расположения атрибутов спрашиваем у конкретной программы: WebGL не
        гарантирует, что у двух программ одинаковые индексы. aSize есть только
-       у точек — у линий его локация -1, и там он просто пропускается. */
-    const attrs = [
-      ['aPos', 2, 0],
-      ['aColor', 3, 8],
-      ['aAlpha', 1, 20],
-      ['aSize', 1, 24],
-    ]
-    for (const [name, size, offset] of attrs) {
-      const loc = gl.getAttribLocation(prog, name)
+       у точек — у линий его локация -1, и там он просто пропускается.
+       Локации не меняются после линковки — запоминаем их. */
+    let locs = this._attribLoc.get(prog)
+    if (!locs) {
+      locs = ATTRIBS.map(([name]) => gl.getAttribLocation(prog, name))
+      this._attribLoc.set(prog, locs)
+    }
+    for (let k = 0; k < ATTRIBS.length; k++) {
+      const loc = locs[k]
       if (loc < 0) continue
+      const [, size, offset] = ATTRIBS[k]
       gl.enableVertexAttribArray(loc)
       gl.vertexAttribPointer(loc, size, gl.FLOAT, false, STRIDE, offset)
     }
@@ -697,18 +855,15 @@ class Constellation {
   _loop = (now) => {
     this._raf = requestAnimationFrame(this._loop)
     if (this.paused) return
-    if (this._visible === false) {
-      /* Пока блок вне экрана, время не течёт: по возвращении dt не прыгнет
-         (страховка в _step всё равно ограничивает скачок). */
-      this._lastMs = now
-      return
-    }
     this._step(now)
     this._draw(now)
   }
 
   start() {
     if (this._raf) return this
+    /* Сторож может запрещать кадры (вкладка скрыта, блок за экраном).
+       Явный запуск из виджета не должен его обходить. */
+    if (this._gate && !this._gate.shouldRun()) return this
     this.paused = false
     this._lastMs = 0
     this._raf = requestAnimationFrame(this._loop)
@@ -788,8 +943,12 @@ class Constellation {
   /* Отвязывает слушатели и наблюдатели от текущего контейнера — общая часть
      для detach() и reattach(). Канвас и WebGL-ресурсы не трогает. */
   _unbind() {
-    this._observer?.disconnect()
-    this._observer = undefined
+    /* Снятый виджет обязан отписать источники: иначе слушатель вкладки
+       пережил бы свой канвас и снова запустил цикл. */
+    this._sources?.disconnect()
+    this._sources = null
+    this._gateOff?.()
+    this._gateOff = null
     this._resizeObserver?.disconnect()
     this._resizeObserver = undefined
     if (this._handlers) {
@@ -820,7 +979,6 @@ class Constellation {
     if (this.canvas.parentNode) this.canvas.parentNode.removeChild(this.canvas)
     this.el = node
     node.appendChild(this.canvas)
-    this._visible = true
     this.resize()
     this._bind()
     this.start()
@@ -829,7 +987,8 @@ class Constellation {
 
   destroy() {
     this.stop()
-    this._observer?.disconnect()
+    this._sources?.disconnect()
+    this._gateOff?.()
     this._resizeObserver?.disconnect()
     if (this._handlers) {
       this.el.removeEventListener('pointermove', this._handlers.move)

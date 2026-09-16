@@ -22,9 +22,10 @@
     "llms": "node scripts/generate-llms.mjs",
     "validate:content": "node scripts/validate-content.mjs",
     "check:lods": "node scripts/check-lod-parity.mjs",
+    "check:cache": "node scripts/check-cache-headers.mjs",
     "lastmod": "node scripts/update-lastmod.mjs",
     "indexnow": "node scripts/indexnow.mjs",
-    "check": "pnpm lint && pnpm typecheck && pnpm validate:content && pnpm check:lods && pnpm test && pnpm build"
+    "check": "pnpm lint && pnpm typecheck && pnpm validate:content && pnpm check:lods && pnpm test && pnpm build && pnpm check:cache"
   },
   "dependencies": {
     "@nuxt/content": "^3.15.2",

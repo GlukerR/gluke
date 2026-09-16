@@ -3,6 +3,7 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import type * as THREE from 'three'
 import { getViewerPose, saveViewerPose } from '~/utils/modelViewPose'
 import { applyTouchScrollPolicy, isCoarsePointer } from '~/utils/touchScroll'
+import { createFrameLimiter, createQualityGovernor, physicalPixelRatio } from '~/utils/framePacing'
 import { getGlukeViewer, setGlukeViewer } from '~/utils/glukeLogo3dCache'
 
 const props = withDefaults(
@@ -43,7 +44,14 @@ const MARGIN = 0.9
    (0.25 рад/с), 60fps не видно, но на слабых устройствах (и в аудите
    Lighthouse с 4× троттлингом CPU) каждый кадр — секунды главного потока.
    Во время драга рендерим каждый кадр (отзывчивость важнее). */
-const FRAME_INTERVAL = 1000 / 30
+/* Интервал прибавляется к плановому моменту, а не отмеряется от последнего
+   отрисованного кадра: при простой разнице 2 × 16,6 мс не набирали 33,33 мс,
+   и лимит 30fps превращался в 20 (utils/framePacing). */
+const frameLimiter = createFrameLimiter(30)
+/* Регулятор качества: если устройство не успевает кадры, плотность буфера
+   опускается на ступень (utils/framePacing). Опора — частота самого экрана,
+   поэтому экран 30 Гц за перегрузку не принимается. */
+const quality = createQualityGovernor()
 
 /* Камера-зум по прогрессу раскрытия. На старте (прогресс 0) камера вдвое
    ближе к distOpen — модель крупная и хорошо видна. Отдаление нелинейное:
@@ -55,6 +63,23 @@ const ZOOM_FAR = 1.15
 /* Показатель кривой < 1: рост быстрый в начале и затухает к концу. */
 const ZOOM_CURVE = 0.7
 
+/* Плотность кадра модели на главной: потолок по типу устройства и бюджет
+   физических пикселей (utils/framePacing). Половина hero на большом экране
+   с DPR 2 — это мегапиксели на каждый кадр, а заметной разницы в картинке
+   нет; ниже плотности 1 не опускаемся. */
+function homeLogoPixelRatio(w: number, h: number): number {
+  const narrow = window.innerWidth < 1024
+  return physicalPixelRatio({
+    cssWidth: w,
+    cssHeight: h,
+    dpr: window.devicePixelRatio || 1,
+    cap: narrow ? 1.5 : 2,
+    budget: narrow ? 1_600_000 : 3_200_000,
+    floor: 1,
+    scale: quality.scale(),
+  })
+}
+
 let renderer: THREE.WebGLRenderer | undefined
 let scene: THREE.Scene | undefined
 let camera: THREE.PerspectiveCamera | undefined
@@ -63,7 +88,6 @@ let action: THREE.AnimationAction | undefined
 let pivot: THREE.Group | undefined
 let tiltPivot: THREE.Group | undefined
 let animFrame = 0
-let lastFrame = 0
 let disposed = false
 let resizeObs: ResizeObserver | undefined
 /* Точки кадрирования по раскрытому состоянию (радиус свупа, высота). */
@@ -169,6 +193,7 @@ function resize() {
   const w = container.value.clientWidth
   const h = container.value.clientHeight
   if (w === 0 || h === 0) return
+  renderer.setPixelRatio(homeLogoPixelRatio(w, h))
   renderer.setSize(w, h, false)
   camera.aspect = w / h
   camera.updateProjectionMatrix()
@@ -247,6 +272,8 @@ function onPointerUp(e: PointerEvent) {
 
 function startLoop() {
   if (animFrame) return
+  /* Возврат к hero рисует кадр сразу, а не через интервал лимита. */
+  frameLimiter.reset(performance.now())
   let lastTime = performance.now()
 
   const animate = () => {
@@ -254,15 +281,19 @@ function startLoop() {
     animFrame = requestAnimationFrame(animate)
 
     const now = performance.now()
-    const dt = Math.min((now - lastTime) / 1000, 0.1)
-    lastTime = now
+    if (quality.sample(now)) resize()
 
     /* Ничего не рисуем, когда hero уже уехал за экран. */
     if (heroEl && window.scrollY > heroEl.offsetHeight) return
 
     /* В покое рендерим не чаще 30fps; во время драга — каждый кадр. */
-    if (!dragging && now - lastFrame < FRAME_INTERVAL) return
-    lastFrame = now
+    if (!dragging && !frameLimiter.shouldRender(now)) return
+
+    /* Шаг времени считаем только для отрисованных кадров: раньше dt и lastTime
+       обновлялись до проверок лимита, и время пропущенных кадров терялось —
+       автоповорот и сглаживание прокрутки шли почти вдвое медленнее. */
+    const dt = Math.min((now - lastTime) / 1000, 0.1)
+    lastTime = now
 
     /* Частотно-независимое экспоненциальное сглаживание к позиции скролла. */
     progressCurrent += (progressTarget - progressCurrent) * (1 - Math.exp(-DAMPING * dt))
@@ -289,6 +320,7 @@ function startLoop() {
 function stopLoop() {
   if (animFrame) cancelAnimationFrame(animFrame)
   animFrame = 0
+  quality.pause()
 }
 
 /* Общая часть показа: цепляет канвас к контейнеру, вешает слушатели и
@@ -383,10 +415,7 @@ async function mount() {
 
     /* ── Renderer ──────────────────────────────────────────────────────── */
     const rendererInstance = new THREE.WebGLRenderer({ antialias: true, alpha: true })
-    /* DPR-потолок ниже на мобильных: 2× на маленьком экране — вчетверо больше
-       пикселей, чем нужно, а модель на телефоне занимает ~пол-экрана. */
-    const dprCap = window.innerWidth < 1024 ? 1.5 : 2
-    rendererInstance.setPixelRatio(Math.min(window.devicePixelRatio, dprCap))
+    rendererInstance.setPixelRatio(homeLogoPixelRatio(w, h))
     rendererInstance.setSize(w, h)
     rendererInstance.outputColorSpace = THREE.SRGBColorSpace
     rendererInstance.toneMapping = THREE.ACESFilmicToneMapping

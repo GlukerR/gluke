@@ -12,7 +12,7 @@ featured: false
 status: published
 navigation: false
 period: "2026"
-updated: 2026-09-14
+updated: 2026-09-16
 engagement: completed
 clientUrl: https://rpgrand.com
 services:
@@ -32,6 +32,14 @@ cover:
   alt: Купе с узором сакуры в гараже — под 3D-сценой ряд разделов конфигуратора и счётчики сцены
   width: 1680
   height: 945
+  # На телефоне карточка узкая: в общем кадре не читается ни кузов, ни ряд
+  # разделов, поэтому для узких экранов собирается своя композиция
+  # (scripts/make-rp-grand-cover-mobile.mjs)
+  mobile:
+    src: /media/projects/rp-grand/rp-grand-cover-mobile.jpg
+    alt: Купе с узором сакуры под сценой гаража, ниже — ряд разделов конфигуратора
+    width: 1150
+    height: 763
 model:
   src: /media/projects/rp-grand/coupe-gt-lod0.glb
   alt: 'Интерактивная 3D-модель автомобиля — вращайте и осматривайте кузов и детали'

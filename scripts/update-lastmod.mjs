@@ -8,15 +8,27 @@
  * всех URL и меняющееся на каждый деплой, поисковики просто перестают
  * учитывать, поэтому дату фиксируем в файле и коммитим вместе с правкой.
  *
- * Исключение — сам Vercel: buildCommand сначала делает `git fetch --unshallow`
- * (полная история) и только потом запускает этот скрипт, поэтому даты на
- * деплое пересчитываются по реальной истории каждого файла. Закоммиченные
- * значения остаются фолбэком, если докачка истории недоступна.
+ * Два режима, и разница между ними — суть скрипта:
  *
- * Источник даты — git: у изменённых в рабочем дереве файлов берётся сегодняшний
- * день (правка ещё не в истории), у остальных — дата последнего коммита.
+ *   pnpm lastmod          только файлы, изменённые в рабочем дереве: им ставится
+ *                         сегодняшний день (правка ещё не в истории). Чужие
+ *                         кейсы не трогаются вовсе. Иначе правка одного кейса
+ *                         тащила в диффе ещё сорок: дата последнего коммита в
+ *                         рабочем чекауте расходится с закоммиченным `updated`
+ *                         (историю переписывали переносом, ребейзом, клоном
+ *                         с другой датой), и скрипт «обновлял» то, чего правка
+ *                         не касалась.
+ *   pnpm lastmod -- --all все файлы, дата — из истории последних коммитов.
+ *                         Это режим сборки: buildCommand делает
+ *                         `git fetch --unshallow` (полная история) и только
+ *                         потом запускает скрипт, поэтому даты на деплое
+ *                         пересчитываются по реальной истории каждого файла.
+ *                         Если докачка истории не удалась, шаг пропускается
+ *                         целиком и sitemap берёт закоммиченные `updated`.
  *
- * Использование: pnpm lastmod   (перед коммитом правок контента)
+ * Использование:
+ *   pnpm lastmod              (перед коммитом правок контента)
+ *   pnpm lastmod -- --all     (в buildCommand Vercel, см. vercel.json)
  */
 import { glob, readFile, writeFile } from 'node:fs/promises'
 import { execFile } from 'node:child_process'
@@ -31,9 +43,11 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
    поэтому git вызывается с явным исключением — иначе команда падает. */
 const gitArgs = ['-c', `safe.directory=${root.split(sep).join('/')}`]
 
+/* Вывод отдаётся как есть: у `git status --porcelain` первый символ строки —
+   пробел статуса, и trim съел бы его вместе с началом пути. */
 async function git(args) {
   const { stdout } = await run('git', [...gitArgs, ...args], { cwd: root })
-  return stdout.trim()
+  return stdout
 }
 
 function today() {
@@ -44,6 +58,8 @@ async function modifiedInWorkingTree() {
   const out = await git(['status', '--porcelain', '--', 'content'])
   return new Set(
     out.split('\n')
+      /* Формат porcelain: два символа статуса, пробел, путь — поэтому slice(3),
+         а не split по пробелу: путь может содержать пробелы. */
       .map(line => line.slice(3).trim())
       .filter(Boolean)
       .map(path => path.replace(/^"|"$/g, '')),
@@ -51,7 +67,7 @@ async function modifiedInWorkingTree() {
 }
 
 async function lastCommitDate(path) {
-  const out = await git(['log', '-1', '--format=%cs', '--', path])
+  const out = (await git(['log', '-1', '--format=%cs', '--', path])).trim()
   return out || today()
 }
 
@@ -70,17 +86,26 @@ function withUpdated(source, date, anchor) {
 }
 
 async function main() {
-  const dirty = await modifiedInWorkingTree()
+  const all = process.argv.slice(2).includes('--all')
+  /* В режиме сборки список правленого не нужен: даты берутся из истории. */
+  const dirty = all ? null : await modifiedInWorkingTree()
   const targets = [
     ...(await Array.fromAsync(glob('content/projects/*/*.md', { cwd: root }))).map(p => ({ p, anchor: 'period' })),
     ...(await Array.fromAsync(glob('content/site/*.yml', { cwd: root }))).map(p => ({ p, anchor: 'locale' })),
   ]
 
   let changed = 0
+  let untouched = 0
   const skipped = []
   for (const { p, anchor } of targets) {
     const relPath = relative(root, join(root, p)).split(sep).join('/')
-    const date = dirty.has(relPath) ? today() : await lastCommitDate(relPath)
+    /* Файл, которого правка не касалась, оставляем как есть: его дата
+       проставлена в своём коммите, и переписывать её локально нечем. */
+    if (dirty && !dirty.has(relPath)) {
+      untouched += 1
+      continue
+    }
+    const date = all ? await lastCommitDate(relPath) : today()
     const source = await readFile(join(root, p), 'utf8')
     const next = withUpdated(source, date, anchor)
 
@@ -99,7 +124,14 @@ async function main() {
     for (const line of skipped) console.error(`  ${line}`)
     process.exit(1)
   }
-  console.log(`[lastmod] обновлено ${changed} из ${targets.length} файлов`)
+  if (dirty) {
+    const touched = targets.length - untouched
+    console.log(touched === 0
+      ? '[lastmod] правок в контенте нет — даты не менялись'
+      : `[lastmod] правка затронула ${touched} файл(а) из ${targets.length}, даты обновлены у ${changed}`)
+    return
+  }
+  console.log(`[lastmod] --all: даты пересчитаны по истории, обновлено ${changed} из ${targets.length}`)
 }
 
 await main()

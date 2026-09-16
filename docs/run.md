@@ -142,8 +142,11 @@ powershell -NoProfile -Command "(Start-Process -FilePath 'node.exe' -ArgumentLis
 - `vercel.json` теперь чистит кэш Nuxt внутри node_modules перед сборкой:
   `rm -rf node_modules/.cache/nuxt && pnpm build`. Каждая сборка Vercel стартует
   с чистого состояния Nuxt (без устаревших типов/базы/tsbuildinfo).
-- Перед `pnpm build` buildCommand выполняет `git fetch --unshallow && pnpm lastmod`:
-  Vercel клонирует репозиторий поверхностно, поэтому без докачки полной истории
+- Перед `pnpm build` buildCommand выполняет `git fetch --unshallow && pnpm lastmod
+  -- --all`: флаг ставит пересчёт всех дат по истории, а без него скрипт трогает
+  только файлы, изменённые в рабочем дереве (иначе локальный запуск тащил бы
+  в дифф чужие кейсы). Vercel клонирует репозиторий поверхностно, поэтому без
+  докачки полной истории
   `git log` вернул бы одну дату для всех файлов и перезаписал бы все `updated`
   одной датой деплоя. Полная история даёт реальные даты последних правок по
   каждому файлу; если докачка не удалась (нет сети/прав), lastmod просто

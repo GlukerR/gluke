@@ -38,8 +38,13 @@ const isLight = computed(() => colorMode.value === 'light')
    виджет остаётся автопоказом (вертикальный свайп должен скроллить страницу,
    а не крутить карточку). На десктопе курсор управляет виджетом прямо на
    карточке: пирамида и звёзды реагируют на наведение, облако точек крутится
-   перетаскиванием. */
-const finePointer = import.meta.client && window.matchMedia('(pointer: fine)').matches
+   перетаскиванием.
+
+   Тип указателя известен только браузеру, поэтому решаем это после
+   монтирования: вычисление прямо в разметке (`import.meta.client && …`) давало
+   расхождение гидрации — сервер отдавал слой без класса интерактива, а клиент
+   тут же его добавлял. */
+const finePointer = ref(false)
 
 let instance: DemoInstance | null = null
 let observer: IntersectionObserver | null = null
@@ -120,7 +125,7 @@ async function boot() {
         marks: props.demo.logo ? [props.demo.logo, props.demo.logo, props.demo.logo, props.demo.logo] : [],
         ratioCap: 1.5,
         pixelBudget: 1.5e6,
-        pointer: finePointer,
+        pointer: finePointer.value,
         pointerFrom: 'self',
         pauseOffscreen: true,
         respectReducedMotion: true,
@@ -131,7 +136,7 @@ async function boot() {
       created = Constellation.create(el, {
         ...(props.demo.params as Record<string, unknown>),
         ...CONSTELLATION_THEME_COLORS[isLight.value ? 'light' : 'dark'],
-        pointer: finePointer,
+        pointer: finePointer.value,
         dprCap: 1.5,
         pauseOffscreen: true,
         honorReducedMotion: true,
@@ -144,8 +149,8 @@ async function boot() {
         ...METABALLS_THEME_LOOK[isLight.value ? 'light' : 'dark'],
         /* На десктопе капли тянутся за курсором прямо на карточке;
            на тач-экранах остаётся автопоказ без курсора. */
-        cursorLava: finePointer ? 1 : 0,
-        pointer: finePointer,
+        cursorLava: finePointer.value ? 1 : 0,
+        pointer: finePointer.value,
         pointerFrom: 'self',
         ratioCap: 1.5,
         pixelBudget: 1.5e6,
@@ -162,7 +167,7 @@ async function boot() {
         /* Карточка — превью: плотность поменьше; курсор ловим только
            на десктопе (на тач-экранах остаётся автопоказ). */
         density: Math.max(1, ((props.demo.params as Record<string, number> | undefined)?.density ?? 1) + 1),
-        pointer: finePointer,
+        pointer: finePointer.value,
         pointerFrom: 'self',
         ratioCap: 1.5,
         pixelBudget: 1.5e6,
@@ -213,7 +218,13 @@ async function boot() {
       }) as DemoInstance
     }
 
-    if (!created || disposed) return
+    if (!created) return
+    /* Карточку сняли, пока грузился движок: инстанс уже создан и держит
+       канвас и WebGL-контекст — освобождаем его, иначе он останется ничей. */
+    if (disposed) {
+      created.destroy()
+      return
+    }
     instance = created
     /* Кэшируем сразу: следующий показ (смена языка) перецепит тот же виджет
        вместо пересоздания. */
@@ -236,6 +247,10 @@ async function boot() {
 }
 
 onMounted(() => {
+  /* Класс интерактива и настройки движка зависят от указателя — узнаём его
+     после гидрации, чтобы разметка сервера и клиента совпала. */
+  finePointer.value = window.matchMedia('(pointer: fine)').matches
+
   if (!supportedOnThisDevice()) return
   const el = host.value
   if (!el) return

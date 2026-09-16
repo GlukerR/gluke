@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ProjectsCollectionItem } from '@nuxt/content'
+import { ipxVersionModifier } from '~/utils/imageVersion'
 
 const props = defineProps<{
   category: 'orgtech' | 'industrial' | 'furniture' | 'exteriors' | 'cinematics' | 'gameready' | 'webgl'
@@ -15,6 +16,11 @@ const props = defineProps<{
 
 const { t } = useI18n()
 const localePath = useLocalePath()
+
+/* Обложка идёт вариантом `/_ipx/**`: версия в адресе не даёт кэшу залипнуть
+   на прежней картинке после её замены. См. `app/utils/imageVersion.ts`. */
+const imageVersions = useRuntimeConfig().public.imageVersions
+const coverModifiers = computed(() => ipxVersionModifier(props.cover.src, imageVersions))
 
 const SIZES = '100vw md:50vw xl:560px'
 
@@ -34,6 +40,7 @@ const description = computed(() => t(`projects.categories.${props.category}.desc
         :width="cover.width"
         :height="cover.height"
         :sizes="SIZES"
+        :modifiers="coverModifiers"
         format="avif,webp"
         loading="lazy"
         decoding="async"

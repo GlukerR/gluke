@@ -12,7 +12,7 @@ featured: false
 status: published
 navigation: false
 period: "2026"
-updated: 2026-09-14
+updated: 2026-09-16
 engagement: completed
 clientUrl: https://rpgrand.com
 services:
@@ -32,6 +32,14 @@ cover:
   alt: A cherry-blossom coupe in the garage — the configurator section row and scene counters under the 3D scene
   width: 1680
   height: 945
+  # on a phone the card is narrow: in the shared frame neither the body nor the
+  # section row reads, so narrow screens get their own composition
+  # (scripts/make-rp-grand-cover-mobile.mjs)
+  mobile:
+    src: /media/projects/rp-grand/rp-grand-cover-mobile.jpg
+    alt: A cherry-blossom coupe under the garage scene, with the configurator section row below
+    width: 1150
+    height: 763
 model:
   src: /media/projects/rp-grand/coupe-gt-lod0.glb
   alt: 'Interactive 3D model of a car — rotate and inspect the body and details'

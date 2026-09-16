@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ProjectsCollectionItem } from '@nuxt/content'
+import { ipxVersionModifier } from '~/utils/imageVersion'
 
 const props = withDefaults(
   defineProps<{
@@ -18,27 +19,102 @@ const { project: projectPath } = useSiteRoutes()
 
 const leadMetric = computed(() => props.project.metrics[0])
 const services = computed(() => props.project.services.slice(0, 2))
+
+/*
+ * Картинка карточки.
+ *
+ * Источники собираются вручную, а не через `NuxtPicture`: у `<source>` этого
+ * компонента нет `media`, поэтому art direction им не выразить, а кейсу нужна
+ * вторая композиция для узких экранов (на телефоне общий кадр сжимается так,
+ * что не читается ни объект, ни подписи на нём). Провайдер, ширины, форматы и
+ * `sizes` — те же, что были у `NuxtPicture`: `avif`, `webp`, последним JPEG (он
+ * же `<img>` — фолбэк для браузеров без `<source>`).
+ *
+ * Мобильной композиции может не быть: тогда карточка ведёт себя как прежде —
+ * один источник на все экраны.
+ */
+const $img = useImage()
+
+/* Версия картинки в адресе варианта: без неё замена обложки под тем же именем
+   файла осталась бы в кэше браузера и CDN. См. `app/utils/imageVersion.ts`. */
+const imageVersions = useRuntimeConfig().public.imageVersions
+
+const PICTURE_FORMATS = ['avif', 'webp'] as const
+/* Должно совпадать с медиазапросом в стилях ниже (пропорция мобильной картинки). */
+const MOBILE_MEDIA = '(max-width: 767px)'
+
+interface CardPictureSource {
+  type: string
+  srcset: string
+  /* Провайдер вправе не вернуть `sizes` (тогда браузер берёт атрибут у `<img>`). */
+  sizes?: string
+}
+
+const mobileCover = computed(() => props.project.cover.mobile)
+
+function pictureSources(src: string): CardPictureSource[] {
+  return PICTURE_FORMATS.map((format) => {
+    const { srcset, sizes } = $img.getSizes(src, {
+      sizes: props.sizes,
+      modifiers: { format, ...ipxVersionModifier(src, imageVersions) },
+    })
+    return { type: `image/${format}`, srcset, sizes }
+  })
+}
+
+const mobileSources = computed(() => (mobileCover.value ? pictureSources(mobileCover.value.src) : []))
+const desktopSources = computed(() => pictureSources(props.project.cover.src))
+const fallback = computed(() => $img.getSizes(props.project.cover.src, {
+  sizes: props.sizes,
+  modifiers: { format: 'jpeg', ...ipxVersionModifier(props.project.cover.src, imageVersions) },
+}))
+
+/* Пропорция мобильной композиции своя, и карточка обязана её взять: иначе
+   `object-fit: cover` обрежет именно то, ради чего картинка собрана. */
+const pictureStyle = computed(() => (mobileCover.value
+  ? { '--project-cover-mobile-ratio': `${mobileCover.value.width} / ${mobileCover.value.height}` }
+  : undefined))
 </script>
 
 <template>
   <NuxtLink
     :to="projectPath(project.slug)"
     class="project-card"
-    :class="`project-card--${emphasis}`"
+    :class="[`project-card--${emphasis}`, { 'project-card--cover-mobile': !!mobileCover }]"
   >
     <span class="project-card__media">
-      <NuxtPicture
-        :src="project.cover.src"
-        :alt="project.cover.alt"
-        :width="project.cover.width"
-        :height="project.cover.height"
-        :sizes="sizes"
-        format="avif,webp"
-        loading="lazy"
-        decoding="async"
+      <picture
         class="project-card__picture"
-        :img-attrs="{ class: 'project-card__image' }"
-      />
+        :style="pictureStyle"
+      >
+        <!-- Узкие экраны берут мобильную композицию, если она есть у кейса. -->
+        <source
+          v-for="source in mobileSources"
+          :key="`mobile-${source.type}`"
+          :media="MOBILE_MEDIA"
+          :type="source.type"
+          :sizes="source.sizes"
+          :srcset="source.srcset"
+        >
+        <source
+          v-for="source in desktopSources"
+          :key="`desktop-${source.type}`"
+          :type="source.type"
+          :sizes="source.sizes"
+          :srcset="source.srcset"
+        >
+        <img
+          class="project-card__image"
+          :src="fallback.src"
+          :srcset="fallback.srcset"
+          :sizes="sizes"
+          :width="project.cover.width"
+          :height="project.cover.height"
+          :alt="project.cover.alt"
+          loading="lazy"
+          decoding="async"
+        >
+      </picture>
 
       <!-- Живое превью: у кейсов с WebGL-виджетом (GlukePyramid, Constellation)
            обложка после простоя страницы уступает место настоящему рендеру.
@@ -138,7 +214,8 @@ const services = computed(() => props.project.services.slice(0, 2))
   opacity: 0;
 }
 
-.project-card__picture :deep(.project-card__image) {
+.project-card__image {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -146,8 +223,18 @@ const services = computed(() => props.project.services.slice(0, 2))
   transition: transform 250ms ease;
 }
 
-.project-card--lead .project-card__picture :deep(.project-card__image) {
+.project-card--lead .project-card__image {
   aspect-ratio: 16 / 9;
+}
+
+/* Узкий экран: у мобильной композиции своя пропорция, и карточка её берёт —
+   иначе общий кадр обрежется по 16:9 и ряд разделов уедет за кадр. Без
+   мобильной картинки правило не действует: у остальных кейсов всё как было.
+   Медиазапрос совпадает с MOBILE_MEDIA в скрипте. */
+@media (max-width: 767px) {
+  .project-card--cover-mobile .project-card__image {
+    aspect-ratio: var(--project-cover-mobile-ratio, 16 / 9);
+  }
 }
 
 .project-card__body {
@@ -248,7 +335,7 @@ const services = computed(() => props.project.services.slice(0, 2))
     background-color: var(--site-surface-raised);
   }
 
-  .project-card:hover .project-card__picture :deep(.project-card__image) {
+  .project-card:hover .project-card__image {
     transform: scale(1.03);
   }
 
@@ -274,11 +361,11 @@ const services = computed(() => props.project.services.slice(0, 2))
   }
 
   .project-card--tall .project-card__picture,
-  .project-card--tall .project-card__picture :deep(.project-card__image) {
+  .project-card--tall .project-card__image {
     height: 100%;
   }
 
-  .project-card--tall .project-card__picture :deep(.project-card__image) {
+  .project-card--tall .project-card__image {
     aspect-ratio: auto;
   }
 

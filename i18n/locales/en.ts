@@ -340,10 +340,11 @@ export default {
       triangles: 'Triangles',
       drawCalls: 'Draw calls',
       reset: 'Reset',
-      /* Игровой HUD гаража: разделы, музыка и технический монитор. */
+      /* Игровой HUD гаража: разделы, музыка и технические данные (они живут
+         только внутри раздела Tech, на самом экране их нет). */
       hud: {
         garage: 'Garage',
-        menu: 'Customisation',
+        sections: 'Sections',
         vehicles: 'Vehicles',
         body: 'Body',
         paint: 'Paint',
@@ -358,7 +359,6 @@ export default {
         progress: 'Track position',
         performance: 'Performance',
         tris: 'Tris',
-        drawCalls: 'Draw calls',
         fps: 'FPS',
         vertices: 'Vertices',
         textures: 'Textures',
@@ -378,6 +378,10 @@ export default {
         noDecal: 'No decal',
         close: 'Close',
         colour: 'Colour',
+        /* First-visit hint: the scene is dimmed, the Vehicles button glows. */
+        introEyebrow: 'Interactive garage',
+        introHint: 'Not a picture — pick a car or drag to spin it',
+        introHintTouch: 'Not a picture — pick a car or swipe to spin it',
       },
     },
     gallery: 'Project materials',

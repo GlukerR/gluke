@@ -17,11 +17,13 @@
  *
  * Использование: pnpm validate:content   (входит в pnpm check и в CI)
  */
+import { existsSync, readFileSync } from 'node:fs'
 import { glob, readFile } from 'node:fs/promises'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { dirname, join, relative, resolve, sep } from 'node:path'
 import { createJiti } from 'jiti'
 import { parse as parseYaml } from 'yaml'
+import { collectImageVersions } from './media-versions.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const contentDir = join(root, 'content')
@@ -40,6 +42,84 @@ const GENERATED_PAGE_FIELDS = {
 
 function firstLine(message) {
   return String(message).split(/\r?\n/)[0]
+}
+
+/**
+ * Проверка картинок кейса: обложка (`cover.src`), её мобильная композиция
+ * (`cover.mobile.src`) и отдельный `hero.src`.
+ *
+ * Первое — файл обязан лежать на диске: адрес уходит в карточку, в
+ * `og:image` и в превью ссылки, а битая ссылка видна не в сборке, а в чате у
+ * клиента. Второе — у share-картинки (обложка и hero) должна быть версия
+ * (отпечаток содержимого, `scripts/media-versions.mjs`): без неё мессенджер
+ * держит закэшированную картинку превью и после замены файла показывает старое
+ * изображение. Мобильная композиция в соцсети не уходит, поэтому версии ей не
+ * нужно — только файл на диске.
+ */
+function shareImageIssues(data, versions) {
+  const issues = []
+
+  for (const [field, image] of [
+    ['cover', data.cover],
+    ['cover.mobile', data.cover?.mobile],
+    ['hero', data.hero],
+  ]) {
+    const src = image?.src
+
+    if (!src) {
+      continue
+    }
+
+    if (!existsSync(join(root, 'public', src))) {
+      issues.push(`    ${field}.src: файла нет — public${src}`)
+      continue
+    }
+
+    if (field !== 'cover.mobile' && !versions[src]) {
+      issues.push(`    ${field}.src: нет отпечатка для превью ссылки — ${src}`)
+    }
+  }
+
+  return issues
+}
+
+/**
+ * Проверка конфигурации деплоя — того, что не видно ни в сборке, ни на странице.
+ *
+ * Кэш статики живёт только в `vercel.json`: файлы `public/` отдаёт сам Vercel,
+ * до Nuxt дело не доходит. Потерянная секция `headers` не даёт ошибки — она
+ * просто возвращает браузерную перепроверку каждого файла страницы, то есть
+ * медленную загрузку на плохом канале.
+ *
+ * Количество зон вычислений ограничено планом: на Hobby доступна одна, и лишняя
+ * зона валит деплой ещё до сборки. Поэтому значение проверяется явно, а не
+ * подразумевается (при смене плана это место и есть то, что правится вместе с ним,
+ * см. docs/dev-guide.md §5).
+ */
+function deployConfigIssues() {
+  const issues = []
+  let config
+
+  try {
+    config = JSON.parse(readFileSync(join(root, 'vercel.json'), 'utf8'))
+  }
+  catch (error) {
+    return [`    vercel.json не читается: ${firstLine(error.message)}`]
+  }
+
+  const cacheControl = config.headers
+    ?.find(entry => entry.source === '/media/(.*)')
+    ?.headers?.find(header => header.key.toLowerCase() === 'cache-control')?.value
+
+  if (!cacheControl?.includes('max-age=')) {
+    issues.push('    headers: нет кэша для /media/(.*) — статика вернётся к must-revalidate')
+  }
+
+  if (!Array.isArray(config.regions) || config.regions.length !== 1) {
+    issues.push(`    regions: ожидается одна зона (Hobby), а не ${JSON.stringify(config.regions)}`)
+  }
+
+  return issues
 }
 
 function collectIssues(error) {
@@ -72,6 +152,7 @@ async function loadCollections() {
 
 async function main() {
   const collections = await loadCollections()
+  const imageVersions = collectImageVersions({ rootDir: root })
   const failures = []
   let checked = 0
 
@@ -111,8 +192,28 @@ async function main() {
           collection: name,
           issues: collectIssues(result.error),
         })
+        continue
+      }
+
+      /* Проверка схемы выше уже гарантирует, что `cover.src` — строка со
+         `/media/`: дальше проверяем уже медиа, а не поля. */
+      if (name === 'projects') {
+        const issues = shareImageIssues(result.data, imageVersions)
+
+        if (issues.length) {
+          failures.push({ file: shortPath, collection: name, issues })
+        }
       }
     }
+  }
+
+  const configIssues = deployConfigIssues()
+
+  if (configIssues.length) {
+    console.error('\n[validate:content] конфигурация деплоя нарушена:\n')
+    console.error('  vercel.json  (деплой)')
+    console.error(configIssues.join('\n'))
+    console.error('')
   }
 
   if (failures.length) {
@@ -122,6 +223,9 @@ async function main() {
       console.error(failure.issues.join('\n'))
       console.error('')
     }
+  }
+
+  if (failures.length || configIssues.length) {
     process.exit(1)
   }
 

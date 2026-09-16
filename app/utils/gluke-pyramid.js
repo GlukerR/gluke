@@ -21,8 +21,12 @@
  *      математика не тронута — переименование сверено попиксельно, кадр до и
  *      после совпадает побайтово.
  *
- * Техника: SDF-пирамида, объёмный raymarch (MARCH_STEPS = 100 на пиксель).
+ * Техника: SDF-пирамида, объёмный raymarch (MARCH_STEPS = 100 на пиксель,
+ * с ранним выходом, когда луч ушёл далеко за объект — см. шейдер).
  */
+
+import { createQualityGovernor } from './framePacing'
+import { attachRunSources, createRunGate } from './widgetRunGate'
 
 const GlukePyramid = (function (global) {
   'use strict';
@@ -192,6 +196,14 @@ const GlukePyramid = (function (global) {
     '#endif',
     '    vec4 band = (sin((p.y + z) * uBandRate + vec4(uHues, 3.0) + tm * 0.15) + 1.0);',
     '    o += band / d;',
+    // Ранний выход. Луч, ушедший за объект, удаляется от него, и шаг растёт
+    // примерно в 1,2 раза за итерацию: вклад хвоста в свечение ничтожен, а
+    // итераций на него уходила половина. Порог сверен эмуляцией шейдера на
+    // сетке пикселей, поворотах и крайних значениях ползунков (яркость 3 ×
+    // засветка 3, светлая тема, частота полос 3): цвет расходится не больше
+    // чем на 1/255, в среднем 41–51 шаг вместо 100. Около поверхности шаг
+    // мал (|sd| < 250), так что плёнку логотипа выход не задевает.
+    '    if (d > 50.0) break;',
     '  }',
 
     '  o = tanh4(o * o * (uRadiance * uFlare) / 1e5);',
@@ -351,13 +363,20 @@ const GlukePyramid = (function (global) {
 
     this._raf = 0;
     this._running = false;
-    this._visible = true;
+    /* Сторож кадров живёт вместе с движком (переживает detach/reattach),
+       а источники и подписка создаются в _bind(). */
+    this._gate = null;
+    this._gateOff = null;
+    this._sources = null;
     this._t0 = performance.now();
     this._turn = 0;
     this._lean = o.lean;
     this._wantTurn = 0;
     this._wantLean = o.lean;
     this._rot = new Float32Array(9);
+    // Регулятор качества: плотность опускается, если устройство не успевает
+    // кадры (utils/framePacing).
+    this._quality = createQualityGovernor();
     this._pointer = { x: 0, y: 0 };
 
     if (o.respectReducedMotion &&
@@ -499,6 +518,8 @@ const GlukePyramid = (function (global) {
     // потолок по числу пикселей: шейдер тяжёлый, на retina/4K иначе просядет fps
     var maxPx = o.pixelBudget || 2.2e6;
     if (w * h * dpr * dpr > maxPx) dpr = Math.max(0.75, Math.sqrt(maxPx / (w * h)));
+    var q = this._quality ? this._quality.scale() : 1;
+    if (q < 1) dpr = Math.max(0.5, dpr * q);
 
     this.canvas.width = Math.round(w * dpr);
     this.canvas.height = Math.round(h * dpr);
@@ -540,23 +561,23 @@ const GlukePyramid = (function (global) {
       host.addEventListener('touchmove', this._onMove, { passive: true });
     }
 
-    this._onVis = function () {
-      if (document.hidden) self.stop(); else self.start();
-    };
-    document.addEventListener('visibilitychange', this._onVis);
-
-    if (o.pauseOffscreen && global.IntersectionObserver) {
-      this._io = new IntersectionObserver(function (entries) {
-        self._visible = entries[0].isIntersecting;
-        if (self._visible) self.start(); else self.stop();
-      }, { threshold: 0 });
-      this._io.observe(this.el);
+    /* Кадры разрешает единый сторож: «вкладка активна» и «блок в кадре» —
+       два независимых признака (utils/widgetRunGate). */
+    if (!this._gate) {
+      this._gate = createRunGate({ pauseOffscreen: o.pauseOffscreen });
     }
+    this._gateOff = this._gate.subscribe(function (run) {
+      if (run) self.start(); else self.stop();
+    });
+    this._sources = attachRunSources(this.el, this._gate, {
+      pauseOffscreen: o.pauseOffscreen,
+    });
   };
 
   Widget.prototype._frame = function (now) {
     var self = this;
     this._raf = requestAnimationFrame(function (t) { self._frame(t); });
+    if (this._quality.sample(now)) this.resize();
 
     var gl = this.gl, u = this.u, o = this.o;
     var time = (now - this._t0) * 0.001;
@@ -585,7 +606,7 @@ const GlukePyramid = (function (global) {
   };
 
   Widget.prototype.start = function () {
-    if (this._running || document.hidden || !this._visible) return;
+    if (this._running || !this._gate || !this._gate.shouldRun()) return;
     this._running = true;
     var self = this;
     this._t0 = performance.now() - (this._elapsed || 0) * 1000;
@@ -597,6 +618,7 @@ const GlukePyramid = (function (global) {
     this._running = false;
     this._elapsed = (performance.now() - this._t0) * 0.001;
     cancelAnimationFrame(this._raf);
+    this._quality.pause();
   };
 
   /** Обновить любые параметры на лету: pyramid.set({ hueTurn: 2.0 }) */
@@ -613,14 +635,17 @@ const GlukePyramid = (function (global) {
   Widget.prototype._unbind = function () {
     if (this._ro) this._ro.disconnect();
     else if (this._onResize) global.removeEventListener('resize', this._onResize);
-    if (this._io) this._io.disconnect();
-    document.removeEventListener('visibilitychange', this._onVis);
+    /* Снятый движок обязан отписать источники: иначе слушатель вкладки
+       пережил бы свой канвас и снова запустил цикл. */
+    if (this._sources) this._sources.disconnect();
+    if (this._gateOff) this._gateOff();
     if (this._onMove && this._hoverHost) {
       this._hoverHost.removeEventListener('mousemove', this._onMove);
       this._hoverHost.removeEventListener('touchmove', this._onMove);
     }
     this._ro = null;
-    this._io = null;
+    this._sources = null;
+    this._gateOff = null;
     this._onResize = null;
     this._onMove = null;
     this._hoverHost = null;
@@ -647,7 +672,6 @@ const GlukePyramid = (function (global) {
     this.el = node;
     if (getComputedStyle(node).position === 'static') node.style.position = 'relative';
     node.appendChild(this.canvas);
-    this._visible = true;
     this.resize();
     this._bind();
     this.start();
@@ -657,8 +681,8 @@ const GlukePyramid = (function (global) {
   Widget.prototype.destroy = function () {
     this.stop();
     if (this._ro) this._ro.disconnect(); else global.removeEventListener('resize', this._onResize);
-    if (this._io) this._io.disconnect();
-    document.removeEventListener('visibilitychange', this._onVis);
+    if (this._sources) this._sources.disconnect();
+    if (this._gateOff) this._gateOff();
     if (this._onMove && this._hoverHost) {
       this._hoverHost.removeEventListener('mousemove', this._onMove);
       this._hoverHost.removeEventListener('touchmove', this._onMove);
@@ -666,6 +690,10 @@ const GlukePyramid = (function (global) {
     var ext = this.gl.getExtension('WEBGL_lose_context');
     if (ext) ext.loseContext();
     if (this.canvas.parentNode) this.canvas.parentNode.removeChild(this.canvas);
+    /* Реестр не должен держать уничтоженный инстанс: вытеснение из кэша
+       виджетов зовёт destroy(), и без этого массив рос бы всю сессию. */
+    var at = API.instances.indexOf(this);
+    if (at > -1) API.instances.splice(at, 1);
   };
 
   // ------------------------------------------------------------- авто-запуск

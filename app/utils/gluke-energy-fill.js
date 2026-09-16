@@ -35,6 +35,8 @@
  * корректную заливку по новой форме.
  */
 
+import { attachRunSources, createRunGate } from './widgetRunGate'
+
 const GlukeEnergyFill = (function (global) {
   'use strict'
 
@@ -532,6 +534,191 @@ const GlukeEnergyFill = (function (global) {
     return (a + (b - a) * tx) * (1 - ty) + (c + (e - c) * tx) * ty
   }
 
+  /*
+   * Подготовка карт — вне главного потока.
+   *
+   * На `detail: 2` это знаковое поле 2048² (две развёртки расстояний по 4,2 млн
+   * клеток), геодезическое поле прихода и сборка текстуры с тремя билинейными
+   * сэмплами на клетку. Раньше всё шло синхронно в кадре, а hero и лаборатория
+   * пекли каждый своё — старт страницы замирал на сотни миллисекунд. Теперь в
+   * главном потоке остаются только растеризация знака (её делает canvas) и
+   * заливка готовой текстуры, остальное считает воркер.
+   *
+   * Ядро — чистая функция без ссылок на внешнюю область: воркер собирается из
+   * исходного текста функций (`bakerSource`), без отдельного файла и сборки,
+   * поэтому движок по-прежнему самодостаточен. Помощники приходят параметром
+   * `h`, а не по имени: минификатор переименовывает локальные функции, но не
+   * ключи объекта. Если воркер не поднялся (CSP, старый браузер), то же ядро
+   * работает на месте.
+   */
+  function bakerCore(h) {
+    var sd = null
+    var mask = null
+    var grid = 0
+    var fg = 0
+
+    /* Знаковое расстояние до контура на крупной сетке. Считается один раз на
+       знак: от угла входа оно не зависит. У краевых пикселей значение берётся
+       из сглаженной альфы — тогда контур садится точно между пикселями, а не
+       округляется до целого, и не появляется лесенка. */
+    function edge(cov, g, scale) {
+      var n = g * g
+      var on = new Uint8Array(n)
+      var off = new Uint8Array(n)
+      for (var i = 0; i < n; i++) {
+        var hit = cov[i] > 0.5 ? 1 : 0
+        on[i] = hit
+        off[i] = hit ? 0 : 1
+      }
+      var inside = h.chamfer(g, off, null)
+      var outside = h.chamfer(g, on, null)
+      var out = new Float32Array(n)
+      for (i = 0; i < n; i++) {
+        var a = cov[i]
+        if (a > 0.02 && a < 0.98) out[i] = (a - 0.5) / scale
+        else out[i] = (on[i] ? inside[i] - 0.5 : -(outside[i] - 0.5)) / scale
+      }
+      return out
+    }
+
+    /* Карты под текущий угол входа. Зовётся при перепечи и при смене
+       `entryAngle`: знаковое поле при этом не пересчитывается. */
+    function fields(angle) {
+      var n = fg * fg
+      var i, x, y
+
+      var inv = new Uint8Array(n)
+      for (i = 0; i < n; i++) inv[i] = mask[i] ? 0 : 1
+
+      /* Мягкое свечение и внутренний подсвет — с размытых карт: без размытия
+         на кадре читаются грани метрики. Радиус берём от размера сетки, чтобы
+         картинка не менялась при смене разрешения. */
+      var blur = Math.max(1, Math.round(fg * 0.02))
+      var softOut = h.blurField(h.chamfer(fg, mask, null), fg, blur)
+      var softIn = h.blurField(h.chamfer(fg, inv, null), fg, blur)
+
+      /* Центр тяжести знака — от него считаются зарево и ударное кольцо: они
+         не ограничены картой и уходят далеко за её края. */
+      var sx = 0, sy = 0, cnt = 0
+      for (y = 0; y < fg; y++) {
+        for (x = 0; x < fg; x++) {
+          if (!mask[y * fg + x]) continue
+          sx += x
+          sy += y
+          cnt++
+        }
+      }
+      var centre = cnt ? [sx / cnt / (fg - 1), sy / cnt / (fg - 1)] : null
+
+      /* Точка входа — самый «верхний по потоку» пиксель знака: тот, который
+         поток встретит первым. Ищем крайний в направлении, обратном полёту. */
+      var rad = angle * Math.PI / 180
+      var dx = Math.cos(rad), dy = Math.sin(rad)
+      var best = -1e9, bx = 0, by = 0
+      for (y = 0; y < fg; y++) {
+        for (x = 0; x < fg; x++) {
+          if (!mask[y * fg + x]) continue
+          var proj = -(x * dx + y * dy)
+          if (proj > best) {
+            best = proj
+            bx = x
+            by = y
+          }
+        }
+      }
+
+      /* Сеем не пиксель, а пятно: с одной клетки волна расходится ровным
+         кругом и первые кадры читаются как точка, а не как удар потока. */
+      var seed = new Uint8Array(n)
+      var r = Math.max(2, Math.round(fg * 0.025))
+      var r2 = r * r
+      for (y = Math.max(0, by - r); y < Math.min(fg, by + r + 1); y++) {
+        for (x = Math.max(0, bx - r); x < Math.min(fg, bx + r + 1); x++) {
+          var j = y * fg + x
+          if (mask[j] && (x - bx) * (x - bx) + (y - by) * (y - by) <= r2) seed[j] = 1
+        }
+      }
+      var arrival = h.chamfer(fg, seed, mask)
+
+      /* Нормировка по самой дальней достижимой точке. Островки, до которых
+         волна не дошла (знак из нескольких частей), заливаются последними, а
+         не остаются серыми навсегда. */
+      var maxArr = 0
+      for (i = 0; i < n; i++) {
+        if (mask[i] && arrival[i] < 1e8 && arrival[i] > maxArr) maxArr = arrival[i]
+      }
+      if (maxArr <= 0) maxArr = 1
+      for (i = 0; i < n; i++) if (arrival[i] > 1e8) arrival[i] = maxArr
+
+      var softScale = fg * 0.22
+      var g = grid
+      var px = new Uint8Array(g * g * 4)
+      for (y = 0; y < g; y++) {
+        var v = y / (g - 1)
+        for (x = 0; x < g; x++) {
+          var uu = x / (g - 1)
+          var o4 = (y * g + x) * 4
+          px[o4] = Math.round(Math.min(1, Math.max(0, sd[y * g + x] * 0.5 + 0.5)) * 255)
+          px[o4 + 1] = Math.round(Math.min(1, Math.max(0, h.sampleField(arrival, fg, uu, v) / maxArr)) * 255)
+          px[o4 + 2] = Math.round(Math.min(1, Math.max(0, h.sampleField(softIn, fg, uu, v) / softScale)) * 255)
+          px[o4 + 3] = Math.round(Math.min(1, Math.max(0, h.sampleField(softOut, fg, uu, v) / softScale)) * 255)
+        }
+      }
+
+      return {
+        px: px,
+        grid: g,
+        centre: centre,
+        entry: [bx / (fg - 1), by / (fg - 1)],
+        dir: [dx, dy],
+      }
+    }
+
+    return {
+      /* Полная перепечь: знаковое поле, маска и поля прихода. `cov` и `soft` —
+         альфа знака на крупной и мелкой сетке (растеризует главный поток). */
+      bake: function (job) {
+        grid = job.grid
+        fg = job.fieldGrid
+        sd = edge(job.cov, grid, job.sdScale)
+        var soft = job.soft
+        mask = new Uint8Array(fg * fg)
+        for (var i = 0; i < mask.length; i++) mask[i] = soft[i] > 0.5 ? 1 : 0
+        return fields(job.angle)
+      },
+      /* Только поля под новый угол; null — знак ещё не пёкся. */
+      fields: function (job) {
+        return sd ? fields(job.angle) : null
+      },
+    }
+  }
+
+  var BAKER_HELPERS = { chamfer: chamfer, blurField: blurField, sampleField: sampleField }
+
+  /* Текст воркера: ядро и помощники из их же исходников. */
+  function bakerSource() {
+    return 'var core=(' + bakerCore + ')({chamfer:' + chamfer
+      + ',blurField:' + blurField + ',sampleField:' + sampleField + '});'
+      + 'onmessage=function(e){var m=e.data;'
+      + 'var r=m.type==="bake"?core.bake(m):core.fields(m);'
+      + 'if(!r){postMessage({empty:true});return}'
+      + 'postMessage(r,[r.px.buffer])}'
+  }
+
+  var bakerUrl = null
+  function spawnBaker() {
+    if (typeof Worker === 'undefined' || typeof Blob === 'undefined'
+      || typeof URL === 'undefined' || !URL.createObjectURL) return null
+    try {
+      /* Один адрес на все инстансы: исходник одинаковый. */
+      if (!bakerUrl) bakerUrl = URL.createObjectURL(new Blob([bakerSource()], { type: 'text/javascript' }))
+      return new Worker(bakerUrl)
+    }
+    catch {
+      return null
+    }
+  }
+
   function Widget(el, opts) {
     this.el = typeof el === 'string' ? document.querySelector(el) : el
     if (!this.el) throw new Error('GlukeEnergyFill: контейнер не найден')
@@ -601,12 +788,20 @@ const GlukeEnergyFill = (function (global) {
     this._ready = false
     this._dirty = 0 // 0 — ничего, 1 — перепечь поля, 2 — перепечь всё
     this._img = null
-    this._sd = null
-    this._mask = null
+    /* Подготовка карт: воркер (undefined — ещё не создавали, null — работаем
+       на месте), локальное ядро и признак «задание в работе». */
+    this._worker = undefined
+    this._core = null
+    this._busy = false
+    this._destroyed = false
     this._centre = [0.5, 0.5]
     this._entry = [0.5, 0.5]
     this._dir = [1, 0]
-    this._visible = true
+    /* Сторож кадров живёт вместе с движком (переживает detach/reattach),
+       а источники и подписка создаются в _bind(). */
+    this._gate = null
+    this._gateOff = null
+    this._sources = null
     this._running = false
     this._elapsed = 0
     this._w = 0
@@ -648,8 +843,8 @@ const GlukeEnergyFill = (function (global) {
          молча выбрасываем, иначе он перезапишет новый. */
       if (token !== self._markToken) return
       self._img = img
+      /* Готовность выставит _onBaked, когда карты придут из воркера. */
       self._bake()
-      self._ready = true
     }
     img.onerror = function () {
       console.warn('GlukeEnergyFill: не загрузился знак', url)
@@ -661,139 +856,93 @@ const GlukeEnergyFill = (function (global) {
   }
 
   /* Полная перепечь: знаковое поле, маска и поля прихода. Зовётся при смене
-     знака и при смене разрешения. */
+     знака и при смене разрешения. Пока предыдущее задание в работе, новое
+     только помечается: воркер считает по одному, а устаревший ответ всё
+     равно пришлось бы выбросить. */
   Widget.prototype._bake = function () {
     if (!this._img) return
-    this._buildEdge(rasterize(this._img, this._grid, PAD))
-    var fg = this._fieldGrid
-    var soft = rasterize(this._img, fg, PAD)
-    var mask = new Uint8Array(fg * fg)
-    for (var i = 0; i < mask.length; i++) mask[i] = soft[i] > 0.5 ? 1 : 0
-    this._mask = mask
-    this._buildFields()
-  }
-
-  /* Знаковое расстояние до контура на крупной сетке. Считается один раз на
-     знак: от угла входа оно не зависит. У краевых пикселей значение берётся
-     из сглаженной альфы — тогда контур садится точно между пикселями, а не
-     округляется до целого, и не появляется лесенка. */
-  Widget.prototype._buildEdge = function (cov) {
+    if (this._busy) {
+      this._dirty = 2
+      return
+    }
+    this._dirty = 0
     var g = this._grid
-    var n = g * g
-    var mask = new Uint8Array(n)
-    var inv = new Uint8Array(n)
-    for (var i = 0; i < n; i++) {
-      var on = cov[i] > 0.5 ? 1 : 0
-      mask[i] = on
-      inv[i] = on ? 0 : 1
-    }
-    var inside = chamfer(g, inv, null)
-    var outside = chamfer(g, mask, null)
-    var scale = this._sdScale
-    var sd = new Float32Array(n)
-    for (i = 0; i < n; i++) {
-      var a = cov[i]
-      if (a > 0.02 && a < 0.98) sd[i] = (a - 0.5) / scale
-      else sd[i] = (mask[i] ? inside[i] - 0.5 : -(outside[i] - 0.5)) / scale
-    }
-    this._sd = sd
+    var fg = this._fieldGrid
+    this._runJob({
+      type: 'bake',
+      grid: g,
+      fieldGrid: fg,
+      sdScale: this._sdScale,
+      angle: this.o.entryAngle,
+      cov: rasterize(this._img, g, PAD),
+      soft: rasterize(this._img, fg, PAD),
+    })
   }
 
-  /* Пересчёт карт под текущий угол входа и заливка их в текстуру. Зовётся при
-     перепечи и при смене `entryAngle` — не чаще одного раза за кадр, поэтому
-     таскать ползунок угла не больно. */
+  /* Пересчёт карт под текущий угол входа. Зовётся при смене `entryAngle` —
+     не чаще одного раза за кадр, поэтому таскать ползунок угла не больно. */
   Widget.prototype._buildFields = function () {
-    var fg = this._fieldGrid
-    var mask = this._mask
-    if (!mask || !this._sd) return
-    var n = fg * fg
-    var i, x, y
-
-    var inv = new Uint8Array(n)
-    for (i = 0; i < n; i++) inv[i] = mask[i] ? 0 : 1
-
-    /* Мягкое свечение и внутренний подсвет — с размытых карт: без размытия
-       на кадре читаются грани метрики. Радиус берём от размера сетки, чтобы
-       картинка не менялась при смене разрешения. */
-    var blur = Math.max(1, Math.round(fg * 0.02))
-    var softOut = blurField(chamfer(fg, mask, null), fg, blur)
-    var softIn = blurField(chamfer(fg, inv, null), fg, blur)
-
-    /* Центр тяжести знака — от него считаются зарево и ударное кольцо: они
-       не ограничены картой и уходят далеко за её края. */
-    var sx = 0, sy = 0, cnt = 0
-    for (y = 0; y < fg; y++) {
-      for (x = 0; x < fg; x++) {
-        if (!mask[y * fg + x]) continue
-        sx += x
-        sy += y
-        cnt++
-      }
+    if (this._busy) {
+      this._dirty = Math.max(this._dirty, 1)
+      return
     }
-    if (cnt) this._centre = [sx / cnt / (fg - 1), sy / cnt / (fg - 1)]
+    this._dirty = 0
+    this._runJob({ type: 'fields', angle: this.o.entryAngle })
+  }
 
-    /* Точка входа — самый «верхний по потоку» пиксель знака: тот, который
-       поток встретит первым. Ищем крайний в направлении, обратном полёту. */
-    var rad = this.o.entryAngle * Math.PI / 180
-    var dx = Math.cos(rad), dy = Math.sin(rad)
-    var best = -1e9, bx = 0, by = 0
-    for (y = 0; y < fg; y++) {
-      for (x = 0; x < fg; x++) {
-        if (!mask[y * fg + x]) continue
-        var proj = -(x * dx + y * dy)
-        if (proj > best) {
-          best = proj
-          bx = x
-          by = y
-        }
-      }
+  Widget.prototype._runJob = function (job) {
+    var self = this
+    if (this._worker === undefined) this._worker = spawnBaker()
+    var worker = this._worker
+    if (!worker) {
+      if (!this._core) this._core = bakerCore(BAKER_HELPERS)
+      var r = job.type === 'bake' ? this._core.bake(job) : this._core.fields(job)
+      this._onBaked(r)
+      return
     }
-    this._entry = [bx / (fg - 1), by / (fg - 1)]
-    this._dir = [dx, dy]
-
-    /* Сеем не пиксель, а пятно: с одной клетки волна расходится ровным
-       кругом и первые кадры читаются как точка, а не как удар потока. */
-    var seed = new Uint8Array(n)
-    var r = Math.max(2, Math.round(fg * 0.025))
-    var r2 = r * r
-    for (y = Math.max(0, by - r); y < Math.min(fg, by + r + 1); y++) {
-      for (x = Math.max(0, bx - r); x < Math.min(fg, bx + r + 1); x++) {
-        var j = y * fg + x
-        if (mask[j] && (x - bx) * (x - bx) + (y - by) * (y - by) <= r2) seed[j] = 1
-      }
+    this._busy = true
+    worker.onmessage = function (e) {
+      self._busy = false
+      self._onBaked(e.data)
     }
-    var arrival = chamfer(fg, seed, mask)
-
-    /* Нормировка по самой дальней достижимой точке. Островки, до которых
-       волна не дошла (знак из нескольких частей), заливаются последними, а не
-       остаются серыми навсегда. */
-    var maxArr = 0
-    for (i = 0; i < n; i++) {
-      if (mask[i] && arrival[i] < 1e8 && arrival[i] > maxArr) maxArr = arrival[i]
+    worker.onerror = function (e) {
+      if (e && e.preventDefault) e.preventDefault()
+      /* Воркер не поднялся или упал: дальше считаем на месте. Его знаковое
+         поле потеряно вместе с ним, поэтому перепекаем целиком. */
+      worker.terminate()
+      self._worker = null
+      self._busy = false
+      if (self._destroyed) return
+      self._dirty = 0
+      self._bake()
     }
-    if (maxArr <= 0) maxArr = 1
-    for (i = 0; i < n; i++) if (arrival[i] > 1e8) arrival[i] = maxArr
+    /* Растеризованные карты передаются, а не копируются: главному потоку
+       они больше не нужны. */
+    worker.postMessage(job, job.cov ? [job.cov.buffer, job.soft.buffer] : [])
+  }
 
-    var softScale = fg * 0.22
-
-    var g = this._grid
-    var px = new Uint8Array(g * g * 4)
-    for (y = 0; y < g; y++) {
-      var v = y / (g - 1)
-      for (x = 0; x < g; x++) {
-        var uu = x / (g - 1)
-        var o4 = (y * g + x) * 4
-        px[o4] = Math.round(clamp01(this._sd[y * g + x] * 0.5 + 0.5) * 255)
-        px[o4 + 1] = Math.round(clamp01(sampleField(arrival, fg, uu, v) / maxArr) * 255)
-        px[o4 + 2] = Math.round(clamp01(sampleField(softIn, fg, uu, v) / softScale) * 255)
-        px[o4 + 3] = Math.round(clamp01(sampleField(softOut, fg, uu, v) / softScale) * 255)
-      }
+  Widget.prototype._onBaked = function (r) {
+    if (this._destroyed) return
+    /* Пока считалось, сменили знак или разрешение — ответ устарел. */
+    if (this._dirty === 2) {
+      this._bake()
+      return
     }
-
+    /* Ядро не знает знака (перешли с воркера на месте) — перепекаем. */
+    if (!r || r.empty) {
+      this._dirty = 0
+      this._bake()
+      return
+    }
     var gl = this.gl
     gl.bindTexture(gl.TEXTURE_2D, this.tex)
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, g, g, 0, gl.RGBA, gl.UNSIGNED_BYTE, px)
-    this._dirty = 0
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, r.grid, r.grid, 0, gl.RGBA, gl.UNSIGNED_BYTE, r.px)
+    if (r.centre) this._centre = r.centre
+    this._entry = r.entry
+    this._dir = r.dir
+    this._ready = true
+    /* Угол успели сдвинуть ещё раз — досчитываем последнее значение. */
+    if (this._dirty === 1) this._buildFields()
   }
 
   Widget.prototype.resize = function () {
@@ -933,23 +1082,20 @@ const GlukeEnergyFill = (function (global) {
       global.addEventListener('resize', this._onResize)
     }
 
-    if (typeof IntersectionObserver !== 'undefined' && this.o.pauseOffscreen) {
-      this._io = new IntersectionObserver(function (entries) {
-        self._setVisible(!!(entries[0] && entries[0].isIntersecting))
-      })
-      this._io.observe(this.el)
+    /* Кадры разрешает единый сторож: «вкладка активна» и «блок в кадре» —
+       два независимых признака (utils/widgetRunGate). Раньше оба источника
+       писали в один флаг `_visible`, и возврат на вкладку запускал блок,
+       стоящий за экраном. */
+    if (!this._gate) {
+      this._gate = createRunGate({ pauseOffscreen: this.o.pauseOffscreen })
     }
-
-    this._onVis = function () {
-      self._setVisible(!document.hidden)
-    }
-    document.addEventListener('visibilitychange', this._onVis)
-  }
-
-  Widget.prototype._setVisible = function (visible) {
-    this._visible = visible
-    if (visible) this.start()
-    else this.stop()
+    this._gateOff = this._gate.subscribe(function (run) {
+      if (run) self.start()
+      else self.stop()
+    })
+    this._sources = attachRunSources(this.el, this._gate, {
+      pauseOffscreen: this.o.pauseOffscreen,
+    })
   }
 
   Widget.prototype._frame = function (now) {
@@ -995,7 +1141,7 @@ const GlukeEnergyFill = (function (global) {
   }
 
   Widget.prototype.start = function () {
-    if (this._running || document.hidden || !this._visible) return
+    if (this._running || !this._gate || !this._gate.shouldRun()) return
     this._running = true
     var self = this
     this._t0 = performance.now() - (this._elapsed || 0) * 1000
@@ -1047,10 +1193,13 @@ const GlukeEnergyFill = (function (global) {
   Widget.prototype._unbind = function () {
     if (this._ro) this._ro.disconnect()
     else if (this._onResize) global.removeEventListener('resize', this._onResize)
-    if (this._io) this._io.disconnect()
-    document.removeEventListener('visibilitychange', this._onVis)
+    /* Снятый движок обязан отписать источники: иначе слушатель вкладки
+       пережил бы свой канвас и снова запустил цикл. */
+    if (this._sources) this._sources.disconnect()
+    if (this._gateOff) this._gateOff()
     this._ro = null
-    this._io = null
+    this._sources = null
+    this._gateOff = null
     this._onResize = null
   }
 
@@ -1070,7 +1219,6 @@ const GlukeEnergyFill = (function (global) {
     this.el = node
     if (getComputedStyle(node).position === 'static') node.style.position = 'relative'
     node.appendChild(this.canvas)
-    this._visible = true
     this.resize()
     this._bind()
     this.start()
@@ -1080,14 +1228,28 @@ const GlukeEnergyFill = (function (global) {
   Widget.prototype.destroy = function () {
     this.stop()
     this._unbind()
+    this._destroyed = true
+    if (this._worker) this._worker.terminate()
+    this._worker = null
     var ext = this.gl.getExtension('WEBGL_lose_context')
     if (ext) ext.loseContext()
     if (this.canvas.parentNode) this.canvas.parentNode.removeChild(this.canvas)
+    /* Реестр не должен держать уничтоженный инстанс: вытеснение из кэша
+       виджетов зовёт destroy(), и без этого массив рос бы всю сессию. */
+    var at = API.instances.indexOf(this)
+    if (at > -1) API.instances.splice(at, 1)
   }
 
   var API = {
     defaults: DEFAULTS,
     instances: [],
+    /* Служебное: ядро подготовки карт и текст воркера — для тестов. */
+    _baker: {
+      core: function () {
+        return bakerCore(BAKER_HELPERS)
+      },
+      source: bakerSource,
+    },
     create: function (el, opts) {
       var w = new Widget(el, opts)
       API.instances.push(w)

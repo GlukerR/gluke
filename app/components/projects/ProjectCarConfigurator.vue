@@ -2,6 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
 import type * as THREE from 'three'
 import { carConfiguratorCache, carPaintHandles, type CachedCarConfigurator, type CarLodModel } from '~/utils/carConfiguratorCache'
+import { CAMERA_POSE_LENGTH, cameraPoseChanged, createFrameLimiter, createQualityGovernor, physicalPixelRatio, writeCameraPose } from '~/utils/framePacing'
 import { disposeObjectResources } from '~/utils/modelViewerCache'
 import {
   applyVariantSelection,
@@ -37,7 +38,9 @@ import {
   type CarSelection,
 } from '~/utils/carMaterials'
 import { loadCarSelection, saveCarSelection } from '~/utils/carPaintStorage'
+import { withShareImageVersion } from '~/utils/shareImage'
 import { createGarageAudio, type GarageAudio, type GarageAudioState, type GarageAudioTrack } from '~/utils/garageAudio'
+import { hasSeenGarageIntro, markGarageIntroSeen } from '~/utils/garageIntro'
 import { dressGarage, fitContactShadow } from '~/utils/garageAtmosphere'
 import { buildGarageVehicles, type GarageVehicle, type GarageVehicleInput } from '~/utils/garageVehicles'
 import {
@@ -150,6 +153,15 @@ const textureBase = computed(() => carTextureBase(props.model.src))
 /* ───── Машины гаража ───── */
 
 const vehicleList = computed(() => buildGarageVehicles(props.manifest, props.vehicles))
+
+/* Превью машин — обычные ссылки на файлы (фоновая картинка кнопки), поэтому
+   версия отпечатка едет параметром адреса, а не модификатором ipx: замена
+   рендера под тем же именем иначе осталась бы в кэше до истечения срока. */
+const imageVersions = useRuntimeConfig().public.imageVersions
+
+function vehicleThumb(thumb: string | undefined) {
+  return thumb ? withShareImageVersion(thumb, imageVersions) : undefined
+}
 const activeVehicleId = ref(vehicleList.value.find(item => item.manifest === props.manifest)?.id ?? vehicleList.value[0]?.id ?? '')
 const activeVehicle = computed<GarageVehicle>(() => vehicleList.value.find(item => item.id === activeVehicleId.value) ?? vehicleList.value[0]!)
 /* Машина, которая сейчас грузится: её карточка в списке показывает загрузку. */
@@ -206,16 +218,34 @@ let animationFrame = 0
 let accumulatedMs = 0
 let lastFrameAt = 0
 let lastRenderAt = 0
-/* Гараж — главный экран кейса: на десктопе он рисуется с частотой экрана.
-   На тач-устройствах остаётся прежний потолок в 30 кадров — батарея
-   телефона дороже плавности облёта. Пока камера едет к детали или кадр
-   сдвигается под панель, кадр рисуется без потолка на любом устройстве. */
-const FRAME_INTERVAL = 1000 / 30
-let fullFrameRate = false
+/* Кадры рисуются по требованию: цикл поднимается на вращение, зум, смену
+   обвеса и окраски, подъезд камеры, и гаснет, когда сцена устоялась. Раньше
+   цикл шёл непрерывно — на десктопе вообще без потолка (fullFrameRate), то
+   есть каждый rAF в покое, пока экран гаража виден. */
+const frameLimiter = createFrameLimiter(30)
+/* Регулятор качества: если устройство не успевает кадры, плотность буфера
+   опускается на ступень (utils/framePacing). Опора — частота самого экрана,
+   поэтому экран 30 Гц за перегрузку не принимается. */
+const quality = createQualityGovernor()
+/* Сколько времени фары пульсируют после последнего действия. Мгновенная
+   остановка выглядела бы как «свет мигнул и погас», поэтому после затишья
+   фары встают на ровный свет и цикл останавливается. */
+const PULSE_IDLE_MS = 1200
+const EMISSIVE_PULSE_REST = EMISSIVE_PULSE_MAX * 0.6
+let pulseUntil = 0
+let pulseSettled = true
+let needsFrame = true
 let userDragging = false
+/* Снимок позы камеры для признака движения: заполняется после каждого кадра,
+   чтобы сравнение в начале следующего показывало именно сдвиг камеры. */
+let cameraPose: Float64Array | null = null
 let disposed = false
 let idleId: number | null = null
+/* Наблюдатель приближения: пока экран гаража далеко за окном, сцена не
+   собирается — ни three.js, ни GLB машины в сеть не уходят. */
+let startObserver: IntersectionObserver | undefined
 const IDLE_TIMEOUT = 2500
+const START_MARGIN = '300px 0px'
 
 /* ───── HUD: разделы ───── */
 
@@ -243,6 +273,7 @@ function categoryIndex(category: HudCategory): string {
 }
 
 function toggleCategory(category: HudCategory) {
+  dismissIntro()
   activeCategory.value = activeCategory.value === category ? null : category
 }
 
@@ -251,10 +282,31 @@ function closeCategory() {
 }
 
 function onHudKeydown(event: KeyboardEvent) {
+  /* Проход Tab'ом по странице — ещё не действие в гараже. */
+  if (event.key !== 'Tab' && event.key !== 'Shift') dismissIntro()
   if (event.key === 'Escape' && activeCategory.value) {
     event.stopPropagation()
     closeCategory()
   }
+}
+
+/* ───── Подсказка «это не картинка» ───── */
+
+/* Собранный гараж на первый взгляд — рендер: кадр стоит, меню похоже на
+   подписи. При первом показе сцена приглушается, по контуру кнопки «Машины»
+   бежит огонёк, над меню — короткая подпись. Уходит с первым действием в
+   гараже (клик, тап, перетаскивание, раздел, клавиша) и больше не
+   возвращается (utils/garageIntro). До чтения хранилища считаем подсказку
+   увиденной: на сервере и в первом кадре гидратации её нет, мигания тоже. */
+const introSeen = ref(true)
+/* Подпись под тип ввода: «мышью» или «пальцем». */
+const touchHint = ref(false)
+const introVisible = computed(() => !introSeen.value && status.value === 'ready' && !activeCategory.value)
+
+function dismissIntro() {
+  if (introSeen.value) return
+  introSeen.value = true
+  markGarageIntroSeen()
 }
 
 function syncMenuIndicator() {
@@ -302,18 +354,24 @@ function vehicleTris(vehicle: GarageVehicle): number | undefined {
 /* ───── Кадр ───── */
 
 function onDragStart() {
+  dismissIntro()
   userDragging = true
   /* Мышь важнее подъезда: потянули сцену — камера остаётся у руки. */
   cameraTween = null
+  requestRender()
 }
 
 function onDragEnd() {
   userDragging = false
+  /* Инерция после отпускания — тоже кадры. */
+  requestRender()
 }
 
 /* Зум колесом — только с Ctrl/⌘, простое колесо листает страницу. */
 function onWheelCapture(event: WheelEvent) {
-  if (event.ctrlKey || event.metaKey) return
+  /* Зум меняет камеру изнутри OrbitControls: цикл надо поднять, иначе при
+     остановленной сцене колесо ни на что не повлияет до следующего действия. */
+  if (event.ctrlKey || event.metaKey) requestRender()
   event.stopPropagation()
 }
 
@@ -363,6 +421,22 @@ function frameCamera() {
   viewer.fitDistance = fit
 }
 
+/* Плотность кадра гаража: он занимает экран целиком, так что это самый
+   дорогой кадр на сайте. Потолок по типу устройства и бюджет физических
+   пикселей (utils/framePacing); ниже плотности 1 не опускаемся. */
+function garagePixelRatio(w: number, h: number): number {
+  const narrow = window.innerWidth < 1024
+  return physicalPixelRatio({
+    cssWidth: w,
+    cssHeight: h,
+    dpr: window.devicePixelRatio || 1,
+    cap: narrow ? 1.5 : 2,
+    budget: narrow ? 1_600_000 : 3_200_000,
+    floor: 1,
+    scale: quality.scale(),
+  })
+}
+
 function resizeRenderer() {
   if (!viewer || !container.value) return
   const w = container.value.clientWidth
@@ -371,6 +445,7 @@ function resizeRenderer() {
   const scale = window.innerWidth >= 1024 ? CANVAS_SCALE : 1
   const cw = Math.round(w * scale)
   const ch = Math.round(h * scale)
+  viewer.renderer.setPixelRatio(garagePixelRatio(cw, ch))
   viewer.renderer.setSize(cw, ch)
   viewer.camera.aspect = cw / ch
   viewer.camera.updateProjectionMatrix()
@@ -441,6 +516,8 @@ function focusOnRole(role: string) {
     toPhi,
     startedAt: performance.now(),
   }
+  /* Подъезд анимируется в цикле: кадры нужны уже сейчас. */
+  requestRender()
 }
 
 function stepCameraTween(now: number): boolean {
@@ -477,6 +554,7 @@ function updateViewShiftTarget() {
     narrow: narrow.value,
     panel: panel ? { right: panel.offsetLeft + panel.offsetWidth, height: panel.offsetHeight } : null,
   })
+  requestRender()
 }
 
 function applyViewShift() {
@@ -514,8 +592,26 @@ const fps = ref(0)
 let fpsFrames = 0
 let fpsSince = 0
 
+/* Заказ кадра: сюда приходят все, кто изменил сцену или начал взаимодействие,
+   и цикл поднимается сам. Пока что-то меняется, кадры идут своим ходом.
+   Заодно продлевается пульсация фар: она — часть отклика на действие. */
+function requestRender() {
+  needsFrame = true
+  pulseSettled = false
+  pulseUntil = performance.now() + PULSE_IDLE_MS
+  startLoop()
+}
+
+function setEmissive(value: number) {
+  if (!viewer) return
+  for (const material of viewer.emissiveMaterials) material.emissiveIntensity = value
+}
+
 function startLoop() {
   if (!viewer || animationFrame) return
+  /* Первый кадр всегда считается сдвигом: снимка ещё нет. */
+  cameraPose = null
+  frameLimiter.reset(performance.now())
   lastFrameAt = performance.now()
   lastRenderAt = 0
   fpsSince = lastFrameAt
@@ -525,23 +621,60 @@ function startLoop() {
     animationFrame = requestAnimationFrame(animate)
 
     const now = performance.now()
-    const moving = !!cameraTween || viewShiftTarget.x !== viewShift.x || viewShiftTarget.y !== viewShift.y
-    if (!userDragging && !moving && !fullFrameRate && now - lastRenderAt < FRAME_INTERVAL) return
+    /* Кадры гаража идут только во время действия — их и меряет регулятор. */
+    if (quality.sample(now)) {
+      resizeRenderer()
+      needsFrame = true
+    }
+    viewer.controls.update()
+    /* Инерция вращения живёт в `update`, но его ответ для этого не годится:
+       в three 0.185 метод возвращает true и при неподвижной камере (внутренняя
+       книга зума), из-за чего цикл не засыпал никогда — 60 кадров в секунду в
+       покое. Поэтому «камера ещё едет» — это сравнение её позы со снимком
+       прошлого кадра, а не ответ библиотеки. */
+    const cameraMoved = cameraPoseChanged(viewer.camera, cameraPose)
+    const cameraBusy = !!cameraTween
+      || viewShiftTarget.x !== viewShift.x || viewShiftTarget.y !== viewShift.y
+    const pulsing = !pulseSettled && now < pulseUntil
+    /* Движение рисуется без потолка: перетаскивание, инерция, подъезд
+       камеры, сдвиг кадра и пульсация фар. */
+    const continuous = userDragging || cameraBusy || pulsing
+
+    if (!continuous && !needsFrame && !cameraMoved) {
+      /* Сцена устоялась. Перед остановкой рисуем последний кадр с ровным
+         светом фар — пульсация не должна замереть на случайной фазе. */
+      if (!pulseSettled) {
+        pulseSettled = true
+        setEmissive(EMISSIVE_PULSE_REST)
+        viewer.renderer.render(viewer.scene, viewer.camera)
+      }
+      cancelAnimationFrame(animationFrame)
+      animationFrame = 0
+      quality.pause()
+      return
+    }
+    /* Потолок 30 кадров нужен только фоновой пульсации: частота экрана ей
+       не нужна, в отличие от вращения и перетаскивания. */
+    const onlyPulse = pulsing && !userDragging && !cameraBusy && !needsFrame && !cameraMoved
+    if (onlyPulse && !frameLimiter.shouldRender(now)) return
+
+    needsFrame = false
     const dt = lastRenderAt ? Math.min(100, now - lastRenderAt) : 16
     lastRenderAt = now
 
     accumulatedMs += now - lastFrameAt
     lastFrameAt = now
 
-    const elapsed = accumulatedMs / 1000
-    const phase = (Math.sin(elapsed * EMISSIVE_PULSE_HZ * Math.PI * 2) + 1) / 2
-    for (const material of viewer.emissiveMaterials) {
-      material.emissiveIntensity = phase * EMISSIVE_PULSE_MAX
+    if (!pulseSettled) {
+      const elapsed = accumulatedMs / 1000
+      const phase = (Math.sin(elapsed * EMISSIVE_PULSE_HZ * Math.PI * 2) + 1) / 2
+      setEmissive(phase * EMISSIVE_PULSE_MAX)
     }
 
     stepCameraTween(now)
     stepViewShift(dt)
-    viewer.controls.update()
+    cameraPose ??= new Float64Array(CAMERA_POSE_LENGTH)
+    writeCameraPose(viewer.camera, cameraPose)
     viewer.renderer.render(viewer.scene, viewer.camera)
 
     fpsFrames += 1
@@ -557,6 +690,7 @@ function startLoop() {
 function stopLoop() {
   if (animationFrame) cancelAnimationFrame(animationFrame)
   animationFrame = 0
+  quality.pause()
 }
 
 function observeVisibility() {
@@ -564,7 +698,7 @@ function observeVisibility() {
   intersectionObserver = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
-        if (entry.isIntersecting) startLoop()
+        if (entry.isIntersecting) requestRender()
         else stopLoop()
       }
     },
@@ -684,6 +818,8 @@ function syncWireframe() {
     }
     if (line) line.visible = on
   }
+  /* Сетка включилась/выключилась — нужен кадр. */
+  requestRender()
 }
 
 /* ───── Уровни, обвес, окраска ───── */
@@ -731,6 +867,7 @@ function syncWheels(active: CachedCarConfigurator): void {
   const own = wheelNodes(active).filter(node => isDescendant(node, active.model))
   active.wheels.visible = own.length === 0
   for (const node of own) node.visible = true
+  requestRender()
 }
 
 function applySelection() {
@@ -738,11 +875,14 @@ function applySelection() {
   viewer.selection = { ...selection.value }
   applyVariantSelection(viewer.nodeByName, viewer.nodeMeta, viewerGroups, selection.value)
   refreshStats()
+  /* Обвес меняет видимость узлов — нужен кадр. */
+  requestRender()
 }
 
 /* Окраска одной точкой: красятся все собранные уровни сразу (§55). */
 async function paintScene(): Promise<void> {
   if (!viewer) return
+  requestRender()
   await Promise.all(carPaintHandles(viewer).map(handle => setCarSelection(handle, { ...paint.value })))
 }
 
@@ -1093,6 +1233,18 @@ const trail = computed(() => {
 
 /* ───── Монтирование сцены ───── */
 
+/* Отложенный старт сцены: сначала ждём приближения экрана, потом — простоя
+   браузера, чтобы three.js не спорил за главный поток с первой отрисовкой. */
+function scheduleMount() {
+  if (disposed) return
+  if ('requestIdleCallback' in window) {
+    idleId = window.requestIdleCallback(mountViewer, { timeout: IDLE_TIMEOUT })
+  }
+  else {
+    idleId = setTimeout(mountViewer, IDLE_TIMEOUT)
+  }
+}
+
 function attachViewer() {
   if (!viewer || !container.value) return
 
@@ -1182,12 +1334,18 @@ async function mountViewer() {
     const height = container.value.clientHeight || props.model.height
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
-    const dprCap = window.innerWidth < 1024 ? 1.5 : 2
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, dprCap))
+    /* Точную плотность ставит resizeRenderer() по бюджету пикселей. */
+    renderer.setPixelRatio(garagePixelRatio(width, height))
     renderer.setSize(width, height)
     renderer.outputColorSpace = THREE.SRGBColorSpace
     renderer.toneMapping = THREE.ACESFilmicToneMapping
     renderer.toneMappingExposure = 1
+    /* Колпаки фар преломляют фон (transmission): ради этого three каждый кадр
+       рисует непрозрачную сцену второй раз — в отдельную цель размером с кадр.
+       Гараж занимает экран целиком, и этот проход стоил почти столько же,
+       сколько сам кадр. За колпаком фон всё равно размыт толщиной стекла и
+       затуханием, поэтому цели хватает половины стороны — четверть пикселей. */
+    renderer.transmissionResolutionScale = 0.5
 
     const scene = new THREE.Scene()
 
@@ -1464,13 +1622,48 @@ function formatTime(seconds: number): string {
   return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, '0')}`
 }
 
-/* Трек подхватывается самой сценой, когда она собрана. `immediate`: с
-   закэшированной сценой статус уже `ready`. */
+/* Музыка включается, когда человек пришёл в гараж: курсор вошёл в экран
+   (или уже стоял над ним к моменту сборки), фокус с клавиатуры, касание.
+   Раньше трек стартовал при сборке сцены — пока человек ещё читал текст
+   выше. Грузится трек по-прежнему только после сборки: сначала картинка.
+
+   Ограничение браузера: наведение не считается действием пользователя.
+   Если на странице ещё не было ни клика, ни тапа, ни клавиши (зашли на кейс
+   прямой ссылкой), `play()` отклоняется, трек встаёт «на взвод» и стартует с
+   первого жеста — это делает garageAudio. Пришли кликом со страницы проектов —
+   звук пойдёт сразу при наведении. */
+let soundArmed = false
+
+function startSoundIfArmed() {
+  if (!soundArmed || status.value !== 'ready') return
+  ensureAudio()?.start()
+  syncAudioState()
+}
+
+function armSound() {
+  if (soundArmed) return
+  soundArmed = true
+  startSoundIfArmed()
+}
+
+function onGaragePointerDown() {
+  dismissIntro()
+  armSound()
+}
+
+/* Касание даёт браузеру «действие пользователя» только к отпусканию пальца:
+   если трек отклонили на касании, пробуем ещё раз, не дожидаясь второго тапа. */
+function onGaragePointerUp() {
+  if (soundState.value !== 'waiting' || !garageAudio) return
+  garageAudio.toggle()
+  syncAudioState()
+}
+
+/* `immediate`: с закэшированной сценой статус уже `ready`. */
 watch(status, (value) => {
-  if (value === 'ready') {
-    ensureAudio()?.start()
-    syncAudioState()
-  }
+  if (value !== 'ready') return
+  if (hudRoot.value?.matches(':hover')) soundArmed = true
+  startSoundIfArmed()
 }, { immediate: true })
 
 /* ───── Жизненный цикл ───── */
@@ -1489,8 +1682,11 @@ watch(showWireframe, (on) => {
 })
 
 onMounted(async () => {
-  fullFrameRate = !isCoarsePointer()
   narrow.value = (container.value?.clientWidth ?? window.innerWidth) < HUD_NARROW
+  introSeen.value = hasSeenGarageIntro()
+  touchHint.value = isCoarsePointer()
+  /* Курсор уже над гаражом (страницу открыли, не двигая мышь). */
+  if (hudRoot.value?.matches(':hover')) armSound()
   syncMenuIndicator()
 
   /* Окраска с прошлого визита — до сборки сцены, чтобы машина сразу
@@ -1520,15 +1716,26 @@ onMounted(async () => {
     selection.value = defaultSelection(built)
   }
 
-  if ('requestIdleCallback' in window) {
-    idleId = window.requestIdleCallback(mountViewer, { timeout: IDLE_TIMEOUT })
+  /* Сцена гаража собирается только при подходе к экрану: экран занимает всю
+     высоту, и пока страница читается выше, three.js и GLB машины ему ни к
+     чему. HUD к этому моменту уже собран из манифеста. */
+  if (typeof IntersectionObserver === 'undefined' || !container.value) {
+    scheduleMount()
+    return
   }
-  else {
-    idleId = setTimeout(mountViewer, IDLE_TIMEOUT)
-  }
+  startObserver = new IntersectionObserver((entries) => {
+    const entry = entries[entries.length - 1]
+    if (entry && !entry.isIntersecting) return
+    startObserver?.disconnect()
+    startObserver = undefined
+    scheduleMount()
+  }, { rootMargin: START_MARGIN })
+  startObserver.observe(container.value)
 })
 
 onBeforeUnmount(() => {
+  startObserver?.disconnect()
+  startObserver = undefined
   if (idleId !== null) {
     if ('requestIdleCallback' in window) window.cancelIdleCallback(idleId)
     else clearTimeout(idleId)
@@ -1554,8 +1761,13 @@ onBeforeUnmount(() => {
       'garage--ready': status === 'ready',
       'garage--open': !!activeCategory,
       'garage--narrow': narrow,
+      'garage--intro': introVisible,
     }"
     @keydown="onHudKeydown"
+    @pointerenter="armSound"
+    @focusin="armSound"
+    @pointerdown.capture="onGaragePointerDown"
+    @pointerup="onGaragePointerUp"
   >
     <div
       ref="container"
@@ -1708,7 +1920,7 @@ onBeforeUnmount(() => {
                   >
                     <span
                       class="garage__vehicle-thumb"
-                      :style="vehicle.thumb ? { backgroundImage: `url(${vehicle.thumb}), radial-gradient(90% 80% at 50% 60%, #2a211a, #120e0b)` } : undefined"
+                      :style="vehicle.thumb ? { backgroundImage: `url(${vehicleThumb(vehicle.thumb)}), radial-gradient(90% 80% at 50% 60%, #2a211a, #120e0b)` } : undefined"
                       aria-hidden="true"
                     />
                     <span class="garage__vehicle-info">
@@ -2099,10 +2311,24 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
+      <!-- Подсказка первого показа: сцена приглушена, огонёк на «Машинах».
+           Слой прозрачен для указателя — под ним всё работает как обычно. -->
+      <Transition name="garage-intro">
+        <div
+          v-if="introVisible"
+          class="garage__intro"
+        >
+          <p class="garage__intro-hint">
+            <span class="garage__intro-eyebrow">{{ t('project.configurator.hud.introEyebrow') }}</span>
+            <span class="garage__intro-text">{{ t(touchHint ? 'project.configurator.hud.introHintTouch' : 'project.configurator.hud.introHint') }}</span>
+          </p>
+        </div>
+      </Transition>
+
       <!-- Меню кастомизации: разделы — состояния HUD, а не страницы. -->
       <nav
         class="garage__menu"
-        :aria-label="t('project.configurator.hud.menu')"
+        :aria-label="t('project.configurator.hud.sections')"
       >
         <span
           class="garage__menu-indicator"
@@ -2121,7 +2347,10 @@ onBeforeUnmount(() => {
           ref="menuButtons"
           type="button"
           class="garage__menu-item"
-          :class="{ 'garage__menu-item--active': activeCategory === category }"
+          :class="{
+            'garage__menu-item--active': activeCategory === category,
+            'garage__menu-item--beacon': introVisible && category === 'vehicles',
+          }"
           :aria-expanded="activeCategory === category"
           :aria-controls="activeCategory === category ? 'garage-panel' : undefined"
           @click="toggleCategory(category)"
@@ -2130,26 +2359,6 @@ onBeforeUnmount(() => {
           <span class="garage__menu-label">{{ t(`project.configurator.hud.${category}`) }}</span>
         </button>
       </nav>
-
-      <!-- Технический монитор: всегда в кадре, только живые значения. -->
-      <dl class="garage__monitor">
-        <div class="garage__monitor-cell">
-          <dt>{{ t('project.configurator.hud.tris') }}</dt>
-          <dd>{{ formatNumber(stats?.triangles) }}</dd>
-        </div>
-        <div class="garage__monitor-cell">
-          <dt>{{ t('project.configurator.hud.drawCalls') }}</dt>
-          <dd>{{ formatNumber(stats?.drawCalls) }}</dd>
-        </div>
-        <div class="garage__monitor-cell garage__monitor-cell--fps">
-          <dt>{{ t('project.configurator.hud.fps') }}</dt>
-          <dd>{{ fps || '—' }}</dd>
-        </div>
-        <div class="garage__monitor-cell garage__monitor-cell--accent">
-          <dt>LOD</dt>
-          <dd>{{ lod }}</dd>
-        </div>
-      </dl>
     </div>
   </div>
 </template>
@@ -2380,8 +2589,7 @@ onBeforeUnmount(() => {
    акцента — техническая геометрия вместо скруглённых карточек. */
 .garage__panel,
 .garage__radio,
-.garage__menu,
-.garage__monitor {
+.garage__menu {
   border: 1px solid var(--g-line);
   background: linear-gradient(180deg, var(--g-surface-strong), var(--g-surface));
   backdrop-filter: blur(14px) saturate(120%);
@@ -2389,8 +2597,7 @@ onBeforeUnmount(() => {
 }
 
 .garage__panel::before,
-.garage__radio::before,
-.garage__monitor::before {
+.garage__radio::before {
   content: '';
   position: absolute;
   top: -1px;
@@ -3360,43 +3567,140 @@ onBeforeUnmount(() => {
   text-transform: uppercase;
 }
 
-/* ───── Монитор ───── */
+/* ───── Подсказка первого показа ───── */
 
-.garage__monitor {
+/* Затемнение над сценой и HUD, но под меню: светится только то, куда
+   нажимать. Указатель проходит насквозь. */
+.garage__hud > .garage__intro {
   position: absolute;
-  right: var(--g-pad);
-  bottom: var(--g-pad);
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(120% 100% at 50% 42%, rgb(6 4 3 / 0.46), rgb(6 4 3 / 0.76));
+  pointer-events: none;
+}
+
+.garage--intro .garage__menu {
+  z-index: 2;
+}
+
+.garage__intro-hint {
+  position: absolute;
+  bottom: calc(var(--g-pad) + 92px);
+  left: 50%;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  max-width: calc(100% - 32px);
   margin: 0;
+  transform: translateX(-50%);
+  text-align: center;
+  text-shadow: 0 2px 18px rgb(0 0 0 / 0.7);
 }
 
-.garage__monitor-cell {
-  padding: 10px 14px 11px;
-}
-
-.garage__monitor-cell + .garage__monitor-cell {
-  border-left: 1px solid var(--g-line);
-}
-
-.garage__monitor-cell dt {
-  color: var(--g-text-3);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.garage__monitor-cell dd {
-  margin: 2px 0 0;
-  color: var(--g-cyan);
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 1.1;
-}
-
-.garage__monitor-cell--accent dd {
+.garage__intro-eyebrow {
   color: var(--g-accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.garage__intro-text {
+  color: var(--g-text);
+  font-size: clamp(16px, 1.3vw, 21px);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* Огонёк по контуру: светящаяся дуга бежит по рамке кнопки. Угол дуги —
+   анимируемое свойство (@property); где его нет, рамка просто светится. */
+@property --g-beacon {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.garage__menu-item--beacon {
+  z-index: 1;
+  color: var(--g-text);
+  background: linear-gradient(180deg, rgb(255 122 26 / 0.22), rgb(255 122 26 / 0.06));
+  animation: garage-beacon-glow 1.8s ease-in-out infinite;
+}
+
+.garage__menu-item--beacon .garage__menu-index {
+  color: var(--g-accent);
+}
+
+.garage__menu-item--beacon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  background: conic-gradient(
+    from var(--g-beacon),
+    rgb(255 122 26 / 0.18) 0deg 230deg,
+    var(--g-accent) 300deg,
+    #fff1dc 350deg,
+    rgb(255 122 26 / 0.18) 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: garage-beacon-run 2.2s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes garage-beacon-run {
+  to {
+    --g-beacon: 360deg;
+  }
+}
+
+@keyframes garage-beacon-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 1px rgb(255 122 26 / 0.4), 0 0 14px rgb(255 122 26 / 0.28);
+  }
+
+  50% {
+    box-shadow: 0 0 0 1px rgb(255 122 26 / 0.85), 0 0 30px rgb(255 122 26 / 0.6);
+  }
+}
+
+.garage-intro-enter-active {
+  transition: opacity 520ms ease;
+}
+
+.garage-intro-leave-active {
+  transition: opacity 320ms ease;
+}
+
+.garage-intro-enter-from,
+.garage-intro-leave-to {
+  opacity: 0;
+}
+
+/* Без движения: рамка горит ровно, без бегущей дуги и пульса. */
+@media (prefers-reduced-motion: reduce) {
+  .garage__menu-item--beacon,
+  .garage__menu-item--beacon::after {
+    animation: none;
+  }
+
+  .garage__menu-item--beacon {
+    box-shadow: 0 0 0 1px var(--g-accent), 0 0 22px rgb(255 122 26 / 0.45);
+  }
+
+  .garage__menu-item--beacon::after {
+    background: var(--g-accent);
+  }
+
+  .garage-intro-enter-active,
+  .garage-intro-leave-active {
+    transition: none;
+  }
 }
 
 /* ───── Фокус и переходы ───── */
@@ -3458,10 +3762,6 @@ onBeforeUnmount(() => {
     font-size: 13px;
     letter-spacing: 0.12em;
   }
-
-  .garage__monitor-cell--fps {
-    display: none;
-  }
 }
 
 @media (max-width: 1080px) {
@@ -3497,8 +3797,7 @@ onBeforeUnmount(() => {
   font-size: 14px;
 }
 
-.garage--narrow .garage__trail,
-.garage--narrow .garage__monitor {
+.garage--narrow .garage__trail {
   display: none;
 }
 
@@ -3604,6 +3903,18 @@ onBeforeUnmount(() => {
   .garage--narrow .garage__panel {
     bottom: 8px;
     max-height: min(46%, calc(100% - 300px));
+  }
+}
+
+/* Подсказка на узких экранах: над полосой меню; на телефоне меню — столбик
+   слева, и подпись уходит к низу кадра. */
+.garage--narrow .garage__intro-hint {
+  bottom: 64px;
+}
+
+@media (max-width: 600px) {
+  .garage--narrow .garage__intro-hint {
+    bottom: 20px;
   }
 }
 </style>

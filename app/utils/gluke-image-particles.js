@@ -25,6 +25,8 @@
  * (без off-screen текстуры следа — вместо неё сглаженное следование мыши).
  */
 
+import { attachRunSources, createRunGate } from './widgetRunGate'
+
 const GlukeImageParticles = (function (global) {
   'use strict'
 
@@ -237,13 +239,15 @@ const GlukeImageParticles = (function (global) {
        и разгонять картинку в кольцо. При mouseleave цель возвращается
        туда же — частицы плавно слетаются обратно в изображение. */
     this._mouse = { x: 0, y: 0, tx: 0, ty: 999 }
-    this._visible = true
+    /* Сторож кадров живёт вместе с движком (переживает detach/reattach),
+       а источники и подписка создаются в _bind(). */
+    this._gate = null
+    this._gateOff = null
+    this._sources = null
     this._running = false
     this._elapsed = 0
     this._raf = 0
     this._ro = null
-    this._io = null
-    this._onVis = null
     this._onMove = null
     this._hoverHost = null
     this._scatterNow = INTRO_SCATTER // частицы «слетаются» в картинку
@@ -568,24 +572,20 @@ const GlukeImageParticles = (function (global) {
       }
       global.addEventListener('resize', this._onResize)
     }
-    if (this.o.pauseOffscreen) {
-      if (typeof IntersectionObserver !== 'undefined') {
-        this._io = new IntersectionObserver(function (entries) {
-          var vis = entries.some(function (e) {
-            return e.isIntersecting
-          })
-          self._visible = vis
-          if (vis) self.start()
-          else self.stop()
-        }, { rootMargin: '120px 0px' })
-        this._io.observe(this.canvas)
-      }
-      this._onVis = function () {
-        if (document.hidden) self.stop()
-        else self.start()
-      }
-      document.addEventListener('visibilitychange', this._onVis)
+    /* Кадры разрешает единый сторож: «вкладка активна» и «блок в кадре» —
+       два независимых признака (utils/widgetRunGate). Наблюдаем канвас, а не
+       контейнер: у облака он с запасом по краям, и запас тоже видим. */
+    if (!this._gate) {
+      this._gate = createRunGate({ pauseOffscreen: this.o.pauseOffscreen })
     }
+    this._gateOff = this._gate.subscribe(function (run) {
+      if (run) self.start()
+      else self.stop()
+    })
+    this._sources = attachRunSources(this.canvas, this._gate, {
+      pauseOffscreen: this.o.pauseOffscreen,
+      rootMargin: '120px 0px',
+    })
     if (this.o.pointer) {
       var host = this.o.pointerFrom === 'self' ? this.el : global
       this._hoverHost = host
@@ -615,8 +615,10 @@ const GlukeImageParticles = (function (global) {
   Widget.prototype._unbind = function () {
     if (this._ro) this._ro.disconnect()
     else if (this._onResize) global.removeEventListener('resize', this._onResize)
-    if (this._io) this._io.disconnect()
-    if (this._onVis) document.removeEventListener('visibilitychange', this._onVis)
+    /* Снятый движок обязан отписать источники: иначе слушатель вкладки
+       пережил бы свой канвас и снова запустил цикл. */
+    if (this._sources) this._sources.disconnect()
+    if (this._gateOff) this._gateOff()
     if (this._onMove && this._hoverHost) {
       this._hoverHost.removeEventListener('mousemove', this._onMove)
       this._hoverHost.removeEventListener('touchmove', this._onMove)
@@ -627,8 +629,8 @@ const GlukeImageParticles = (function (global) {
     }
     if (this._onLeave) document.removeEventListener('mouseleave', this._onLeave)
     this._ro = null
-    this._io = null
-    this._onVis = null
+    this._sources = null
+    this._gateOff = null
     this._onMove = null
     this._onLeave = null
     this._hoverHost = null
@@ -690,7 +692,7 @@ const GlukeImageParticles = (function (global) {
   }
 
   Widget.prototype.start = function () {
-    if (this._running || document.hidden || !this._visible) return
+    if (this._running || !this._gate || !this._gate.shouldRun()) return
     this._running = true
     var self = this
     this._last = performance.now()
@@ -729,7 +731,6 @@ const GlukeImageParticles = (function (global) {
     this.el = node
     if (getComputedStyle(node).position === 'static') node.style.position = 'relative'
     node.appendChild(this.canvas)
-    this._visible = true
     this.resize()
     this._bind()
     this.start()
@@ -744,6 +745,10 @@ const GlukeImageParticles = (function (global) {
       if (ext) ext.loseContext()
     }
     if (this.canvas && this.canvas.parentNode) this.canvas.parentNode.removeChild(this.canvas)
+    /* Реестр не должен держать уничтоженный инстанс: вытеснение из кэша
+       виджетов зовёт destroy(), и без этого массив рос бы всю сессию. */
+    var at = API.instances.indexOf(this)
+    if (at > -1) API.instances.splice(at, 1)
   }
 
   var API = {
