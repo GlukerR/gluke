@@ -1,5 +1,6 @@
 import { DEFAULT_LOCALE, SITE_LOCALES } from './shared/i18n'
 import { collectImageVersions } from './scripts/media-versions.mjs'
+import { CACHE_ROUTE_RULES } from './scripts/cache-headers.mjs'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -76,35 +77,23 @@ export default defineNuxtConfig({
   buildDir: import.meta.env.NUXT_BUILD_DIR || '.nuxt',
   /* Кэш ответов.
 
-     Страницы одинаковы для всех: язык лежит в пути, а единственный
-     персонализированный маршрут — корень — закрыт `private, no-store` в
-     server/middleware/locale-redirect.ts. Поэтому их можно держать на CDN:
-     `s-maxage=60` — окно свежести, дальше Vercel отдаёт копию из ближайшего PoP
-     и пересобирает её в фоне (`stale-while-revalidate`), а если зона вычислений
-     недоступна — отдаёт устаревшую копию (`stale-if-error`) вместо пустого
-     экрана.
+     Политика — наборы директив и их разбивка по маршрутам — лежит в
+     scripts/cache-headers.mjs: её же читают проверка заголовков на собранном
+     сервере и валидатор конфигурации деплоя, поэтому значение в конфиге и в
+     проверке разъехаться не могут. Почему директивам нужно зеркало
+     `cdn-cache-control` — там же.
 
-     Почему это важнее «второй зоны»: серверные функции на Vercel исполняются в
+     Почему CDN, а не «вторая зона»: серверные функции на Vercel исполняются в
      одной зоне (на Hobby — только в одной, мультирегион доступен с Pro), а
      кэш CDN работает на любом плане. Так зависимость от зоны снимается не
      переездом вычислений, а тем, что до зоны дело доходит только на промахе
-     кэша. Почему `regions` остаётся `["fra1"]` — docs/dev-guide.md §5.
+     кэша. Почему `regions` остаётся `["fra1"]` — docs/dev-guide.md §8.
 
-     Картинки `/_ipx/**` кэшируются отдельно и надолго: их адрес версионируется
-     отпечатком исходника, поэтому замена картинки даёт новый адрес, а не старую
-     копию из кэша. */
-  routeRules: {
-    '/**': {
-      headers: {
-        'cache-control': 'public, max-age=0, s-maxage=60, stale-while-revalidate=86400, stale-if-error=604800',
-      },
-    },
-    '/_ipx/**': {
-      headers: {
-        'cache-control': 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=604800, stale-if-error=604800',
-      },
-    },
-  },
+     Единственный персонализированный маршрут — корень: его закрывает `private,
+     no-store` из server/middleware/locale-redirect.ts, и закрывает в обоих
+     заголовках — иначе кэшируемый набор из CACHE_ROUTE_RULES остался бы для
+     Vercel старшим и общий кэш отдал бы русскому гостю английскую страницу. */
+  routeRules: CACHE_ROUTE_RULES,
   experimental: {
     /* Типизированные маршруты нужны локализованным ссылкам: имя маршрута и его
        параметры проверяются компилятором вместо ручной сборки путей строками. */

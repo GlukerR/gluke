@@ -47,8 +47,13 @@ export default defineEventHandler((event) => {
     )
 
   /* Ответ на корне персонализирован, поэтому общий CDN-кэш для него запрещён.
-     Остальные маршруты сюда не попадают и своё кэширование сохраняют. */
+     Остальные маршруты сюда не попадают и своё кэширование сохраняют.
+
+     Запрет пишется в оба заголовка: правило `/**` из routeRules несёт
+     кэшируемый набор, и без `cdn-cache-control` он остался бы для Vercel
+     старшим по старшинству — корень угодил бы в общий кэш с чужим языком. */
   setResponseHeader(event, 'Cache-Control', 'private, no-store')
+  setResponseHeader(event, 'CDN-Cache-Control', 'private, no-store')
   setResponseHeader(event, 'Vary', 'Cookie, X-Vercel-IP-Country, Accept-Language')
 
   if (storedLocale !== locale) {

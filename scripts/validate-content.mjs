@@ -24,6 +24,7 @@ import { dirname, join, relative, resolve, sep } from 'node:path'
 import { createJiti } from 'jiti'
 import { parse as parseYaml } from 'yaml'
 import { collectImageVersions } from './media-versions.mjs'
+import { CACHE_MIRROR_HEADER, CACHE_ROUTE_RULES } from './cache-headers.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const contentDir = join(root, 'content')
@@ -86,15 +87,23 @@ function shareImageIssues(data, versions) {
 /**
  * Проверка конфигурации деплоя — того, что не видно ни в сборке, ни на странице.
  *
- * Кэш статики живёт только в `vercel.json`: файлы `public/` отдаёт сам Vercel,
- * до Nuxt дело не доходит. Потерянная секция `headers` не даёт ошибки — она
- * просто возвращает браузерную перепроверку каждого файла страницы, то есть
- * медленную загрузку на плохом канале.
+ * Кэшируют ответы не сборка и не Nuxt, а платформа: потерянный маршрут кэша
+ * не даёт ошибки — страница или картинка просто возвращается к перепроверке на
+ * каждом заходе, то есть к медленной загрузке на плохом канале. Поэтому
+ * проверяется не «настройка где-то есть», а состав каждого маршрута.
+ *
+ * Политика лежит в `routeRules` (`scripts/cache-headers.mjs`), а не в
+ * `vercel.json`. Это выяснилось на проде: роуты сборки
+ * (`.vercel/output/config.json`) применяются раньше конфига деплоя, поэтому
+ * правило `headers` для `/media/(.*)` молча проигрывало правилу `/**`, и
+ * статика кэшировалась по страничному набору (`docs/changes-log.md` §76).
+ * Оставшийся `headers` в `vercel.json` вернул бы второй, спорящий источник
+ * правды — это тоже ошибка.
  *
  * Количество зон вычислений ограничено планом: на Hobby доступна одна, и лишняя
  * зона валит деплой ещё до сборки. Поэтому значение проверяется явно, а не
  * подразумевается (при смене плана это место и есть то, что правится вместе с ним,
- * см. docs/dev-guide.md §5).
+ * см. docs/dev-guide.md §8).
  */
 function deployConfigIssues() {
   const issues = []
@@ -107,16 +116,35 @@ function deployConfigIssues() {
     return [`    vercel.json не читается: ${firstLine(error.message)}`]
   }
 
-  const cacheControl = config.headers
-    ?.find(entry => entry.source === '/media/(.*)')
-    ?.headers?.find(header => header.key.toLowerCase() === 'cache-control')?.value
-
-  if (!cacheControl?.includes('max-age=')) {
-    issues.push('    headers: нет кэша для /media/(.*) — статика вернётся к must-revalidate')
+  if (config.headers?.length) {
+    issues.push('    headers: кэш вернулся в vercel.json — роуты сборки применяются раньше, такое правило молча проиграет; политика живёт в scripts/cache-headers.mjs')
   }
 
   if (!Array.isArray(config.regions) || config.regions.length !== 1) {
     issues.push(`    regions: ожидается одна зона (Hobby), а не ${JSON.stringify(config.regions)}`)
+  }
+
+  /* Каждый маршрут политики обязан нести срок и в браузерном заголовке, и в
+     зеркале CDN: без зеркала директивы не доезжают до клиента совсем, а
+     разошедшееся зеркало означает, что кэш живёт по другому набору, чем
+     записано в политике. */
+  for (const [route, rule] of Object.entries(CACHE_ROUTE_RULES)) {
+    const headers = rule?.headers
+
+    if (!headers?.['cache-control']?.includes('max-age=')) {
+      issues.push(`    routeRules: маршрут ${route} без браузерного срока — ответ будет перепроверяться на каждом заходе`)
+    }
+
+    if (headers?.[CACHE_MIRROR_HEADER] !== headers?.['cache-control']) {
+      issues.push(`    routeRules: у маршрута ${route} зеркало ${CACHE_MIRROR_HEADER} не совпадает с cache-control`)
+    }
+  }
+
+  /* Картинки `/_vercel/image` собирает платформенный оптимизатор, но правило
+     `/**` накрывает и их — маршрут обязан быть, иначе картинки получат
+     страничные 60 секунд вместо недели. */
+  if (!CACHE_ROUTE_RULES['/_vercel/image']) {
+    issues.push('    routeRules: нет маршрута /_vercel/image — варианты картинок попадут под страничный набор')
   }
 
   return issues

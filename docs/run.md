@@ -93,7 +93,9 @@ powershell -NoProfile -Command "(Start-Process -FilePath 'node.exe' -ArgumentLis
 | `pnpm typecheck` | Изолированный vue-tsc (`scripts/typecheck.mjs`, `.nuxt-typecheck`) — быстрая проверка перед деплоем |
 | `pnpm lint` / `pnpm lint:fix` | ESLint (автофикс через `lint:fix`) |
 | `pnpm test` / `pnpm test:watch` | Vitest: юнит-тесты утилит и `scrollBehavior` (файлы `.test.ts` рядом с кодом в `app/`) |
-| `pnpm check` | `lint` + `typecheck` + `validate:content` + `test` + `build` — всё, что гоняет CI |
+| `pnpm check:cache` | Заголовки кэша на собранном сервере: наборы и зеркало `cdn-cache-control`, статика, версия картинки в адресе ipx, закрытый корень |
+| `pnpm check:cache:prod` | То же на живом домене плюс `/_vercel/image` и реальная выдача из эдж-кэша. Нужна сеть, адрес — `CACHE_PROBE_URL` (см. `docs/dev-guide.md` §8) |
+| `pnpm check` | `lint` + `typecheck` + `validate:content` + `check:lods` + `test` + `build` + `check:cache` — всё, что гоняет CI |
 
 Заметки:
 - Все проверки безопасны при работающем dev-сервере: прод-сборка идёт в

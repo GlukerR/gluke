@@ -16,6 +16,13 @@
  * поведение чужой библиотеки, и если оно изменится, узнать об этом нужно
  * проверкой, а не жалобой клиента.
  *
+ * Отдельный повод — `cdn-cache-control`. Директивы `s-maxage`,
+ * `stale-while-revalidate` и `stale-if-error` Vercel вырезает из ответа
+ * серверной функции: в ответе браузеру их не видно, хотя кэш по ним работает.
+ * Поэтому проверка смотрит не только `cache-control`, но и зеркало: без него
+ * задуманный набор не доходит ни до промежуточных кэшей, ни до самого Vercel
+ * по старшинству заголовков (`docs/changes-log.md` §76).
+ *
  * Использование:
  *
  *   pnpm build && pnpm check:cache
@@ -29,6 +36,7 @@ import { dirname, join, resolve } from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { collectImageVersions } from './media-versions.mjs'
+import { CACHE_MIRROR_HEADER } from './cache-headers.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const serverEntry = join(root, '.output', 'server', 'index.mjs')
@@ -37,6 +45,11 @@ const serverEntry = join(root, '.output', 'server', 'index.mjs')
 const START_TIMEOUT_MS = 60_000
 /** Окно свежести страниц из `nuxt.config.ts`. Проверяется, что оно вообще есть. */
 const PAGE_FRESHNESS = 's-maxage=60'
+/** Зеркало для CDN: тот же набор, что в `cache-control` (см. `scripts/cache-headers.mjs`). */
+const CDN_MIRROR = CACHE_MIRROR_HEADER
+/** Сроки статики из `public/**` — набор `MEDIA_CACHE` в `nuxt.config.ts`. */
+const MEDIA_BROWSER_FRESHNESS = 'max-age=3600'
+const MEDIA_CDN_FRESHNESS = 's-maxage=604800'
 
 const failures = []
 
@@ -141,11 +154,23 @@ async function main() {
     const page = await fetch(`${baseUrl}/ru/projects/rp-grand`)
     const pageCache = header(page, 'cache-control')
 
+    const pageCdn = header(page, CDN_MIRROR)
+
     console.log('[check:cache] страница кейса:')
     check('отвечает 200', page.status === 200, `статус ${page.status}`)
     check('окно свежести на CDN', pageCache.includes(PAGE_FRESHNESS), `cache-control: ${pageCache}`)
     check('есть запас на пересборку', pageCache.includes('stale-while-revalidate'), `cache-control: ${pageCache}`)
     check('есть запас на отказ зоны', pageCache.includes('stale-if-error'), `cache-control: ${pageCache}`)
+    check(
+      'набор повторён в зеркале CDN',
+      pageCdn.includes(PAGE_FRESHNESS) && pageCdn.includes('stale-while-revalidate') && pageCdn.includes('stale-if-error'),
+      `cdn-cache-control: ${pageCdn || '(нет)'}`,
+    )
+    check(
+      'зеркало не расходится с cache-control',
+      pageCdn === pageCache,
+      `cache-control: ${pageCache} / cdn-cache-control: ${pageCdn || '(нет)'}`,
+    )
 
     /* Заголовки можно настроить, а модификатор в разметку не добавить — тогда
        кэш будет длинным, а картинка так и останется прежней после замены файла.
@@ -167,10 +192,16 @@ async function main() {
        заголовки, по которым выбор языка принимается. */
     const root_ = await fetch(`${baseUrl}/`, { redirect: 'manual' })
     const rootCache = header(root_, 'cache-control')
+    const rootCdn = header(root_, CDN_MIRROR)
     const rootVary = header(root_, 'vary')
 
     console.log('[check:cache] корень:')
     check('не кэшируется общим кэшем', rootCache.includes('no-store') && rootCache.includes('private'), `cache-control: ${rootCache}`)
+    check(
+      'запрет продублирован в зеркале CDN',
+      rootCdn.includes('no-store') && rootCdn.includes('private'),
+      `cdn-cache-control: ${rootCdn || '(нет)'}`,
+    )
     check('перечисляет Vary', /cookie/i.test(rootVary), `vary: ${rootVary || '(нет)'}`)
 
     /* 3. Картинки берут версию из карты отпечатков — берём настоящую пару
@@ -195,6 +226,23 @@ async function main() {
       const imageCache = header(versioned, 'cache-control')
       check('вариант картинки кэшируется надолго', imageCache.includes('s-maxage='), `cache-control: ${imageCache}`)
     }
+
+    /* 4. Статика из `public/**` живёт по своему набору, а не по страничному:
+       адрес не версионируется, поэтому браузер держит копию час, а CDN — неделю
+       с неделей запаса. Страничные 60 секунд означали бы, что каждую картинку
+       пересобирают на CDN каждую минуту. */
+    const media = await fetch(`${baseUrl}${src}`)
+    const mediaCache = src ? header(media, 'cache-control') : ''
+    const mediaCdn = src ? header(media, CDN_MIRROR) : ''
+
+    console.log('[check:cache] статика из public:')
+    check('файл отдаётся', Boolean(src) && media.status === 200, `${src ?? '(карта отпечатков пуста)'}: статус ${media.status}`)
+    check('час в браузере', mediaCache.includes(MEDIA_BROWSER_FRESHNESS), `cache-control: ${mediaCache}`)
+    check(
+      'неделя на CDN в зеркале',
+      mediaCdn.includes(MEDIA_CDN_FRESHNESS) && mediaCdn.includes('stale-while-revalidate'),
+      `cdn-cache-control: ${mediaCdn || '(нет)'}`,
+    )
   }
   catch (error) {
     failures.push(error.message)
@@ -217,7 +265,7 @@ async function main() {
     process.exit(1)
   }
 
-  console.log('\n[check:cache] кэш страниц, закрытый корень и версия картинок — на месте')
+  console.log('\n[check:cache] кэш страниц и статики, зеркало CDN, закрытый корень и версия картинок — на месте')
 }
 
 await main()
