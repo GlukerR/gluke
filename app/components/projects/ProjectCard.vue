@@ -52,11 +52,24 @@ interface CardPictureSource {
 
 const mobileCover = computed(() => props.project.cover.mobile)
 
+/* Модификаторы запроса к провайдеру: формат варианта плюс версия исходника.
+
+   Тип модификаторов библиотека выводит из провайдера по умолчанию, а он
+   зависит от окружения сборки: локально и в CI это `ipx`, на Vercel — `vercel`
+   (в проде адреса идут через `/_vercel/image`). У Vercel-провайдера `format`
+   объявлен не в модификаторах, а на уровне опций, поэтому объектный литерал с
+   ним не проходит проверку типов ровно на сборке деплоя. На деле `format` —
+   обычный проп `NuxtImg`: библиотека кладёт его в те же модификаторы. Держим
+   объект свободным, чтобы карточка проверялась при любом провайдере. */
+function pictureModifiers(src: string, format: string): Record<string, string> {
+  return { format, ...ipxVersionModifier(src, imageVersions) }
+}
+
 function pictureSources(src: string): CardPictureSource[] {
   return PICTURE_FORMATS.map((format) => {
     const { srcset, sizes } = $img.getSizes(src, {
       sizes: props.sizes,
-      modifiers: { format, ...ipxVersionModifier(src, imageVersions) },
+      modifiers: pictureModifiers(src, format),
     })
     return { type: `image/${format}`, srcset, sizes }
   })
@@ -66,7 +79,7 @@ const mobileSources = computed(() => (mobileCover.value ? pictureSources(mobileC
 const desktopSources = computed(() => pictureSources(props.project.cover.src))
 const fallback = computed(() => $img.getSizes(props.project.cover.src, {
   sizes: props.sizes,
-  modifiers: { format: 'jpeg', ...ipxVersionModifier(props.project.cover.src, imageVersions) },
+  modifiers: pictureModifiers(props.project.cover.src, 'jpeg'),
 }))
 
 /* Пропорция мобильной композиции своя, и карточка обязана её взять: иначе
