@@ -10,12 +10,24 @@
  * ручка, которая уменьшает занятое место без правки приложения, и она должна
  * быть командой, а не настройкой в дашборде, о которой никто не помнит.
  *
- * API. Сроки читаются из проекта (`deploymentExpiration`, дни) и пишутся в
- * `PATCH /v9/projects/{idOrName}/deployment-expiration` метками `1d`, `1w`,
- * `1m`, `2m`, `3m`, `6m`, `1y`, `unlimited` — те же метки предлагает дашборд
- * (Project → Settings → Security → Deployment Retention Policy). Форму запроса
- * и ответа подсказывает провайдер Terraform: он ходит ровно этими двумя
- * маршрутами.
+ * API. Сроки пишутся в `PATCH /v9/projects/{idOrName}/deployment-expiration`
+ * метками `1d`, `1w`, `1m`, `2m`, `3m`, `6m`, `1y`, `unlimited` — те же метки
+ * предлагает дашборд (Project → Settings → Security → Deployment Retention
+ * Policy). Форму запроса подсказывает провайдер Terraform: он ходит ровно этими
+ * двумя маршрутами.
+ *
+ * Асимметрия, на которой легко ошибиться. Запрос и ответ называют одни и те же
+ * сроки по-разному: **отправляются метки** (`expiration`, `expirationProduction`,
+ * `expirationCanceled`, `expirationErrored`), а **проект отвечает днями** в полях
+ * `expirationDays`, `expirationDaysProduction`, `expirationDaysCanceled`,
+ * `expirationDaysErrored` плюс `deploymentsToKeep`. Поля запроса при чтении
+ * выглядят «пустыми» даже когда политика задана явно, поэтому читаются оба
+ * набора, а метка принимается и строкой: ответ `PATCH` уже отдаёт метки. Проверено
+ * на живом API: тот же объект в ответе на `PATCH` приходит как `expiration: '1w'`,
+ * а в `GET /v2/projects/{id}` — как `expirationDaysProduction: 7`.
+ *
+ * Не все проекты доступны токену. Проект на другом аккаунте не появится ни в
+ * списке команды, ни в применении: его политику ставит владелец того аккаунта.
  *
  * Токен. Нужен `VERCEL_TOKEN` (Account Settings → Tokens). Команда намеренно
  * устроена так, что без токена ничего не падает: она печатает шаги для
@@ -66,35 +78,84 @@ export const DEFAULT_RETENTION = {
   errored: '1d',
 }
 
-/** Категории деплоев: человекочитаемое имя и поле ответа Vercel. */
-const CATEGORIES = [
-  { key: 'preview', field: 'expiration', label: 'превью' },
-  { key: 'production', field: 'expirationProduction', label: 'прод' },
-  { key: 'canceled', field: 'expirationCanceled', label: 'отменённые' },
-  { key: 'errored', field: 'expirationErrored', label: 'упавшие' },
+/**
+ * Категории деплоев: ключ политики, человекочитаемое имя, поле запроса и поля
+ * ответа. Полей ответа два, потому что `GET` проекта отвечает днями
+ * (`expirationDays*`), а `PATCH` — метками (`expiration*`); порядок в списке и
+ * есть приоритет чтения.
+ */
+export const CATEGORIES = [
+  {
+    key: 'preview',
+    label: 'превью',
+    requestField: 'expiration',
+    responseFields: ['expirationDays', 'expiration'],
+  },
+  {
+    key: 'production',
+    label: 'прод',
+    requestField: 'expirationProduction',
+    responseFields: ['expirationDaysProduction', 'expirationProduction'],
+  },
+  {
+    key: 'canceled',
+    label: 'отменённые',
+    requestField: 'expirationCanceled',
+    responseFields: ['expirationDaysCanceled', 'expirationCanceled'],
+  },
+  {
+    key: 'errored',
+    label: 'упавшие',
+    requestField: 'expirationErrored',
+    responseFields: ['expirationDaysErrored', 'expirationErrored'],
+  },
 ]
 
 /**
- * Метка срока по числу дней. Незнакомое число — не ошибка: Vercel может
- * ввести новый срок, и показать его понятнее, чем упасть.
+ * Метка срока по значению из ответа Vercel: числу дней или уже готовой метке.
+ * Незнакомое число — не ошибка: Vercel может ввести новый срок, и показать его
+ * понятнее, чем упасть.
  *
- * @param {number | undefined | null} days
+ * @param {number | string | undefined | null} value
  * @returns {string}
  */
-export function retentionLabel(days) {
-  if (typeof days !== 'number' || !Number.isFinite(days)) {
+export function retentionLabel(value) {
+  if (typeof value === 'string' && value) {
+    return value
+  }
+
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
     return '(не задан)'
   }
 
-  const known = Object.entries(RETENTION_DAYS).find(([, value]) => value === days)
+  const known = Object.entries(RETENTION_DAYS).find(([, days]) => days === value)
 
-  return known ? known[0] : `${days}d`
+  return known ? known[0] : `${value}d`
+}
+
+/**
+ * Срок категории из ответа Vercel: сначала поля с днями, потом поля с метками.
+ *
+ * @param {Record<string, number | string | undefined> | undefined} policy
+ * @param {{ responseFields: string[] }} category
+ * @returns {number | string | undefined}
+ */
+export function retentionValue(policy, category) {
+  for (const field of category.responseFields) {
+    const value = policy?.[field]
+
+    if (value !== undefined && value !== null) {
+      return value
+    }
+  }
+
+  return undefined
 }
 
 /**
  * Разбор политики в метки: то, что читает человек и что уходит в API при копировании.
  *
- * @param {Record<string, number | undefined> | undefined} policy
+ * @param {Record<string, number | string | undefined> | undefined} policy
  * @returns {{ preview: string, production: string, canceled: string, errored: string }}
  */
 export function policyLabels(policy) {
@@ -102,25 +163,44 @@ export function policyLabels(policy) {
   const labels = {}
 
   for (const category of CATEGORIES) {
-    labels[category.key] = retentionLabel(policy?.[category.field])
+    labels[category.key] = retentionLabel(retentionValue(policy, category))
   }
 
   return labels
 }
 
 /**
- * Тело запроса на изменение сроков: метки → строки в формате API.
+ * Совпадает ли политика с желаемой: метка либо равна целевой, либо переводится
+ * в то же число дней (`30` от API и `1m` из аргументов — одно и то же).
+ *
+ * @param {{ preview: string, production: string, canceled: string, errored: string }} actual
+ * @param {Record<string, string>} expected
+ * @returns {boolean}
+ */
+export function policyMatches(actual, expected) {
+  return CATEGORIES.every((category) => {
+    const got = RETENTION_DAYS[actual[category.key]] ?? Number.parseInt(actual[category.key], 10)
+    const want = RETENTION_DAYS[expected[category.key]]
+
+    return got === want
+  })
+}
+
+/**
+ * Тело запроса на изменение сроков: метки в имена полей, которые принимает API.
  *
  * @param {{ preview: string, production: string, canceled: string, errored: string }} policy
  * @returns {Record<string, string>}
  */
 export function expirationBody(policy) {
-  return {
-    expiration: policy.preview,
-    expirationProduction: policy.production,
-    expirationCanceled: policy.canceled,
-    expirationErrored: policy.errored,
+  /** @type {Record<string, string>} */
+  const body = {}
+
+  for (const category of CATEGORIES) {
+    body[category.requestField] = policy[category.key]
   }
+
+  return body
 }
 
 /** Разбор аргументов: только те, что перечислены, всё остальное — ошибка ввода. */
@@ -238,13 +318,16 @@ function printManualSteps(policy) {
   Токен: Account Settings → Tokens → Create, затем в .env.local (файл в git не идёт):
     VERCEL_TOKEN=...
 
-  Сроки для проектов gluke.ru и gluke.vercel.app (по умолчанию на Hobby — 30 дней):
+  Сроки (по умолчанию на Hobby — 30 дней) ставятся в каждом проекте команды:
     Project → Settings → Security → Deployment Retention Policy
       предпросмотр (Pre-Production) .... ${policy.preview}
       прод (Production) ............... ${policy.production}
       отменённые (Canceled) ........... ${policy.canceled}
       упавшие (Errored) ............... ${policy.errored}
     Сохранить. Политика проекта не меняет политику команды и других проектов.
+
+  Проект на чужом аккаунте в этот список не попадёт никогда: токен видит только
+  свою команду, и его политику ставит владелец того аккаунта.
 
   Проверить, что применилось: pnpm retention (после появления токена).
 `)
@@ -288,6 +371,10 @@ async function main() {
       console.log(`    ${category.label.padEnd(12)} ${before[category.key]}`)
     }
 
+    if (policyMatches(before, options.policy)) {
+      console.log(`    уже по политике ${options.policy.production} / ${options.policy.preview} — менять нечего`)
+    }
+
     if (!options.apply && !options.dryRun) {
       continue
     }
@@ -306,7 +393,17 @@ async function main() {
       body,
     })
 
-    console.log(`    → стало: ${options.policy.preview} / ${options.policy.production} / ${options.policy.canceled} / ${options.policy.errored}`)
+    /* Проверка идёт по ответу API, а не по отправленному телу: имена полей в
+       запросе и в ответе разные (метки против дней), и «ушло» не значит «встало». */
+    const stored = await projectRetention({ id: project.id }, auth)
+    const after = policyLabels(stored)
+
+    console.log(`    → стало: ${after.preview} / ${after.production} / ${after.canceled} / ${after.errored}`)
+
+    if (!policyMatches(after, options.policy)) {
+      console.log('    ⚠ API вернул не то, что просили — стоит проверить в дашборде')
+      process.exitCode = 1
+    }
   }
 
   if (!options.apply && !options.dryRun) {
