@@ -104,6 +104,11 @@ function shareImageIssues(data, versions) {
  * зона валит деплой ещё до сборки. Поэтому значение проверяется явно, а не
  * подразумевается (при смене плана это место и есть то, что правится вместе с ним,
  * см. docs/dev-guide.md §8).
+ *
+ * Отдельно проверяется пропуск сборки (`ignoreCommand`). Потерянная строка не
+ * ломает ни страницу, ни сборку: каждый пуш — включая правку одних доков —
+ * просто снова создаёт деплой и тратит место в Deployment Storage
+ * (`docs/run.md`, «Хранилище деплоев»).
  */
 function deployConfigIssues() {
   const issues = []
@@ -122,6 +127,16 @@ function deployConfigIssues() {
 
   if (!Array.isArray(config.regions) || config.regions.length !== 1) {
     issues.push(`    regions: ожидается одна зона (Hobby), а не ${JSON.stringify(config.regions)}`)
+  }
+
+  /* Пропуск сборки: код 0 от этой команды означает «не собирать», поэтому
+     важен и сам факт наличия команды, и то, что файл существует. Без неё
+     правка одних доков порождает деплой с трёхсотмегабайтным выводом. */
+  if (typeof config.ignoreCommand !== 'string' || !config.ignoreCommand.includes('scripts/ignore-build.mjs')) {
+    issues.push('    ignoreCommand: нет пропуска сборки на коммитах без изменений исходников — каждый пуш только с доками создаёт деплой (scripts/ignore-build.mjs)')
+  }
+  else if (!existsSync(join(root, 'scripts', 'ignore-build.mjs'))) {
+    issues.push(`    ignoreCommand: «${config.ignoreCommand}» ссылается на несуществующий файл`)
   }
 
   /* Каждый маршрут политики обязан нести срок и в браузерном заголовке, и в

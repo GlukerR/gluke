@@ -3,6 +3,8 @@
  *
  * 1. Ждёт, пока деплой текущего коммита станет успешным.
  * 2. Пингует IndexNow (scripts/indexnow.mjs).
+ * 3. Помечает устаревшими варианты изменённых картинок
+ *    (scripts/purge-image-cache.mjs, нужен VERCEL_TOKEN).
  *
  * Готовность деплоя читается из GitHub Deployments API, а не из API Vercel:
  * git-интеграция Vercel сама заводит в GitHub deployment на каждый коммит и
@@ -125,6 +127,30 @@ async function main() {
     env: { ...process.env, NUXT_SITE_URL: base },
   })
   console.log(output)
+
+  /* Пурж вариантов картинок. Версия в адресе на Vercel до оптимизатора не
+     доезжает, поэтому заменённый файл могли бы показывать из кэша вплоть до
+     истечения недельного срока (см. scripts/purge-image-cache.mjs). Деплой к
+     этому моменту уже живой, так что помечаем только исходники этого коммита.
+     Сбой пуржа не превращается в падение шага: IndexNow важнее, а о неудаче
+     скажет журнал шага. */
+  if (process.env.VERCEL_TOKEN) {
+    console.log('Purging image optimization cache for changed images...')
+
+    try {
+      const purge = await run('node', ['scripts/purge-image-cache.mjs', '--changed', '--verify'], {
+        env: { ...process.env, NUXT_SITE_URL: base },
+      })
+      console.log(purge)
+    }
+    catch (error) {
+      console.warn(`Warning: image cache purge failed: ${error instanceof Error ? error.message : error}`)
+    }
+  }
+  else {
+    console.log('VERCEL_TOKEN is not set: image cache purge is skipped (see docs/run.md)')
+  }
+
   console.log('Post-deploy finished.')
 }
 

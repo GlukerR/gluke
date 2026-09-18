@@ -139,16 +139,23 @@ jobs:
     permissions:
       deployments: read
     steps:
+      # fetch-depth 2: сравнение с предыдущим коммитом нужно пуржу вариантов
+      # картинок (scripts/purge-image-cache.mjs --changed).
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
 
+      # VERCEL_TOKEN нужен только пуржу вариантов картинок; без него шаг
+      # пропускает пурж и продолжает работу.
       - name: Wait for the deployment, then ping IndexNow
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_SHA: ${{ github.sha }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           NUXT_SITE_URL: https://gluke.ru
         run: node scripts/postdeploy.mjs

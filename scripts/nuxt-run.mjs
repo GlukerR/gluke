@@ -11,11 +11,17 @@
  * от dev-сервера: `pnpm build` / `pnpm generate` работают даже при запущенном
  * dev (и после `rm -rf .nuxt`).
  *
+ * После успешной сборки (`build`) из бандлов вычищаются платформенные бинарники
+ * чужих систем: сервер Nitro и **каждая** функция вывода Vercel, куда Nitro
+ * кладёт отдельную копию `node_modules` — см. `scripts/prune-server-bundle.mjs`.
+ * Выигрыш уезжает и в Functions Storage каждого сохранённого деплоя.
+ *
  * Использование: `node scripts/nuxt-run.mjs <build|generate>`
  */
 import { spawn, spawnSync } from 'node:child_process'
 import { rmSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { pruneServerBundle, report } from './prune-server-bundle.mjs'
 
 const command = process.argv[2] ?? 'build'
 if (command !== 'build' && command !== 'generate') {
@@ -45,4 +51,18 @@ const child = spawn(process.execPath, [nuxtBin, command], {
   stdio: 'inherit',
   env: { ...process.env, NUXT_BUILD_DIR: buildDir },
 })
-child.on('exit', code => process.exit(code ?? 1))
+child.on('exit', (code) => {
+  if (code) {
+    process.exit(code)
+  }
+
+  if (command === 'build') {
+    /* Каталоги по умолчанию: `.output/server` и `.vercel/output/functions/*`.
+       Сборка без пресета Vercel даст только первый — это нормально. */
+    const result = pruneServerBundle({})
+
+    report(result)
+  }
+
+  process.exit(0)
+})
