@@ -24,6 +24,12 @@
  *    для `/media/(.*)` проверяется уже после переезда в `routeRules`.
  * 5. Корень закрыт от общего кэша: он персонализирован по cookie и стране, и
  *    общий кэш отдал бы русскому гостю английскую страницу.
+ * 6. Функция исполняется в той зоне, что заявлена в `vercel.json`. Зона есть в
+ *    двух местах сразу: `regions` в конфиге и поле проекта
+ *    `serverlessFunctionRegion` (Settings → Functions). По умолчанию у нового
+ *    проекта там `iad1`, и расхождение не видно ни в сборке, ни в ответе, пока
+ *    в конфиг не добавлена сверка: у проекта `gluke` в дашборде стоял `iad1`,
+ *    хотя функции исполнялись во `fra1` (`docs/changes-log.md` §79).
  *
  * Адрес берётся из `CACHE_PROBE_URL` (по умолчанию боевой домен), поэтому
  * скрипт годится и для превью-деплоя.
@@ -33,9 +39,13 @@
  *   pnpm check:cache:prod
  *   CACHE_PROBE_URL=https://gluke.vercel.app pnpm check:cache:prod
  */
+import { readFileSync } from 'node:fs'
 import process from 'node:process'
 
 const baseUrl = (process.env.CACHE_PROBE_URL ?? 'https://gluke.ru').replace(/\/+$/, '')
+
+/** Зона функций из `vercel.json`: то, что мы считаем задуманным. */
+const declaredRegion = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8')).regions?.[0] ?? ''
 
 /** Пауза между пробами одной страницы: свежий ответ должен успеть лечь в кэш. */
 const RECHECK_DELAY_MS = 3000
@@ -78,6 +88,21 @@ async function probe(path) {
   })
 
   return { path, response, body: await response.text() }
+}
+
+/**
+ * Зона, в которой исполнился ответ функции.
+ *
+ * `x-vercel-id` выглядит как `<зона края>::<зона функции>::<номер>`; у ответа
+ * без функции (статика, вариант картинки) второй части нет — там зона не
+ * участвует, и это не ошибка, а другой вид ответа.
+ *
+ * @param {Response} response
+ * @returns {{ edge: string, fn: string }}
+ */
+function servedBy(response) {
+  const [edge = '', fn = ''] = header(response, 'x-vercel-id').split('::')
+  return { edge: edge.trim(), fn: fn.replace(/-.*$/, '').trim() }
 }
 
 /** Кэширует ли Vercel этот ответ: `MISS` на обеих пробах означает, что нет. */
@@ -162,6 +187,29 @@ async function main() {
   check('не отдан из общего кэша', !['HIT', 'STALE'].includes(edgeState(root.response)), `x-vercel-cache: ${edgeState(root.response)}`)
   check('разметка пришла', root.body.length > 1000, `тело ответа ${root.body.length} байт`)
 
+  /* 6. Зона функции: сравнение того, что просили в конфиге, с тем, что
+     ответил деплой. Запрос со сбивающим кэш параметром, чтобы заголовок
+     описывал этот рендер, а не лежащую копию. */
+  const fresh = await probe(`${PAGE_PATH}?region-probe=${Date.now()}`)
+  const served = servedBy(fresh.response)
+
+  console.log('[check:cache:prod] зона функции:')
+  check(
+    'в конфиге заявлена одна зона',
+    Boolean(declaredRegion),
+    `vercel.json: regions=${JSON.stringify(declaredRegion || null)}`,
+  )
+  check(
+    'разметку отрисовала функция, а не статика',
+    Boolean(served.fn),
+    `x-vercel-id: ${header(fresh.response, 'x-vercel-id') || '(нет)'}`,
+  )
+  check(
+    `функция исполняется в зоне ${declaredRegion || '(не задана)'}`,
+    Boolean(served.fn) && served.fn === declaredRegion,
+    `x-vercel-id: ${header(fresh.response, 'x-vercel-id') || '(нет)'} — исполнение в ${served.fn || '(неизвестно)'}, а конфиг просит ${declaredRegion || '(ничего)'}`,
+  )
+
   if (failures.length) {
     console.error(`\n[check:cache:prod] не прошло проверок: ${failures.length}\n`)
     for (const failure of failures) {
@@ -170,7 +218,7 @@ async function main() {
     process.exit(1)
   }
 
-  console.log('\n[check:cache:prod] директивы доезжают до клиента, эдж-кэш их исполняет, корень закрыт')
+  console.log('\n[check:cache:prod] директивы доезжают до клиента, эдж-кэш их исполняет, корень закрыт, зона функции совпадает с конфигом')
 }
 
 await main()
