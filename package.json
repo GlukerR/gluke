@@ -24,6 +24,7 @@
     "check:lods": "node scripts/check-lod-parity.mjs",
     "check:cache": "node scripts/check-cache-headers.mjs",
     "check:cache:prod": "node scripts/check-cache-prod.mjs",
+    "deploy:audit": "node scripts/deploy-audit.mjs",
     "lastmod": "node scripts/update-lastmod.mjs",
     "retention": "node scripts/deployment-retention.mjs",
     "media:purge": "node scripts/purge-image-cache.mjs",

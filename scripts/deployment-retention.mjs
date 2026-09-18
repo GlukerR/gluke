@@ -170,6 +170,26 @@ export function policyLabels(policy) {
 }
 
 /**
+ * Срок в днях по тому, что пришло: метка (`1w`), число дней (`7`) или ответ
+ * API. Незнакомое значение — `NaN`, то есть «не совпадает ни с чем», а не
+ * падение: показывать расхождение полезнее, чем ломаться на новом сроке Vercel.
+ *
+ * @param {number | string | undefined | null} value
+ * @returns {number}
+ */
+export function retentionDays(value) {
+  if (typeof value === 'number') {
+    return value
+  }
+
+  if (typeof value === 'string' && value in RETENTION_DAYS) {
+    return RETENTION_DAYS[value]
+  }
+
+  return Number.parseInt(String(value ?? ''), 10)
+}
+
+/**
  * Совпадает ли политика с желаемой: метка либо равна целевой, либо переводится
  * в то же число дней (`30` от API и `1m` из аргументов — одно и то же).
  *
@@ -178,12 +198,7 @@ export function policyLabels(policy) {
  * @returns {boolean}
  */
 export function policyMatches(actual, expected) {
-  return CATEGORIES.every((category) => {
-    const got = RETENTION_DAYS[actual[category.key]] ?? Number.parseInt(actual[category.key], 10)
-    const want = RETENTION_DAYS[expected[category.key]]
-
-    return got === want
-  })
+  return CATEGORIES.every(category => retentionDays(actual[category.key]) === RETENTION_DAYS[expected[category.key]])
 }
 
 /**

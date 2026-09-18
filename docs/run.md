@@ -96,6 +96,7 @@ powershell -NoProfile -Command "(Start-Process -FilePath 'node.exe' -ArgumentLis
 | `pnpm check:cache` | Заголовки кэша на собранном сервере: наборы и зеркало `cdn-cache-control`, статика, версия картинки в адресе ipx, закрытый корень |
 | `pnpm check:cache:prod` | То же на живом домене плюс `/_vercel/image`, реальная выдача из эдж-кэша и сверка зоны исполнения функции с `regions` в `vercel.json`. Нужна сеть, адрес — `CACHE_PROBE_URL` (см. `docs/dev-guide.md` §8) |
 | `pnpm retention` | Сроки хранения деплоев в проектах Vercel: показать текущие и `--apply` поставить прод 1w / превью, отменённые, упавшие 1d (см. `scripts/deployment-retention.mjs`, «Хранилище деплоев» ниже) |
+| `pnpm deploy:audit` | Аудит настроек деплоя одной командой: зона функций, сроки хранения, кэш и пурж — платформа против репозитория; печатает **только расхождения** и выходит с кодом 1, если они есть. Токен берётся из `VERCEL_TOKEN` или из локальной авторизации Vercel CLI; домен — `CACHE_PROBE_URL` (см. `docs/dev-guide.md` §8) |
 | `pnpm media:purge <путь>` | Пурж вариантов картинки в кэше Image Optimization: `/media/…jpg` или `--changed` для картинок этого коммита (см. `scripts/purge-image-cache.mjs`) |
 | `pnpm check` | `lint` + `typecheck` + `validate:content` + `check:lods` + `test` + `build` + `check:cache` — всё, что гоняет CI |
 
