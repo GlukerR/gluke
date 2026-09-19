@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   applyVariantSelection,
+  buildLodLoadOrder,
   buildNodeMeta,
   buildVariantGroups,
   countRenderStats,
@@ -8,6 +9,7 @@ import {
   nodeKey,
   nodeNamesByRole,
   NO_VARIANT,
+  type CarLodEntry,
   type CarManifest,
 } from './carVariants'
 
@@ -205,6 +207,51 @@ describe('nodeNamesByRole', () => {
     }))
     expect(nodeNamesByRole(meta, 'wheel')).toEqual(['Wheel', 'Wheel001'])
     expect(nodeNamesByRole(meta, 'spoiler')).toEqual([])
+  })
+})
+
+/* Уровни как в манифесте rp-grand: подробный тяжёлый, дальние — почти пустые. */
+function lodLevels(): CarLodEntry[] {
+  return [
+    { id: '0', file: 'test-lod0.glb', tris: 32370 },
+    { id: '1', file: 'test-lod1.glb', tris: 4864 },
+    { id: '2', file: 'test-lod2.glb', tris: 230 },
+  ]
+}
+
+describe('buildLodLoadOrder', () => {
+  it('ведёт от самого лёгкого уровня к самому подробному', () => {
+    expect(buildLodLoadOrder(lodLevels(), '0').map(entry => entry.id)).toEqual(['2', '1', '0'])
+  })
+
+  it('не грузит уровни тяжелее выбранного', () => {
+    expect(buildLodLoadOrder(lodLevels(), '1').map(entry => entry.id)).toEqual(['2', '1'])
+  })
+
+  it('для самого лёгкого уровня цепочка из одного шага', () => {
+    expect(buildLodLoadOrder(lodLevels(), '2').map(entry => entry.id)).toEqual(['2'])
+  })
+
+  it('сортирует по трисам манифеста, а не по номеру уровня', () => {
+    const levels: CarLodEntry[] = [
+      { id: '0', file: 'a.glb', tris: 100 },
+      { id: '1', file: 'b.glb', tris: 900 },
+      { id: '2', file: 'c.glb', tris: 400 },
+    ]
+    expect(buildLodLoadOrder(levels, '1').map(entry => entry.id)).toEqual(['0', '2', '1'])
+  })
+
+  it('незнакомый уровень отдаёт всю цепочку', () => {
+    expect(buildLodLoadOrder(lodLevels(), '9').map(entry => entry.id)).toEqual(['2', '1', '0'])
+  })
+
+  it('без трисов не теряет ни одного уровня', () => {
+    const levels: CarLodEntry[] = [
+      { id: '0', file: 'a.glb', tris: 0 },
+      { id: '1', file: 'b.glb', tris: 0 },
+      { id: '2', file: 'c.glb', tris: 0 },
+    ]
+    expect(buildLodLoadOrder(levels, '0').map(entry => entry.id)).toEqual(['2', '1', '0'])
   })
 })
 

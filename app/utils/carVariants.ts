@@ -60,6 +60,32 @@ export function buildLods(manifest: CarManifest | null | undefined): CarLodEntry
     .filter(entry => entry.file.length > 0)
 }
 
+/**
+ * Порядок сборки уровней при смене машины: от самого лёгкого к выбранному,
+ * включая сам выбранный.
+ *
+ * Уровни грузятся ступенями, а не разом: сначала в кадр встаёт самый дешёвый
+ * GLB, и машина появляется почти сразу, а подробности доезжают следом и
+ * подменяются на месте. Тяжелее цели не грузим ничего: это уже не нужно.
+ *
+ * Сортировка — по трисам манифеста, а не по номеру уровня: номер присваивает
+ * экспортёр, а цену уровня знает только манифест. Уровня нет в списке — отдаём
+ * всю цепочку от лёгкого к тяжёлому, чтобы машина всё равно показалась.
+ */
+export function buildLodLoadOrder(
+  levels: readonly CarLodEntry[],
+  targetId: string,
+): CarLodEntry[] {
+  /* Неизвестные значения — в начало и в конец: порядок важнее точности,
+     а NaN в компараторе сломал бы сортировку целиком. */
+  const weight = (entry: CarLodEntry) => (Number.isFinite(entry.tris) ? entry.tris : 0)
+  const number = (entry: CarLodEntry) => (Number.isFinite(Number(entry.id)) ? Number(entry.id) : 0)
+
+  const byWeight = levels.slice().sort((a, b) => weight(a) - weight(b) || number(b) - number(a))
+  const target = byWeight.findIndex(entry => entry.id === targetId)
+  return target < 0 ? byWeight : byWeight.slice(0, target + 1)
+}
+
 /** Одна группа переключаемых вариантов: роль в GLB + доступные варианты. */
 export interface CarVariantGroup {
   /** Роль нод в манифесте — она же ключ текста в i18n. */

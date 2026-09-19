@@ -6,6 +6,7 @@ import { CAMERA_POSE_LENGTH, cameraPoseChanged, createFrameLimiter, createQualit
 import { disposeObjectResources } from '~/utils/modelViewerCache'
 import {
   applyVariantSelection,
+  buildLodLoadOrder,
   buildLods,
   buildNodeMeta,
   buildVariantGroups,
@@ -35,9 +36,11 @@ import {
   resolveCoverage,
   resolvePattern,
   setCarSelection,
+  type CarLampSplit,
   type CarSelection,
 } from '~/utils/carMaterials'
 import { loadCarSelection, saveCarSelection } from '~/utils/carPaintStorage'
+import { applySeat, reseatLevels, seatLevelByBounds, type CarSeat } from '~/utils/carSeating'
 import { withShareImageVersion } from '~/utils/shareImage'
 import { createGarageAudio, type GarageAudio, type GarageAudioState, type GarageAudioTrack } from '~/utils/garageAudio'
 import { hasSeenGarageIntro, markGarageIntroSeen } from '~/utils/garageIntro'
@@ -166,6 +169,19 @@ const activeVehicleId = ref(vehicleList.value.find(item => item.manifest === pro
 const activeVehicle = computed<GarageVehicle>(() => vehicleList.value.find(item => item.id === activeVehicleId.value) ?? vehicleList.value[0]!)
 /* Машина, которая сейчас грузится: её карточка в списке показывает загрузку. */
 const pendingVehicleId = ref<string | null>(null)
+
+/* Цепочка сборки уровней при смене машины (см. `selectVehicle`): пока она идёт,
+   выбор уровня из HUD откладывается, а не пересобирает сцену в середине. */
+interface VehicleLoad {
+  /* Номер захода: смена машины на полпути делает прежнюю цепочку чужой. */
+  token: number
+  /* Самый подробный уровень — он задаёт посадку, колёса и базу для остальных. */
+  targetId: string
+  /* Уровень, который человек выбрал, пока цепочка ещё шла. */
+  wanted: string
+}
+let vehicleLoad: VehicleLoad | null = null
+let vehicleLoadToken = 0
 
 function vehicleRotation(vehicle: GarageVehicle | undefined): number {
   return vehicle?.rotation ?? props.model.rotation ?? 0
@@ -846,13 +862,28 @@ function wheelNodes(active: CachedCarConfigurator): THREE.Object3D[] {
 }
 
 /*
+ * Чужие колёса: при смене машины прежние колёса остаются в сцене, чтобы новая
+ * не показывалась кузовом на полу, пока едет её подробный уровень (§83).
+ * Свои колёса приносит подробный уровень — тогда чужие надо отпустить, иначе
+ * они заслонят место под колёсами новой машины.
+ */
+function dropBorrowedWheels(active: CachedCarConfigurator): boolean {
+  if (!active.wheels.userData.borrowedCar) return false
+  active.scene.remove(active.wheels)
+  disposeObjectResources(active.wheels)
+  active.wheels = new active.three.Group()
+  return true
+}
+
+/*
  * Колёса держим в сцене, а не внутри уровня детализации: упрощённые уровни
  * приходят без колёс вовсе. Ноды подробного уровня переносятся в группу
  * `lod-wheels` через `attach` с сохранением мировых координат.
  */
 function hoistWheels(active: CachedCarConfigurator): void {
-  if (active.wheels.children.length > 0) return
   if (active.lod !== lods.value[0]?.id) return
+  dropBorrowedWheels(active)
+  if (active.wheels.children.length > 0) return
 
   const nodes = wheelNodes(active)
   if (nodes.length === 0) return
@@ -898,7 +929,20 @@ function selectVariant(groupId: string, variant: string) {
    окраска и узор остаются как были — меняется только геометрия. */
 async function selectLod(nextLod: string) {
   const active = viewer
-  if (!active || status.value !== 'ready' || active.lod === nextLod) return
+  if (!active || status.value !== 'ready') return
+
+  /* Смена машины ещё догружает уровни: не пересобираем сцену в середине
+     цепочки — посадку и колёса подробного уровня там ещё не на что опереть.
+     Выбор запоминаем, он встанет, как только цепочка дойдёт до конца. Это
+     же касается клика по уровню, который сейчас в кадре: он означает «этот и
+     оставь», а без записи цепочка ушла бы на более подробный. */
+  const chain = vehicleLoad
+  if (chain) {
+    chain.wanted = nextLod
+    return
+  }
+
+  if (active.lod === nextLod) return
 
   const entry = lods.value.find(item => item.id === nextLod)
   if (!entry) return
@@ -946,9 +990,9 @@ async function buildLodModel(active: CachedCarConfigurator, entry: CarLodEntry):
   }
 
   root.rotation.y = degreesToRadians(active.carRotation)
-  /* Уровень переносится тем же смещением, что и LOD0 (колёса есть только
-     у подробного уровня), и стоит в той же точке зала. */
-  root.position.set(active.carShift.x, active.seatOffsetY, active.carShift.z)
+  /* Уровень ставится посадкой подробного: колёса есть только у него, и по
+     собственному габариту упрощённый уровень встал бы ниже на высоту колеса. */
+  applySeat(root, { shift: active.carShift, offsetY: active.seatOffsetY })
 
   const materials = createCarMaterials(active.three, root, {
     textureBase: carTextureBase(props.model.src),
@@ -968,10 +1012,15 @@ async function buildLodModel(active: CachedCarConfigurator, entry: CarLodEntry):
   return { root, materials, nodeByName }
 }
 
-/* Снимает машину со сцены и освобождает все её собранные уровни и колёса. */
-function releaseCar(active: CachedCarConfigurator): void {
+/*
+ * Снимает машину со сцены и освобождает все её собранные уровни.
+ *
+ * Колёса можно оставить (`keepWheels`): при смене машины они остаются стоять
+ * там, где стояли, и новой машине подставляются вместо своих, пока её подробный
+ * уровень в пути. Забирает их обратно `dropBorrowedWheels`.
+ */
+function releaseCar(active: CachedCarConfigurator, keepWheels = false): void {
   active.scene.remove(active.model)
-  active.scene.remove(active.wheels)
   const disposeWire = (root: THREE.Object3D) => root.traverse((object) => {
     if (object.userData.garageWire) (object as THREE.LineSegments).geometry.dispose()
   })
@@ -980,126 +1029,273 @@ function releaseCar(active: CachedCarConfigurator): void {
     disposeObjectResources(model.root)
     disposeCarMaterials(model.materials)
   }
+  if (keepWheels) return
+  active.scene.remove(active.wheels)
   disposeWire(active.wheels)
   disposeObjectResources(active.wheels)
 }
 
+/* Задание на сборку уровня новой машины: в сцене ещё стоит прежняя, поэтому
+   кэш тайлов и разделитель оптики приходят сюда, а не читаются из неё. */
+interface VehicleLodJob {
+  manifest: CarManifest
+  /* Разворот машины в зале: у каждой выгрузки он свой. */
+  rotation: number
+  /* Кэш тайловых карт. У первого уровня его ещё нет — прежняя машина в этот
+     момент держит свой, и он уйдёт вместе с ней; остальные уровни берут карты
+     первого, чтобы один узор не лежал в памяти трижды. */
+  tileCache?: Map<string, THREE.Texture>
+  /* Разделитель оптики подробного уровня: у уровней без бамперов свой не собрать. */
+  lampSplit?: CarLampSplit | null
+}
+
+/* Собранный уровень новой машины вместе с посадкой, которой он встал: подробный
+   уровень отдаёт посадку вьюверу (она и есть правитель), остальные живут до
+   конца цепочки. */
+interface BuiltVehicleLod extends CarLodModel {
+  seat: CarSeat
+  lampSplit: CarLampSplit | null
+}
+
 /*
- * Смена машины в том же гараже: грузится подробный уровень новой машины,
- * разворачивается, ставится в ту же точку зала (центр по горизонтали —
- * `anchor`) и садится на тот же пол. Старая машина снимается только когда
- * новая уже собрана — в кадре не бывает пустого места. Окраска остаётся,
- * обвес — сток новой машины, камера смещается вместе с центром машины.
+ * Собирает уровень новой машины: грузит GLB, разворачивает, ставит в ту же
+ * точку зала (центр по горизонтали — `anchor`) и садится на тот же пол.
+ *
+ * Посадка считается по собственному габариту уровня: подробный уровень
+ * приходит с колёсами и садится на пол как есть, а упрощённые (без колёс)
+ * стоят на полу кузовом и встанут на высоту подробного, когда он доедет (§44).
+ */
+async function buildVehicleLod(
+  active: CachedCarConfigurator,
+  job: VehicleLodJob,
+  entry: CarLodEntry,
+): Promise<BuiltVehicleLod> {
+  /* Свой декодер на загрузку: после первого GLB draco уничтожается. */
+  const { DRACOLoader } = await import('three/examples/jsm/loaders/DRACOLoader.js')
+  const draco = new DRACOLoader()
+  active.loader.setDRACOLoader(draco)
+
+  let root: THREE.Object3D
+  try {
+    root = (await active.loader.loadAsync(lodSrc(entry))).scene
+  }
+  finally {
+    draco.dispose()
+  }
+
+  const { three } = active
+  root.rotation.y = degreesToRadians(job.rotation)
+  const seat = seatLevelByBounds(three, root, { anchor: active.anchor, bottomY: active.floorY })
+
+  const lampSplit = job.lampSplit ?? lampSplitFromBumpers(three, root)
+  const materials = createCarMaterials(three, root, {
+    textureBase: textureBase.value,
+    anisotropy: active.renderer.capabilities.getMaxAnisotropy(),
+    selection: { ...paint.value },
+    lampSplit,
+    tileCache: job.tileCache ?? new Map(),
+    wheelNodes: nodeNamesByRole(buildNodeMeta(job.manifest, entry.id), WHEEL_ROLE),
+  })
+  await setCarSelection(materials, { ...paint.value })
+
+  const nodeByName = new Map<string, THREE.Object3D>()
+  root.traverse((object) => {
+    if (object.name) nodeByName.set(object.name, object)
+  })
+
+  return { root, materials, nodeByName, seat, lampSplit }
+}
+
+/* Собранный уровень не попал в кадр (машину сменили на полпути) — отпускаем его. */
+function disposeVehicleLod(level: BuiltVehicleLod): void {
+  disposeObjectResources(level.root)
+  disposeCarMaterials(level.materials)
+}
+
+/* Ставит собранный уровень в кадр вместо предыдущего: лёгкий — пока едет
+   подробный, подробный — насовсем. Материалы, ноды и группы вариантов
+   переезжают вместе с ним, выбранная окраска на них уже наложена. */
+function showVehicleLod(
+  active: CachedCarConfigurator,
+  level: BuiltVehicleLod,
+  entry: CarLodEntry,
+): void {
+  active.scene.remove(active.model)
+  active.lodModels.set(entry.id, level)
+  active.model = level.root
+  active.materials = level.materials
+  active.nodeByName = level.nodeByName
+  active.lod = entry.id
+  active.scene.add(level.root)
+  ensureLod(active)
+  syncWheels(active)
+  applySelection()
+  lod.value = entry.id
+  requestRender()
+}
+
+/*
+ * Переносит на посадку подробного уровня всё, что уже собрано у этой машины.
+ *
+ * Упрощённые уровни приезжают без колёс и до подробного стоят на полу кузовом:
+ * по своему габариту машина ниже на высоту колеса. Когда подробный уровень
+ * доехал, он становится правителем посадки — и тогда на его место переезжают
+ * и уже собранные лёгкие уровни, иначе возврат на LOD1/LOD2 выглядел бы как
+ * кузов, ушедший в пол.
+ */
+function reseatLodLevels(
+  active: CachedCarConfigurator,
+  ruler: CarSeat,
+  detailedId: string,
+): void {
+  reseatLevels(active.lodModels, ruler, detailedId)
+  requestRender()
+}
+
+/* Камера и тень встают к новой машине. Двигает кадр только первый уровень:
+   это уже та машина и тот габарит, а дальше подмена уровней кадром не
+   управляет — иначе он дёргался бы в конце каждой ступени. Подробный уровень
+   лишь уточняет габарит и тень: с колёсами низ машины ниже. */
+function seatCameraOnCar(active: CachedCarConfigurator, moveCamera: boolean): void {
+  const { three, controls, camera } = active
+  const box = new three.Box3().setFromObject(active.model).union(new three.Box3().setFromObject(active.wheels))
+  const center = box.getCenter(new three.Vector3())
+  if (moveCamera) {
+    const move = center.clone().sub(controls.target)
+    controls.target.add(move)
+    camera.position.add(move)
+  }
+  active.center = center
+  active.size = box.getSize(new three.Vector3())
+  const shadow = active.scene.getObjectByName('garage-contact-shadow')
+  if (shadow) fitContactShadow(shadow, box, active.floorY)
+  if (moveCamera) frameCamera()
+}
+
+/*
+ * Смена машины в том же гараже.
+ *
+ * Уровни новой машины приходят ступенями (`buildLodLoadOrder`): первым в кадр
+ * встаёт самый дешёвый GLB, поэтому машина показывается почти сразу, а
+ * подробности доезжают следом и подменяются на месте — та же сцена, та же
+ * камера, та же окраска. Правитель посадки — подробный уровень: он один
+ * приходит с колёсами и задаёт высоту кузова, а пока он в пути, машина стоит
+ * на полу по своему габариту.
+ *
+ * Старая машина снимается со сцены, когда первый уровень новой уже собран:
+ * в кадре не бывает пустого места. Окраска переезжает с прежней машины,
+ * обвес — сток новой. Цепочка не блокирует HUD: как только машина в кадре,
+ * экран живой, а тяжёлые уровни доезжают фоном.
  */
 async function selectVehicle(id: string) {
   const active = viewer
   const vehicle = vehicleList.value.find(item => item.id === id)
   if (!active || !vehicle || status.value !== 'ready' || id === activeVehicleId.value) return
 
+  const token = ++vehicleLoadToken
   pendingVehicleId.value = id
   status.value = 'loading'
   try {
     const manifest = await fetchManifest(vehicle.manifest)
     const levels = buildLods(manifest)
-    const first = levels[0]
-    if (!manifest || !first) throw new Error(`no levels in ${vehicle.manifest}`)
+    /* Самый подробный уровень: он задаёт посадку, колёса и базу для уровней,
+       которые встанут после него. */
+    const detailed = levels[0]
+    if (!manifest || !detailed) throw new Error(`no levels in ${vehicle.manifest}`)
 
-    const { DRACOLoader } = await import('three/examples/jsm/loaders/DRACOLoader.js')
-    const draco = new DRACOLoader()
-    active.loader.setDRACOLoader(draco)
-    let root: THREE.Object3D
-    try {
-      root = (await active.loader.loadAsync(lodSrc(first))).scene
-    }
-    finally {
-      draco.dispose()
-    }
-    if (disposed || viewer !== active) {
-      disposeObjectResources(root)
-      return
-    }
-
-    const { three } = active
     const rotation = vehicleRotation(vehicle)
-    root.rotation.y = degreesToRadians(rotation)
-    root.updateMatrixWorld(true)
-    const placed = new three.Box3().setFromObject(root)
-    const placedCenter = placed.getCenter(new three.Vector3())
-    const shift = { x: active.anchor.x - placedCenter.x, z: active.anchor.z - placedCenter.z }
-    root.position.set(shift.x, active.floorY - placed.min.y, shift.z)
-    active.scene.add(root)
-    root.updateMatrixWorld(true)
+    const chain = buildLodLoadOrder(levels, detailed.id)
+    const first = chain[0]
+    if (!first) throw new Error(`empty lod chain in ${vehicle.manifest}`)
+    vehicleLoad = { token, targetId: detailed.id, wanted: detailed.id }
 
-    const lampSplit = lampSplitFromBumpers(three, root)
-    const materials = createCarMaterials(three, root, {
-      textureBase: textureBase.value,
-      anisotropy: active.renderer.capabilities.getMaxAnisotropy(),
-      selection: { ...paint.value },
-      lampSplit,
-      wheelNodes: nodeNamesByRole(buildNodeMeta(manifest, first.id), WHEEL_ROLE),
-    })
-    await setCarSelection(materials, { ...paint.value })
-    if (disposed || viewer !== active) {
-      active.scene.remove(root)
-      disposeObjectResources(root)
-      disposeCarMaterials(materials)
-      return
-    }
-
-    const nodeByName = new Map<string, THREE.Object3D>()
-    root.traverse((object) => {
-      if (object.name) nodeByName.set(object.name, object)
-    })
-
-    releaseCar(active)
-    active.scene.add(root)
-    active.model = root
-    active.materials = materials
-    active.nodeByName = nodeByName
-    active.manifest = manifest
-    active.lampSplit = lampSplit
-    active.seatOffsetY = root.position.y
-    active.carShift = shift
-    active.carRotation = rotation
-    active.lod = first.id
-    active.lodModels = new Map([[first.id, { root, materials, nodeByName }]])
-    active.wheels = new three.Group()
-    active.vehicleId = vehicle.id
-
+    /* HUD строится по манифесту и не ждёт ни одного GLB: разделы, варианты и
+       цифры уровней готовы, пока в кадре ещё прежняя машина. Обвес — сток
+       новой машины, окраска остаётся выбранной. */
     lods.value = levels
-    lod.value = first.id
     manifestData.value = manifest
-    const built = buildVariantGroups(manifest, first.id)
+    const built = buildVariantGroups(manifest, detailed.id)
     groups.value = built
     active.groups = built
     selection.value = defaultSelection(built)
-    ensureLod(active)
-    hoistWheels(active)
-    syncWheels(active)
 
-    const box = new three.Box3().setFromObject(root).union(new three.Box3().setFromObject(active.wheels))
-    const center = box.getCenter(new three.Vector3())
-    const move = center.clone().sub(active.controls.target)
-    active.controls.target.add(move)
-    active.camera.position.add(move)
-    active.center = center
-    active.size = box.getSize(new three.Vector3())
-    const shadow = active.scene.getObjectByName('garage-contact-shadow')
-    if (shadow) fitContactShadow(shadow, box, active.floorY)
-    frameCamera()
+    const job: VehicleLodJob = { manifest, rotation }
+    const light = await buildVehicleLod(active, job, first)
+    if (disposed || viewer !== active || token !== vehicleLoadToken) {
+      disposeVehicleLod(light)
+      return
+    }
 
+    /* Прежняя машина уходит, а её колёса остаются: они уже стоят на том же
+       полу и станут колёсами новой машины, пока та едет лёгким уровнем.
+       Кузов новой ставится на низ кузова прежней — то есть ровно на них. */
+    const borrowed = active.wheels.children.length > 0 ? active.wheels : null
+    const carryHeight = borrowed ? new active.three.Box3().setFromObject(active.model).min.y : null
+    const previousVehicleId = active.vehicleId
+
+    releaseCar(active, !!borrowed)
+    active.lodModels = new Map()
+    if (borrowed) borrowed.userData.borrowedCar = previousVehicleId
+    const lightSeat = carryHeight === null
+      ? light.seat
+      : seatLevelByBounds(active.three, light.root, { anchor: active.anchor, bottomY: carryHeight })
+
+    active.manifest = manifest
+    active.vehicleId = vehicle.id
+    active.carRotation = rotation
+    active.lampSplit = light.lampSplit
+    /* Посадка лёгкого уровня — временная: подробный приедет со своими. */
+    active.carShift = lightSeat.shift
+    active.seatOffsetY = lightSeat.offsetY
+
+    showVehicleLod(active, light, first)
+    seatCameraOnCar(active, true)
     activeVehicleId.value = vehicle.id
     focusRole.value = null
-    applySelection()
-    syncWireframe()
     status.value = 'ready'
+
+    /* Остальные уровни — от лёгкого к подробному, каждый на месте предыдущего. */
+    for (const entry of chain.slice(1)) {
+      const level = await buildVehicleLod(
+        active,
+        { ...job, tileCache: active.materials.tiles, lampSplit: active.lampSplit },
+        entry,
+      )
+      if (disposed || viewer !== active || token !== vehicleLoadToken) {
+        disposeVehicleLod(level)
+        return
+      }
+
+      showVehicleLod(active, level, entry)
+      if (entry.id !== detailed.id) continue
+
+      /* Подробный уровень: он задаёт посадку и приносит колёса, которых
+         у упрощённых нет вовсе. Кадр на этом шаге уже стоит по машине. */
+      active.carShift = level.seat.shift
+      active.seatOffsetY = level.seat.offsetY
+      active.lampSplit = level.lampSplit
+      reseatLodLevels(active, level.seat, detailed.id)
+      hoistWheels(active)
+      syncWheels(active)
+      seatCameraOnCar(active, false)
+    }
+
+    syncWireframe()
   }
   catch (error) {
-    status.value = 'ready'
+    if (token === vehicleLoadToken) status.value = 'ready'
     console.error('[3d] garage vehicle failed:', id, error)
   }
   finally {
-    pendingVehicleId.value = null
+    /* Цепочку обогнала другая смена машины — она сама доведёт своё состояние. */
+    if (token === vehicleLoadToken) {
+      const wanted = vehicleLoad && vehicleLoad.wanted !== vehicleLoad.targetId ? vehicleLoad.wanted : null
+      vehicleLoad = null
+      pendingVehicleId.value = null
+      /* Уровень выбрали, пока шла цепочка: он уже собран в тайлах и кэше
+         уровней, поэтому встаёт мгновенно. */
+      if (wanted) void selectLod(wanted)
+    }
   }
 }
 
