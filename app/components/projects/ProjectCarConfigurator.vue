@@ -40,7 +40,7 @@ import {
   type CarSelection,
 } from '~/utils/carMaterials'
 import { loadCarSelection, saveCarSelection } from '~/utils/carPaintStorage'
-import { applySeat, reseatLevels, seatLevelByBounds, type CarSeat } from '~/utils/carSeating'
+import { applySeat, reseatLevels, seatFromBounds, seatLevelByBounds, type CarSeat } from '~/utils/carSeating'
 import { withShareImageVersion } from '~/utils/shareImage'
 import { createGarageAudio, type GarageAudio, type GarageAudioState, type GarageAudioTrack } from '~/utils/garageAudio'
 import { hasSeenGarageIntro, markGarageIntroSeen } from '~/utils/garageIntro'
@@ -1047,6 +1047,9 @@ interface VehicleLodJob {
   tileCache?: Map<string, THREE.Texture>
   /* Разделитель оптики подробного уровня: у уровней без бамперов свой не собрать. */
   lampSplit?: CarLampSplit | null
+  /* Посадка машины по габариту подробного из манифеста: одна на все уровни.
+     Нет её (старый манифест) — уровень садится по своему габариту. */
+  seat?: CarSeat | null
 }
 
 /* Собранный уровень новой машины вместе с посадкой, которой он встал: подробный
@@ -1085,7 +1088,14 @@ async function buildVehicleLod(
 
   const { three } = active
   root.rotation.y = degreesToRadians(job.rotation)
-  const seat = seatLevelByBounds(three, root, { anchor: active.anchor, bottomY: active.floorY })
+  let seat: CarSeat
+  if (job.seat) {
+    seat = job.seat
+    applySeat(root, seat)
+  }
+  else {
+    seat = seatLevelByBounds(three, root, { anchor: active.anchor, bottomY: active.floorY })
+  }
 
   const lampSplit = job.lampSplit ?? lampSplitFromBumpers(three, root)
   const materials = createCarMaterials(three, root, {
@@ -1219,7 +1229,13 @@ async function selectVehicle(id: string) {
     active.groups = built
     selection.value = defaultSelection(built)
 
-    const job: VehicleLodJob = { manifest, rotation }
+    /* Посадка из манифеста: все уровни встают в одно место и при подмене не
+       переезжают. Без неё — старый путь: лёгкий по своему габариту, потом
+       переезд на посадку подробного. */
+    const knownSeat = manifest.seatBounds
+      ? seatFromBounds(active.three, manifest.seatBounds, degreesToRadians(rotation), { anchor: active.anchor, bottomY: active.floorY })
+      : null
+    const job: VehicleLodJob = { manifest, rotation, seat: knownSeat }
     const light = await buildVehicleLod(active, job, first)
     if (disposed || viewer !== active || token !== vehicleLoadToken) {
       disposeVehicleLod(light)
@@ -1228,9 +1244,10 @@ async function selectVehicle(id: string) {
 
     /* Прежняя машина уходит, а её колёса остаются: они уже стоят на том же
        полу и станут колёсами новой машины, пока та едет лёгким уровнем.
-       Кузов новой ставится на низ кузова прежней — то есть ровно на них. */
+       Без посадки из манифеста кузов новой ставится на низ кузова прежней —
+       то есть ровно на них; с ней он сразу стоит на своей высоте. */
     const borrowed = active.wheels.children.length > 0 ? active.wheels : null
-    const carryHeight = borrowed ? new active.three.Box3().setFromObject(active.model).min.y : null
+    const carryHeight = borrowed && !knownSeat ? new active.three.Box3().setFromObject(active.model).min.y : null
     const previousVehicleId = active.vehicleId
 
     releaseCar(active, !!borrowed)
@@ -1274,7 +1291,7 @@ async function selectVehicle(id: string) {
       active.carShift = level.seat.shift
       active.seatOffsetY = level.seat.offsetY
       active.lampSplit = level.lampSplit
-      reseatLodLevels(active, level.seat, detailed.id)
+      if (!knownSeat) reseatLodLevels(active, level.seat, detailed.id)
       hoistWheels(active)
       syncWheels(active)
       seatCameraOnCar(active, false)

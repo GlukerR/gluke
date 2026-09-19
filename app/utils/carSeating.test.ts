@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { describe, expect, it } from 'vitest'
-import { applySeat, reseatLevels, seatLevelByBounds, type CarSeat } from './carSeating'
+import { applySeat, reseatLevels, seatFromBounds, seatLevelByBounds, type CarSeat } from './carSeating'
 
 /*
  * Посадка уровней — место, где ошибка уже случалась. Подробный уровень
@@ -170,5 +170,39 @@ describe('reseatLevels', () => {
     const detailedBox = new THREE.Box3().setFromObject(detailed)
     const lightBox = new THREE.Box3().setFromObject(light)
     expect(lightBox.min.y).toBeCloseTo(detailedBox.min.y + WHEEL_RADIUS, 6)
+  })
+})
+
+describe('seatFromBounds', () => {
+  /* Габарит подробного в координатах файла — как его пишет в манифест
+     scripts/car-seat-bounds.mjs. */
+  function detailedBounds() {
+    const box = new THREE.Box3().setFromObject(carRoot(true))
+    return { min: box.min.toArray(), max: box.max.toArray() }
+  }
+
+  it.each([0, Math.PI / 2, 0.7])('совпадает с посадкой подробного по его габариту (поворот %s)', (rotation) => {
+    const detailed = carRoot(true)
+    detailed.rotation.y = rotation
+    const expected = seatLevelByBounds(THREE, detailed, SPOT)
+    const seat = seatFromBounds(THREE, detailedBounds(), rotation, SPOT)
+    expect(seat.offsetY).toBeCloseTo(expected.offsetY, 6)
+    expect(seat.shift.x).toBeCloseTo(expected.shift.x, 6)
+    expect(seat.shift.z).toBeCloseTo(expected.shift.z, 6)
+  })
+
+  it('все уровни на посадке из манифеста стоят в одном месте с самого начала', () => {
+    /* Лёгкий уровень смещён по горизонтали относительно подробного (как у
+       настоящих выгрузок: у LOD2 другой набор деталей) — по своему габариту
+       он встал бы в другое место и переехал бы, когда доедет подробный. */
+    const levels = carLevels()
+    levels.get('2')!.root.children[0]!.position.x += 0.08
+    const seat = seatFromBounds(THREE, detailedBounds(), 0, SPOT)
+    for (const level of levels.values()) applySeat(level.root, seat)
+
+    const positions = [...levels.values()].map(level => level.root.position.toArray().join('|'))
+    expect(new Set(positions).size).toBe(1)
+    const detailedBox = new THREE.Box3().setFromObject(levels.get('0')!.root)
+    expect(detailedBox.min.y).toBeCloseTo(SPOT.bottomY, 6)
   })
 })

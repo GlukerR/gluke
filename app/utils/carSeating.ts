@@ -68,6 +68,39 @@ export function seatLevelByBounds(
   return seat
 }
 
+/** Габарит уровня в координатах файла: `min`/`max` — [x, y, z]. */
+export interface CarSeatBounds {
+  min: number[]
+  max: number[]
+}
+
+/**
+ * Посадка машины по габариту подробного уровня из манифеста — до того, как
+ * загружен хоть один GLB. Все уровни машины лежат в одних координатах, поэтому
+ * эта посадка одна на всех: лёгкий уровень встаёт ровно туда, где потом
+ * встанет подробный, и подмена уровней ничего не двигает.
+ *
+ * Считает то же, что `seatLevelByBounds` для подробного уровня: габарит
+ * разворачивается на `rotationY` (как корень уровня в зале), центр по
+ * горизонтали — в `anchor`, низ — на `bottomY`.
+ */
+export function seatFromBounds(
+  three: typeof import('three'),
+  bounds: CarSeatBounds,
+  rotationY: number,
+  spot: CarSeatSpot,
+): CarSeat {
+  const box = new three.Box3(
+    new three.Vector3().fromArray(bounds.min),
+    new three.Vector3().fromArray(bounds.max),
+  ).applyMatrix4(new three.Matrix4().makeRotationY(rotationY))
+  const center = box.getCenter(new three.Vector3())
+  return {
+    shift: { x: spot.anchor.x - center.x, z: spot.anchor.z - center.z },
+    offsetY: spot.bottomY - box.min.y,
+  }
+}
+
 /**
  * Переносит посадку правителя на все собранные уровни машины. Сам правитель
  * остаётся на месте: его посадка — она же и правитель.
