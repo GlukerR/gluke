@@ -13,7 +13,7 @@ featured: false
 status: published
 navigation: false
 period: "2026"
-updated: 2026-09-09
+updated: 2026-09-19
 engagement: active
 clientUrl: https://hilbert-house.ru/projects/cottages-e/3d-model-e
 services:
@@ -33,24 +33,6 @@ cover:
   alt: Коттедж коллекции E на сайте Hilbert — фасад с панорамным остеклением, сквозь стёкла видны интерьеры
   width: 1680
   height: 945
-model:
-  src: /media/projects/hilbert-house/e300.glb
-  alt: Интерактивная 3D-модель коттеджа E300 — вращайте и осматривайте дом со всех сторон
-  width: 1680
-  height: 945
-  autoRotate: true
-  emissivePulse: 0
-  metalness: 1
-  diffuseLift: 0
-  rotation: 160
-  autoRotateSpeed: 0.8
-  environmentIntensity: 0.5
-  hemisphereLight: 1.6
-  keyLight: 0.5
-  fillLight: 0.35
-  zoomMin: 0.7
-  zoomMax: 1.8
-  fit: 0.95
 media:
   - src: /media/projects/hilbert-house/site-collection-e.jpg
     alt: Страница коллекции E на сайте Hilbert — 3D-модель коттеджа в интерактивном просмотре, под ней характеристики дома и карточки коттеджей коллекции
@@ -58,7 +40,7 @@ media:
     height: 1466
     kind: image
     triple: true
-    caption: Коллекция E на сайте клиента — та самая модель, что стоит в шапке этого кейса
+    caption: Коллекция E на сайте клиента — тот самый вьювер, для которого делались модели
   - src: /media/projects/hilbert-house/site-collection-l.jpg
     alt: Страница коллекции L на сайте Hilbert — 3D-модель длинного коттеджа с изогнутым навесом и характеристики дома
     width: 1400
@@ -73,28 +55,6 @@ media:
     kind: image
     triple: true
     caption: Коллекция R — фактурные фасады, ради которых пришлось искать баланс кладки
-  - src: /media/projects/hilbert-house/r250.glb
-    alt: Интерактивная 3D-модель коттеджа R-250 — вращайте дом и рассматривайте бетонные фасады и интерьеры в окнах
-    width: 1680
-    height: 1229
-    kind: '3d'
-    poster: /media/projects/hilbert-house/r250-poster.jpg
-    wide: false
-    solo: true
-    autoRotate: true
-    emissivePulse: 0
-    metalness: 1
-    diffuseLift: 0
-    rotation: 90
-    autoRotateSpeed: 0.8
-    environmentIntensity: 0.5
-    hemisphereLight: 1.6
-    keyLight: 0.5
-    fillLight: 0.35
-    zoomMin: 0.7
-    zoomMax: 1.8
-    fit: 1.3
-    canvasScale: 1
 ---
 
 ## Задача
@@ -115,4 +75,4 @@ Hilbert строит загородные дома готовыми коллек
 
 Каталог получил серию моделей в одном стиле и с одинаковым уровнем наполнения: дом можно осмотреть со всех сторон, заглянуть в окна и увидеть, что внутри действительно есть комнаты. Модели работают прямо на сайте Hilbert — [коллекция E](https://hilbert-house.ru/projects/cottages-e/3d-model-e), [коллекция L](https://hilbert-house.ru/projects/cottages-l/3d-model-l), [коллекция R](https://hilbert-house.ru/projects/cottages-r/3d-model-r).
 
-Модель E300 в шапке этого кейса — та же самая, что стоит у клиента: та же геометрия и тот же запечённый свет, только текстуры интерьеров дополнительно пережаты под наш вьювер. Проект продолжается, каталог пополняется новыми коллекциями.
+Дома на скриншотах выше — та же геометрия и тот же запечённый свет, что у клиента: под наш вьювер дополнительно пережаты только текстуры интерьеров. Проект продолжается, каталог пополняется новыми коллекциями.

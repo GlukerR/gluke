@@ -13,7 +13,7 @@ featured: false
 status: published
 navigation: false
 period: "2026"
-updated: 2026-09-09
+updated: 2026-09-19
 engagement: active
 clientUrl: https://hilbert-house.ru/projects/cottages-e/3d-model-e
 services:
@@ -33,24 +33,6 @@ cover:
   alt: A cottage from the E collection on the Hilbert website — a facade of full-height glazing with the interiors visible through it
   width: 1680
   height: 945
-model:
-  src: /media/projects/hilbert-house/e300.glb
-  alt: Interactive 3D model of the E300 cottage — rotate it and inspect the house from every side
-  width: 1680
-  height: 945
-  autoRotate: true
-  emissivePulse: 0
-  metalness: 1
-  diffuseLift: 0
-  rotation: 160
-  autoRotateSpeed: 0.8
-  environmentIntensity: 0.5
-  hemisphereLight: 1.6
-  keyLight: 0.5
-  fillLight: 0.35
-  zoomMin: 0.7
-  zoomMax: 1.8
-  fit: 0.95
 media:
   - src: /media/projects/hilbert-house/site-collection-e.jpg
     alt: The E collection page on the Hilbert website — the cottage 3D model in the interactive viewer, with house specifications and collection cards below it
@@ -58,7 +40,7 @@ media:
     height: 1466
     kind: image
     triple: true
-    caption: The E collection on the client's site — the very model shown in the header of this case
+    caption: The E collection on the client's site — the very viewer these models were made for
   - src: /media/projects/hilbert-house/site-collection-l.jpg
     alt: The L collection page on the Hilbert website — a 3D model of a long cottage with a curved canopy, and the house specifications
     width: 1400
@@ -73,28 +55,6 @@ media:
     kind: image
     triple: true
     caption: The R collection — the textured facades that made the masonry balance so tricky
-  - src: /media/projects/hilbert-house/r250.glb
-    alt: Interactive 3D model of the R-250 cottage — rotate the house and study its concrete facades and the interiors behind the windows
-    width: 1680
-    height: 1229
-    kind: '3d'
-    poster: /media/projects/hilbert-house/r250-poster.jpg
-    wide: false
-    solo: true
-    autoRotate: true
-    emissivePulse: 0
-    metalness: 1
-    diffuseLift: 0
-    rotation: 90
-    autoRotateSpeed: 0.8
-    environmentIntensity: 0.5
-    hemisphereLight: 1.6
-    keyLight: 0.5
-    fillLight: 0.35
-    zoomMin: 0.7
-    zoomMax: 1.8
-    fit: 1.3
-    canvasScale: 1
 ---
 
 ## The task
@@ -115,4 +75,4 @@ Optimisation was a stage of its own. AR runs on a phone, and the house has to be
 
 The catalogue got a series of models with one style and one level of detail: the house can be inspected from every side, and looking through the windows shows there really are rooms inside. The models run on the Hilbert website itself — [collection E](https://hilbert-house.ru/projects/cottages-e/3d-model-e), [collection L](https://hilbert-house.ru/projects/cottages-l/3d-model-l), [collection R](https://hilbert-house.ru/projects/cottages-r/3d-model-r).
 
-The E300 model in the header of this case is the same one the client runs: the same geometry and the same baked lighting, with the interior textures compressed a little further for our viewer. The project continues — new collections are still being added.
+The houses in the screenshots above are the same geometry and the same baked lighting the client runs: only the interior textures were compressed a little further for our viewer. The project continues — new collections are still being added.
