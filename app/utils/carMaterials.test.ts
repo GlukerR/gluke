@@ -8,7 +8,6 @@ import {
   CAR_PATTERNS,
   carTextureBase,
   defaultCarSelection,
-  CAR_PATTERN_SCALES,
   isLampGlow,
   lampIslandAttributes,
   lampSideFromNames,
@@ -18,6 +17,7 @@ import {
   MASK_QUADRANTS,
   PATTERN_SCALE_MAX,
   PATTERN_SCALE_MIN,
+  PATTERN_SCALE_STEP,
   patternRepeat,
   patternScale,
   planLampSplit,
@@ -126,14 +126,12 @@ describe('палитра, узоры и покрытия', () => {
     expect(resolveColor('none').hex).toBe('#ffffff')
   })
 
-  it('множитель масштаба узора ходит от 0.5 до 2 и защёлкивается в этот ряд', () => {
-    expect(CAR_PATTERN_SCALES[0]).toBe(PATTERN_SCALE_MIN)
-    expect(CAR_PATTERN_SCALES[CAR_PATTERN_SCALES.length - 1]).toBe(PATTERN_SCALE_MAX)
-    expect(CAR_PATTERN_SCALES).toContain(1)
-    /* Полоска вариантов — она же точки остановки ползунка: шаг ровно 0.25. */
-    for (let i = 1; i < CAR_PATTERN_SCALES.length; i++) {
-      expect(+(CAR_PATTERN_SCALES[i]! - CAR_PATTERN_SCALES[i - 1]!).toFixed(2)).toBe(0.25)
-    }
+  it('множитель масштаба узора ходит от 0.5 до 2, и шаг ползунка попадает в обе границы и в 1', () => {
+    expect(PATTERN_SCALE_MIN).toBe(0.5)
+    expect(PATTERN_SCALE_MAX).toBe(2)
+    const steps = (value: number) => (value - PATTERN_SCALE_MIN) / PATTERN_SCALE_STEP
+    expect(Number.isInteger(steps(PATTERN_SCALE_MAX))).toBe(true)
+    expect(Number.isInteger(steps(1))).toBe(true)
   })
 
   it('множитель делает рисунок крупнее, а не плотнее', () => {

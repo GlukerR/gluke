@@ -125,14 +125,12 @@ export const CAR_PATTERNS: readonly CarPattern[] = [
 
 /*
  * Множитель масштаба узора — отдельная настройка поверх выбранного узора: 1 —
- * тайл ложится как в файле, 0.5 — вдвое мельче, 2 — вдвое крупнее. Шаг 0.25:
- * список служит и полоской вариантов в панели, и точками, на которые
- * защёлкивается ползунок, поэтому массив и границы слайдера — одно и то же.
+ * тайл ложится как в файле, 0.5 — вдвое мельче, 2 — вдвое крупнее. Границы и
+ * шаг — это и есть ползунок в панели: он защёлкивается на точки шага.
  */
-export const CAR_PATTERN_SCALES: readonly number[] = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]
-
 export const PATTERN_SCALE_MIN = 0.5
 export const PATTERN_SCALE_MAX = 2
+export const PATTERN_SCALE_STEP = 0.25
 
 export function patternScale(scale: number | undefined): number {
   if (typeof scale !== 'number' || !Number.isFinite(scale) || scale <= 0) return 1

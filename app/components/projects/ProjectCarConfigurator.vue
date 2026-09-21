@@ -31,6 +31,7 @@ import {
   lampSplitFromBumpers,
   PATTERN_SCALE_MAX,
   PATTERN_SCALE_MIN,
+  PATTERN_SCALE_STEP,
   patternScale,
   resolveColor,
   resolveCoverage,
@@ -2247,7 +2248,7 @@ onBeforeUnmount(() => {
                         type="range"
                         :min="PATTERN_SCALE_MIN"
                         :max="PATTERN_SCALE_MAX"
-                        step="0.25"
+                        :step="PATTERN_SCALE_STEP"
                         :value="scaleValue"
                         :aria-label="t('project.configurator.paint.scaleTitle')"
                         :disabled="status !== 'ready' || !hasPatternTile"
