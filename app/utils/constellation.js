@@ -1000,6 +1000,10 @@ class Constellation {
     gl.deleteBuffer(this.buffer)
     gl.deleteProgram(this.progPoints)
     gl.deleteProgram(this.progLines)
+    /* Контекст отпускаем сразу, как и остальные виджеты: живых контекстов
+       браузер держит ограниченное число, а удалённый канвас ждал бы сборки
+       мусора. */
+    gl.getExtension('WEBGL_lose_context')?.loseContext()
     this.canvas.remove()
   }
 }

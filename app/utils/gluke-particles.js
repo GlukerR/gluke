@@ -870,6 +870,9 @@ class Widget {
     this.lineMaterial.dispose()
     this.material.dispose()
     this.renderer.dispose()
+    /* dispose() отпускает ресурсы three, но не сам контекст: его отпускаем
+       сразу, как и остальные виджеты, — живых контекстов у браузера немного. */
+    this.renderer.forceContextLoss()
     this.renderer = null
     /* Реестр не должен держать уничтоженный инстанс: вытеснение из кэша
        виджетов зовёт destroy(), и без этого массив рос бы всю сессию. */
