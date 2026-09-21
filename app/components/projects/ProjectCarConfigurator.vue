@@ -2,7 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
 import type * as THREE from 'three'
 import { carConfiguratorCache, carPaintHandles, type CachedCarConfigurator, type CarLodModel } from '~/utils/carConfiguratorCache'
-import { CAMERA_POSE_LENGTH, cameraPoseChanged, createFrameLimiter, createQualityGovernor, physicalPixelRatio, writeCameraPose } from '~/utils/framePacing'
+import { CAMERA_POSE_LENGTH, cameraPoseChanged, createQualityGovernor, physicalPixelRatio, writeCameraPose } from '~/utils/framePacing'
 import { disposeObjectResources } from '~/utils/modelViewerCache'
 import {
   applyVariantSelection,
@@ -68,10 +68,6 @@ interface ConfiguratorModel {
   alt: string
   width: number
   height: number
-  emissivePulse?: number
-  emissivePulseHz?: number
-  metalness?: number
-  diffuseLift?: number
   rotation?: number
   environmentIntensity?: number
   hemisphereLight?: number
@@ -212,9 +208,6 @@ const GARAGE_TILT_TO = 50
 /* Роль колёс в манифесте: колёса живут в сцене, а не внутри уровня детализации. */
 const WHEEL_ROLE = 'wheel'
 
-const EMISSIVE_PULSE_MAX = props.model.emissivePulse ?? 5
-const EMISSIVE_PULSE_HZ = props.model.emissivePulseHz ?? 0.7
-
 const modelBase = carModelBase(props.model.src)
 
 /** Путь к GLB уровня детализации. */
@@ -231,25 +224,13 @@ const manifestPromises = new Map<string, Promise<CarManifest | null>>()
 let resizeObserver: ResizeObserver | undefined
 let intersectionObserver: IntersectionObserver | undefined
 let animationFrame = 0
-let accumulatedMs = 0
-let lastFrameAt = 0
 let lastRenderAt = 0
 /* Кадры рисуются по требованию: цикл поднимается на вращение, зум, смену
-   обвеса и окраски, подъезд камеры, и гаснет, когда сцена устоялась. Раньше
-   цикл шёл непрерывно — на десктопе вообще без потолка (fullFrameRate), то
-   есть каждый rAF в покое, пока экран гаража виден. */
-const frameLimiter = createFrameLimiter(30)
+   обвеса и окраски, подъезд камеры, и гаснет, когда сцена устоялась. */
 /* Регулятор качества: если устройство не успевает кадры, плотность буфера
    опускается на ступень (utils/framePacing). Опора — частота самого экрана,
    поэтому экран 30 Гц за перегрузку не принимается. */
 const quality = createQualityGovernor()
-/* Сколько времени фары пульсируют после последнего действия. Мгновенная
-   остановка выглядела бы как «свет мигнул и погас», поэтому после затишья
-   фары встают на ровный свет и цикл останавливается. */
-const PULSE_IDLE_MS = 1200
-const EMISSIVE_PULSE_REST = EMISSIVE_PULSE_MAX * 0.6
-let pulseUntil = 0
-let pulseSettled = true
 let needsFrame = true
 let userDragging = false
 /* Снимок позы камеры для признака движения: заполняется после каждого кадра,
@@ -609,28 +590,18 @@ let fpsFrames = 0
 let fpsSince = 0
 
 /* Заказ кадра: сюда приходят все, кто изменил сцену или начал взаимодействие,
-   и цикл поднимается сам. Пока что-то меняется, кадры идут своим ходом.
-   Заодно продлевается пульсация фар: она — часть отклика на действие. */
+   и цикл поднимается сам. Пока что-то меняется, кадры идут своим ходом. */
 function requestRender() {
   needsFrame = true
-  pulseSettled = false
-  pulseUntil = performance.now() + PULSE_IDLE_MS
   startLoop()
-}
-
-function setEmissive(value: number) {
-  if (!viewer) return
-  for (const material of viewer.emissiveMaterials) material.emissiveIntensity = value
 }
 
 function startLoop() {
   if (!viewer || animationFrame) return
   /* Первый кадр всегда считается сдвигом: снимка ещё нет. */
   cameraPose = null
-  frameLimiter.reset(performance.now())
-  lastFrameAt = performance.now()
   lastRenderAt = 0
-  fpsSince = lastFrameAt
+  fpsSince = performance.now()
   fpsFrames = 0
   const animate = () => {
     if (disposed || !viewer) return
@@ -651,41 +622,18 @@ function startLoop() {
     const cameraMoved = cameraPoseChanged(viewer.camera, cameraPose)
     const cameraBusy = !!cameraTween
       || viewShiftTarget.x !== viewShift.x || viewShiftTarget.y !== viewShift.y
-    const pulsing = !pulseSettled && now < pulseUntil
     /* Движение рисуется без потолка: перетаскивание, инерция, подъезд
-       камеры, сдвиг кадра и пульсация фар. */
-    const continuous = userDragging || cameraBusy || pulsing
-
-    if (!continuous && !needsFrame && !cameraMoved) {
-      /* Сцена устоялась. Перед остановкой рисуем последний кадр с ровным
-         светом фар — пульсация не должна замереть на случайной фазе. */
-      if (!pulseSettled) {
-        pulseSettled = true
-        setEmissive(EMISSIVE_PULSE_REST)
-        viewer.renderer.render(viewer.scene, viewer.camera)
-      }
+       камеры и сдвиг кадра. Сцена устоялась — цикл засыпает. */
+    if (!userDragging && !cameraBusy && !needsFrame && !cameraMoved) {
       cancelAnimationFrame(animationFrame)
       animationFrame = 0
       quality.pause()
       return
     }
-    /* Потолок 30 кадров нужен только фоновой пульсации: частота экрана ей
-       не нужна, в отличие от вращения и перетаскивания. */
-    const onlyPulse = pulsing && !userDragging && !cameraBusy && !needsFrame && !cameraMoved
-    if (onlyPulse && !frameLimiter.shouldRender(now)) return
 
     needsFrame = false
     const dt = lastRenderAt ? Math.min(100, now - lastRenderAt) : 16
     lastRenderAt = now
-
-    accumulatedMs += now - lastFrameAt
-    lastFrameAt = now
-
-    if (!pulseSettled) {
-      const elapsed = accumulatedMs / 1000
-      const phase = (Math.sin(elapsed * EMISSIVE_PULSE_HZ * Math.PI * 2) + 1) / 2
-      setEmissive(phase * EMISSIVE_PULSE_MAX)
-    }
 
     stepCameraTween(now)
     stepViewShift(dt)
@@ -1688,7 +1636,7 @@ async function mountViewer() {
     })
     await setCarSelection(carMaterials, { ...paint.value })
 
-    /* У оптики этой машины свет ровный — пульс не нужен, массив пуст. */
+    /* Пульс оптики — у обычного вьювера (общий тип кэша), в гараже свет ровный. */
     const emissiveMaterials: THREE.MeshStandardMaterial[] = []
 
     const nodeByName = new Map<string, THREE.Object3D>()
