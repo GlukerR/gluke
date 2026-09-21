@@ -3,6 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch 
 import type * as THREE from 'three'
 import { carConfiguratorCache, carPaintHandles, type CachedCarConfigurator, type CarLodModel } from '~/utils/carConfiguratorCache'
 import { CAMERA_POSE_LENGTH, cameraPoseChanged, createQualityGovernor, physicalPixelRatio, writeCameraPose } from '~/utils/framePacing'
+import { deferStart } from '~/utils/deferredStart'
 import { disposeObjectResources } from '~/utils/modelViewerCache'
 import {
   applyVariantSelection,
@@ -238,10 +239,9 @@ let userDragging = false
    чтобы сравнение в начале следующего показывало именно сдвиг камеры. */
 let cameraPose: Float64Array | null = null
 let disposed = false
-let idleId: number | null = null
-/* Наблюдатель приближения: пока экран гаража далеко за окном, сцена не
-   собирается — ни three.js, ни GLB машины в сеть не уходят. */
-let startObserver: IntersectionObserver | undefined
+/* Отложенный старт: пока экран гаража далеко за окном, сцена не собирается —
+   ни three.js, ни GLB машины в сеть не уходят. */
+let cancelStart: (() => void) | undefined
 const IDLE_TIMEOUT = 2500
 const START_MARGIN = '300px 0px'
 
@@ -1385,18 +1385,6 @@ const trail = computed(() => {
 
 /* ───── Монтирование сцены ───── */
 
-/* Отложенный старт сцены: сначала ждём приближения экрана, потом — простоя
-   браузера, чтобы three.js не спорил за главный поток с первой отрисовкой. */
-function scheduleMount() {
-  if (disposed) return
-  if ('requestIdleCallback' in window) {
-    idleId = window.requestIdleCallback(mountViewer, { timeout: IDLE_TIMEOUT })
-  }
-  else {
-    idleId = setTimeout(mountViewer, IDLE_TIMEOUT)
-  }
-}
-
 function attachViewer() {
   if (!viewer || !container.value) return
 
@@ -1883,28 +1871,14 @@ onMounted(async () => {
   /* Сцена гаража собирается только при подходе к экрану: экран занимает всю
      высоту, и пока страница читается выше, three.js и GLB машины ему ни к
      чему. HUD к этому моменту уже собран из манифеста. */
-  if (typeof IntersectionObserver === 'undefined' || !container.value) {
-    scheduleMount()
-    return
-  }
-  startObserver = new IntersectionObserver((entries) => {
-    const entry = entries[entries.length - 1]
-    if (entry && !entry.isIntersecting) return
-    startObserver?.disconnect()
-    startObserver = undefined
-    scheduleMount()
-  }, { rootMargin: START_MARGIN })
-  startObserver.observe(container.value)
+  cancelStart = deferStart(container.value, () => void mountViewer(), {
+    nearMargin: START_MARGIN,
+    idleTimeout: IDLE_TIMEOUT,
+  })
 })
 
 onBeforeUnmount(() => {
-  startObserver?.disconnect()
-  startObserver = undefined
-  if (idleId !== null) {
-    if ('requestIdleCallback' in window) window.cancelIdleCallback(idleId)
-    else clearTimeout(idleId)
-    idleId = null
-  }
+  cancelStart?.()
   garageAudio?.stop()
   garageAudio = undefined
   disposed = true

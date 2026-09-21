@@ -3,6 +3,7 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import type * as THREE from 'three'
 import { getViewerPose, saveViewerPose } from '~/utils/modelViewPose'
 import { applyTouchScrollPolicy, isCoarsePointer } from '~/utils/touchScroll'
+import { deferStart } from '~/utils/deferredStart'
 import { createFrameLimiter, createQualityGovernor, physicalPixelRatio } from '~/utils/framePacing'
 import { getGlukeViewer, setGlukeViewer } from '~/utils/glukeLogo3dCache'
 
@@ -120,7 +121,7 @@ const GESTURE_LOCK_PX = 6
 /* Отложенный старт: three.js + декодер весят ~1.4 МБ и на главном потоке
    отнимают секунды у первого рендера (LCP/TBT). Инициализируем вьювер
    только когда браузер простаивает, но не позже 2.5 с. */
-let idleId: number | null = null
+let cancelStart: (() => void) | undefined
 const IDLE_TIMEOUT = 2500
 
 function markReady() {
@@ -554,24 +555,14 @@ onMounted(() => {
     return
   }
   /* Первый показ: вьювер стартует в простой браузера — текст героя и LCP
-     рендерятся без конкуренции за главный поток. requestIdleCallback — где
-     есть; иначе setTimeout с тем же таймаутом. */
-  if ('requestIdleCallback' in window) {
-    idleId = window.requestIdleCallback(mount, { timeout: IDLE_TIMEOUT })
-  }
-  else {
-    /* setTimeout напрямую: после проверки `in` TS сужает window до never. */
-    idleId = setTimeout(mount, IDLE_TIMEOUT)
-  }
+     рендерятся без конкуренции за главный поток. Логотип всегда на первом
+     экране, поэтому приближения к окну не ждём. */
+  cancelStart = deferStart(container.value, () => void mount(), { idleTimeout: IDLE_TIMEOUT })
 })
 
 onBeforeUnmount(() => {
   /* Отменяем отложенный старт, если вьювер ещё не инициализировался. */
-  if (idleId !== null) {
-    if ('requestIdleCallback' in window) window.cancelIdleCallback(idleId)
-    else clearTimeout(idleId)
-    idleId = null
-  }
+  cancelStart?.()
 
   /* Сохраняем позу модели перед размонтированием (смена языка/навигация),
      чтобы при следующем показе модель не «прыгала» в исходный ракурс.

@@ -10,6 +10,7 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch } from 'vue'
 import type { ProjectsCollectionItem } from '@nuxt/content'
 import { demoWidgetKey, getDemoWidget, setDemoWidget } from '~/utils/demoWidgetCache'
+import { deferStart } from '~/utils/deferredStart'
 import { ipxVersionModifier } from '~/utils/imageVersion'
 import { applyTouchScrollPolicy, isCoarsePointer } from '~/utils/touchScroll'
 import type { WidgetDemoInstance, WidgetParams } from '~/utils/widgetDemoSpecs'
@@ -234,7 +235,7 @@ let unmounted = false
    и раньше обе создавались при монтировании: движок, шейдеры и подготовка
    карт (у energy-fill — сетка 2048²) шли для лаборатории, до которой ещё
    нужно прокрутить. Кэшированный виджет цепляется сразу — он уже готов. */
-let startObserver: IntersectionObserver | null = null
+let cancelStart: (() => void) | undefined
 const START_MARGIN = '300px 0px'
 
 /* Блок уже в окне или в пределах отступа старта. Hero стоит на первом экране
@@ -246,19 +247,8 @@ function nearViewport(el: HTMLElement): boolean {
 
 onMounted(() => {
   const el = host.value
-  if (!el || getDemoWidget(cacheKey.value) || typeof IntersectionObserver === 'undefined' || nearViewport(el)) {
-    void mount()
-  }
-  else {
-    startObserver = new IntersectionObserver((entries) => {
-      const entry = entries[entries.length - 1]
-      if (entry && !entry.isIntersecting) return
-      startObserver?.disconnect()
-      startObserver = null
-      void mount()
-    }, { rootMargin: START_MARGIN })
-    startObserver.observe(el)
-  }
+  if (!el || getDemoWidget(cacheKey.value) || nearViewport(el)) void mount()
+  else cancelStart = deferStart(el, () => void mount(), { nearMargin: START_MARGIN })
 
   /* Площадь сцены нужна только оценке под панелью. */
   if (isTuner.value && spec.value?.estimate && stageEl.value && typeof ResizeObserver !== 'undefined') {
@@ -274,8 +264,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   unmounted = true
-  startObserver?.disconnect()
-  startObserver = null
+  cancelStart?.()
   stageObserver?.disconnect()
   stageObserver = null
   /* Виджет не уничтожаем — отцепляем и оставляем в кэше (demoWidgetCache):

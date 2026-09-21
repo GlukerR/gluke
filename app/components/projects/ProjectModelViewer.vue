@@ -3,6 +3,7 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import type * as THREE from 'three'
 import { diffuseLiftMix } from '~/utils/diffuseLift'
 import { createFrameLimiter, createQualityGovernor, physicalPixelRatio } from '~/utils/framePacing'
+import { deferStart } from '~/utils/deferredStart'
 import { viewerCache } from '~/utils/modelViewerCache'
 import { applyTouchScrollPolicy, isCoarsePointer } from '~/utils/touchScroll'
 import type { CachedViewer } from '~/utils/modelViewerCache'
@@ -97,8 +98,6 @@ const CANVAS_SCALE = props.canvasScale ?? 1.8
 let viewer: CachedViewer | undefined = cachedViewer
 let resizeObserver: ResizeObserver | undefined
 let intersectionObserver: IntersectionObserver | undefined
-/* Наблюдатель приближения: пока блок далеко за экраном, сцена не создаётся. */
-let startObserver: IntersectionObserver | undefined
 let animationFrame = 0
 /* Накопленное время активного рендера: пауза вне вьюпорта не сбивает
    фазу пульсации эмишн-материалов. */
@@ -130,8 +129,8 @@ let dismissTimer: ReturnType<typeof setTimeout> | undefined
 /* Отложенный старт: three.js + декодер весят ~1.4 МБ и на главном потоке
    отнимают секунды у первого рендера (LCP/TBT). Инициализируем вьювер
    только когда браузер простаивает, но не позже 2.5 с — постер успевает
-   показаться первым. */
-let idleId: number | null = null
+   показаться первым. Пока блок далеко за экраном, сцена не создаётся. */
+let cancelStart: (() => void) | undefined
 const IDLE_TIMEOUT = 2500
 /* Отступ, с которого блок считается «подходящим»: примерно один экран
    промотки, чтобы к моменту показа модель уже грузилась. */
@@ -545,47 +544,19 @@ async function mountViewer() {
   }
 }
 
-/* Старт отложен вдвойне: сначала ждём, пока блок подойдёт к экрану, потом —
-   простоя браузера. Постер держит кадр вместо модели, поэтому ожидание не
-   читается как пустое место, а three.js с декодером (~1,4 МБ) не отнимают
-   главный поток у текста и первой отрисовки. */
-function scheduleMount() {
-  if (disposed) return
-  if ('requestIdleCallback' in window) {
-    idleId = window.requestIdleCallback(mountViewer, { timeout: IDLE_TIMEOUT })
-  }
-  else {
-    /* setTimeout напрямую: после проверки `in` TS сужает window до never. */
-    idleId = setTimeout(mountViewer, IDLE_TIMEOUT)
-  }
-}
-
 onMounted(() => {
-  /* У кейса с двумя моделями обе GLB раньше уходили в сеть сразу после
-     навигации, хотя вторая стоит на две тысячи пикселей ниже (Hilbert —
-     4,3 МБ). Теперь загрузку открывает приближение блока к окну. */
-  if (typeof IntersectionObserver === 'undefined' || !container.value) {
-    scheduleMount()
-    return
-  }
-  startObserver = new IntersectionObserver((entries) => {
-    const entry = entries[entries.length - 1]
-    if (entry && !entry.isIntersecting) return
-    startObserver?.disconnect()
-    startObserver = undefined
-    scheduleMount()
-  }, { rootMargin: START_MARGIN })
-  startObserver.observe(container.value)
+  /* Старт отложен вдвойне (`app/utils/deferredStart.ts`): приближение блока к
+     окну, потом простой браузера. У кейса с двумя моделями обе GLB раньше
+     уходили в сеть сразу после навигации, хотя вторая стоит на две тысячи
+     пикселей ниже (Hilbert — 4,3 МБ). */
+  cancelStart = deferStart(container.value, () => void mountViewer(), {
+    nearMargin: START_MARGIN,
+    idleTimeout: IDLE_TIMEOUT,
+  })
 })
 onBeforeUnmount(() => {
   /* Отменяем отложенный старт, если вьювер ещё не инициализировался. */
-  startObserver?.disconnect()
-  startObserver = undefined
-  if (idleId !== null) {
-    if ('requestIdleCallback' in window) window.cancelIdleCallback(idleId)
-    else clearTimeout(idleId)
-    idleId = null
-  }
+  cancelStart?.()
   disposed = true
   detachViewer()
   viewer = undefined
