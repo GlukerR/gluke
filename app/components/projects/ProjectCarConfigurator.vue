@@ -4,6 +4,7 @@ import type * as THREE from 'three'
 import { carConfiguratorCache, carPaintHandles, type CachedCarConfigurator, type CarLodModel } from '~/utils/carConfiguratorCache'
 import { CAMERA_POSE_LENGTH, cameraPoseChanged, createQualityGovernor, physicalPixelRatio, writeCameraPose } from '~/utils/framePacing'
 import { deferStart } from '~/utils/deferredStart'
+import { addStudioLights, createStudioScene } from '~/utils/studioScene'
 import { disposeObjectResources } from '~/utils/modelViewerCache'
 import {
   applyVariantSelection,
@@ -1473,13 +1474,12 @@ async function mountViewer() {
     const width = container.value.clientWidth || props.model.width
     const height = container.value.clientHeight || props.model.height
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    const { renderer, scene } = createStudioScene(THREE, RoomEnvironment, {
+      environmentIntensity: props.model.environmentIntensity,
+    })
     /* Точную плотность ставит resizeRenderer() по бюджету пикселей. */
     renderer.setPixelRatio(garagePixelRatio(width, height))
     renderer.setSize(width, height)
-    renderer.outputColorSpace = THREE.SRGBColorSpace
-    renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.toneMappingExposure = 1
     /* Колпаки фар преломляют фон (transmission): ради этого three каждый кадр
        рисует непрозрачную сцену второй раз — в отдельную цель размером с кадр.
        Гараж занимает экран целиком, и этот проход стоил почти столько же,
@@ -1487,25 +1487,13 @@ async function mountViewer() {
        затуханием, поэтому цели хватает половины стороны — четверть пикселей. */
     renderer.transmissionResolutionScale = 0.5
 
-    const scene = new THREE.Scene()
-
-    const pmrem = new THREE.PMREMGenerator(renderer)
-    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-    pmrem.dispose()
-    scene.environmentIntensity = props.model.environmentIntensity ?? 0.5
-
-    const hemisphere = new THREE.HemisphereLight(0xffffff, 0x333333, props.model.hemisphereLight ?? 0.5)
-    hemisphere.rotation.x = 0.08
-    hemisphere.rotation.z = -0.1
-    scene.add(hemisphere)
-
-    const key = new THREE.DirectionalLight(0xffffff, props.model.keyLight ?? 0.8)
-    key.position.set(5, 5.5, 3.5)
-    scene.add(key)
-
-    const fill = new THREE.DirectionalLight(0xffffff, props.model.fillLight ?? 0.4)
-    fill.position.set(-4.5, 2.8, -3.5)
-    scene.add(fill)
+    /* Свет — тот же студийный, что у модели в кейсе; мастерскую из него
+       делает dressGarage ниже. */
+    const { hemisphere, key, fill } = addStudioLights(THREE, scene, {
+      hemisphere: props.model.hemisphereLight,
+      key: props.model.keyLight,
+      fill: props.model.fillLight,
+    })
 
     const camera = new THREE.PerspectiveCamera(40, width / height, 0.01, 100)
     camera.position.set(0, 1, 3)

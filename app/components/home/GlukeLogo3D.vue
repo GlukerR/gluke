@@ -4,6 +4,7 @@ import type * as THREE from 'three'
 import { getViewerPose, saveViewerPose } from '~/utils/modelViewPose'
 import { applyTouchScrollPolicy, isCoarsePointer } from '~/utils/touchScroll'
 import { deferStart } from '~/utils/deferredStart'
+import { createStudioScene } from '~/utils/studioScene'
 import { createFrameLimiter, createQualityGovernor, physicalPixelRatio } from '~/utils/framePacing'
 import { getGlukeViewer, setGlukeViewer } from '~/utils/glukeLogo3dCache'
 
@@ -414,21 +415,13 @@ async function mount() {
     const w = container.value.clientWidth || 600
     const h = container.value.clientHeight || 300
 
-    /* ── Renderer ──────────────────────────────────────────────────────── */
-    const rendererInstance = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    /* ── Renderer и сцена (utils/studioScene) ─────────────────────────── */
+    const { renderer: rendererInstance, scene: sceneInstance } = createStudioScene(THREE, RoomEnvironment, {
+      exposure: 1.05,
+      environmentIntensity: 0.6,
+    })
     rendererInstance.setPixelRatio(homeLogoPixelRatio(w, h))
     rendererInstance.setSize(w, h)
-    rendererInstance.outputColorSpace = THREE.SRGBColorSpace
-    rendererInstance.toneMapping = THREE.ACESFilmicToneMapping
-    rendererInstance.toneMappingExposure = 1.05
-
-    /* ── Scene ─────────────────────────────────────────────────────────── */
-    const sceneInstance = new THREE.Scene()
-
-    const pmrem = new THREE.PMREMGenerator(rendererInstance)
-    sceneInstance.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-    pmrem.dispose()
-    sceneInstance.environmentIntensity = 0.6
 
     /* Студийный свет, как в референсе: ключевой + контровой + заливочный. */
     const key = new THREE.DirectionalLight(0xffffff, 2.6)

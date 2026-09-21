@@ -4,6 +4,7 @@ import type * as THREE from 'three'
 import { diffuseLiftMix } from '~/utils/diffuseLift'
 import { createFrameLimiter, createQualityGovernor, physicalPixelRatio } from '~/utils/framePacing'
 import { deferStart } from '~/utils/deferredStart'
+import { addStudioLights, createStudioScene } from '~/utils/studioScene'
 import { viewerCache } from '~/utils/modelViewerCache'
 import { applyTouchScrollPolicy, isCoarsePointer } from '~/utils/touchScroll'
 import type { CachedViewer } from '~/utils/modelViewerCache'
@@ -359,43 +360,21 @@ async function mountViewer() {
     const width = container.value.clientWidth || props.width
     const height = container.value.clientHeight || props.height
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    /* Студийная сцена (utils/studioScene). Тени отключены: на тёмной модели
+       они не читаются и только добавляют вычислительную нагрузку. */
+    const { renderer, scene } = createStudioScene(THREE, RoomEnvironment, {
+      environmentIntensity: props.environmentIntensity,
+    })
     /* Точную плотность кадра ставит resizeRenderer() по бюджету пикселей;
        здесь — только стартовое приближение, чтобы первый кадр не рисовался
        в полную плотность экрана. */
     renderer.setPixelRatio(pixelRatioFor(width, height))
     renderer.setSize(width, height)
-    renderer.outputColorSpace = THREE.SRGBColorSpace
-    renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.toneMappingExposure = 1
-    /* Тени отключены: на тёмной модели они не читаются и только добавляют
-       вычислительную нагрузку. */
-
-    const scene = new THREE.Scene()
-
-    /* Студийное окружение. Раньше было интенсивности 1 (по умолчанию) —
-       оно и давало сильные засветы на светлых гранях. Снизили вдвое
-       через scene.environmentIntensity = 0.5. */
-    const pmrem = new THREE.PMREMGenerator(renderer)
-    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-    pmrem.dispose()
-    scene.environmentIntensity = props.environmentIntensity ?? 0.5
-
-    /* Свет для формы: полусфера + ключевой + мягкая подсветка.
-       Все источники слегка наклонены от вертикали: при виде строго сверху
-       блик не попадает в центр. */
-    const hemisphere = new THREE.HemisphereLight(0xffffff, 0x333333, props.hemisphereLight ?? 0.5)
-    hemisphere.rotation.x = 0.08
-    hemisphere.rotation.z = -0.1
-    scene.add(hemisphere)
-
-    const key = new THREE.DirectionalLight(0xffffff, props.keyLight ?? 0.8)
-    key.position.set(5, 5.5, 3.5)
-    scene.add(key)
-
-    const fill = new THREE.DirectionalLight(0xffffff, props.fillLight ?? 0.4)
-    fill.position.set(-4.5, 2.8, -3.5)
-    scene.add(fill)
+    addStudioLights(THREE, scene, {
+      hemisphere: props.hemisphereLight,
+      key: props.keyLight,
+      fill: props.fillLight,
+    })
 
     const camera = new THREE.PerspectiveCamera(40, width / height, 0.01, 100)
     camera.position.set(0, 1, 3)
