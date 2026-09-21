@@ -153,9 +153,6 @@ const canonicalUrl = computed(() => toCanonical(projectPath(project.value.slug))
 const coverUrl = computed(() => toAbsolute(project.value.cover.src))
 const organizationId = computed(() => toAbsolute('#identity'))
 
-/* Обложка кейса как главное изображение страницы: передаём URL строкой,
-   module nuxt-schema-org сам создаст ImageObject и не подставит логотип студии. */
-
 usePageSeo({
   title: pageTitle,
   description: pageDescription,
@@ -197,6 +194,8 @@ useSchemaOrg([
     'name': () => pageTitle.value,
     'description': () => pageDescription.value,
     'inLanguage': () => locale.value,
+    /* Обложка кейса как главное изображение страницы: передаём URL строкой,
+       модуль nuxt-schema-org сам создаст ImageObject и не подставит логотип студии. */
     'primaryImageOfPage': () => coverUrl.value,
   }),
   {
