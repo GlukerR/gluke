@@ -10,8 +10,6 @@ export interface CarLodModel {
   root: THREE.Object3D
   materials: CarMaterialHandle
   nodeByName: Map<string, THREE.Object3D>
-  /* Ноды-колёса этого уровня по именам: кузов меряется без них. */
-  wheels: string[]
 }
 
 /**

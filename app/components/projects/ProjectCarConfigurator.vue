@@ -1011,7 +1011,7 @@ async function buildLodModel(active: CachedCarConfigurator, entry: CarLodEntry):
     if (object.name) nodeByName.set(object.name, object)
   })
 
-  return { root, materials, nodeByName, wheels }
+  return { root, materials, nodeByName }
 }
 
 /*
@@ -1057,9 +1057,11 @@ interface VehicleLodJob {
   clearance: number
 }
 
-/* Собранный уровень новой машины: посадка, которой он встал, его собственный
-   замер постоянной и разделитель оптики. */
+/* Собранный уровень новой машины: его колёса (кузов меряется без них),
+   посадка, которой он встал, его собственный замер постоянной и разделитель
+   оптики. */
 interface BuiltVehicleLod extends CarLodModel {
+  wheels: string[]
   seat: CarSeat
   clearance: number
   lampSplit: CarLampSplit | null
@@ -1682,7 +1684,7 @@ async function mountViewer() {
       anisotropy: renderer.capabilities.getMaxAnisotropy(),
       selection: { ...paint.value },
       lampSplit,
-      wheelNodes: nodeNamesByRole(buildNodeMeta(manifest, startLod), WHEEL_ROLE),
+      wheelNodes: startWheels,
     })
     await setCarSelection(carMaterials, { ...paint.value })
 
@@ -1768,7 +1770,7 @@ async function mountViewer() {
       garage,
       garageBox,
       wheels: new THREE.Group(),
-      lodModels: new Map([[startLod, { root: model, materials: carMaterials, nodeByName, wheels: startWheels }]]),
+      lodModels: new Map([[startLod, { root: model, materials: carMaterials, nodeByName }]]),
       vehicleId: activeVehicle.value.id,
       carRotation,
       /* Точка зала, где стоит машина, и пол под ней — общие для всех машин.

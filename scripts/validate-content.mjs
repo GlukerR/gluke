@@ -357,7 +357,8 @@ async function main() {
         /* Собираются все кейсы локали: порядок подборки — свойство набора,
            а не отдельного файла, поэтому проверяется после обхода. */
         const locale = result.data.locale
-        projectsByLocale[locale] = [...(projectsByLocale[locale] ?? []), result.data]
+        projectsByLocale[locale] ??= []
+        projectsByLocale[locale].push(result.data)
       }
     }
   }

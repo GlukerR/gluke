@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { ProjectsCollectionItem } from '@nuxt/content'
+import type { ProjectCategory } from '~/utils/categoryOrder'
 import { ipxVersionModifier } from '~/utils/imageVersion'
 
 const props = defineProps<{
-  category: 'orgtech' | 'industrial' | 'furniture' | 'exteriors' | 'cinematics' | 'gameready' | 'webgl'
+  category: ProjectCategory
   cover: ProjectsCollectionItem['cover']
   /* Демо-виджет категории — от представительного кейса (того же, что даёт
      обложку): если у кейса есть живой WebGL-демо, карточка показывает его
