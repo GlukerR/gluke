@@ -6,6 +6,7 @@ import {
   buildVariantGroups,
   countRenderStats,
   defaultSelection,
+  levelTrisWithoutWheels,
   nodeKey,
   nodeNamesByRole,
   NO_VARIANT,
@@ -273,5 +274,22 @@ describe('countRenderStats', () => {
     node.geometry = { attributes: { position: { count: 36 } } }
     const root = groupOf([node])
     expect(countRenderStats(root as never).triangles).toBe(12)
+  })
+})
+
+describe('levelTrisWithoutWheels', () => {
+  it('вычитает из уровня только колёса — обвес и кузов остаются', () => {
+    const level = {
+      file: 'car-lod0.glb',
+      bytes: 1,
+      tris: 1000,
+      nodes: {
+        body: { role: 'body', variant: '', tris: 400, pivot: [0, 0, 0], dims: [1, 1, 1] },
+        Wheel: { role: 'wheel', variant: '', tris: 150, pivot: [0, 0, 0], dims: [1, 1, 1] },
+        Wheel001: { role: 'wheel', variant: '', tris: 150, pivot: [0, 0, 0], dims: [1, 1, 1] },
+        spoiler_b: { role: 'spoiler', variant: 'b', tris: 300, pivot: [0, 0, 0], dims: [1, 1, 1] },
+      },
+    }
+    expect(levelTrisWithoutWheels(level)).toBe(700)
   })
 })

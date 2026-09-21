@@ -248,3 +248,20 @@ export function applyVariantSelection(
     }
   }
 }
+
+/** Роль колёс в манифесте: колёса живут в сцене, а не внутри уровня детализации. */
+export const WHEEL_ROLE = 'wheel'
+
+/**
+ * Трисы уровня без колёс — единый счёт HUD и монитора (§56): машина сдана без
+ * колёс, те, что в кадре, подставил вьювер. Иначе рядом стояли бы 32 370 у
+ * LOD0 в файле и ~8 тыс. в кадре. Это вся геометрия уровня (все варианты
+ * обвеса разом), поэтому число больше живого счётчика.
+ */
+export function levelTrisWithoutWheels(level: CarManifestLod): number {
+  let tris = level.tris
+  for (const node of Object.values(level.nodes)) {
+    if (node.role === WHEEL_ROLE) tris -= node.tris
+  }
+  return tris
+}

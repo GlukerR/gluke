@@ -14,9 +14,11 @@ import {
   buildNodeMeta,
   buildVariantGroups,
   countRenderStats,
+  levelTrisWithoutWheels,
   defaultSelection,
   nodeNamesByRole,
   NO_VARIANT,
+  WHEEL_ROLE,
   type CarLodEntry,
   type CarManifest,
   type CarRenderStats,
@@ -202,9 +204,6 @@ if (cachedViewer) {
 const GARAGE_TILT_FROM = 3
 const GARAGE_TILT_TO = 50
 
-/* Роль колёс в манифесте: колёса живут в сцене, а не внутри уровня детализации. */
-const WHEEL_ROLE = 'wheel'
-
 const modelBase = carModelBase(props.model.src)
 
 /** Путь к GLB уровня детализации. */
@@ -340,8 +339,7 @@ function vehicleTris(vehicle: GarageVehicle): number | undefined {
   const manifest = vehicleManifests.value.get(vehicle.id)
   const first = buildLods(manifest)[0]
   const level = first ? manifest?.lods?.[first.id] : undefined
-  if (!level) return undefined
-  return Object.values(level.nodes).reduce((sum, node) => sum + (node.role === WHEEL_ROLE ? 0 : node.tris), 0)
+  return level ? levelTrisWithoutWheels(level) : undefined
 }
 
 /* ───── Кадр ───── */
@@ -1285,17 +1283,10 @@ function coverageName(id: string): string {
   return t(`project.configurator.paint.coverages.${id}`)
 }
 
-/* Трисы уровня без колёс — в том же счёте, что и монитор (§56): иначе рядом
-   стояли бы 32 370 у LOD0 в файле и ~8 тыс. в кадре. Это вся геометрия
-   уровня (все варианты обвеса разом), поэтому число больше живого счётчика. */
+/* Трисы уровня без колёс (§56, `levelTrisWithoutWheels`). */
 function lodTris(id: string): number | undefined {
   const level = manifestData.value?.lods?.[id]
-  if (!level) return lods.value.find(item => item.id === id)?.tris
-  let tris = level.tris
-  for (const node of Object.values(level.nodes)) {
-    if (node.role === WHEEL_ROLE) tris -= node.tris
-  }
-  return tris
+  return level ? levelTrisWithoutWheels(level) : lods.value.find(item => item.id === id)?.tris
 }
 
 function lodQuality(id: string): string {
