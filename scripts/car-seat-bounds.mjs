@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 /*
- * Габарит подробного уровня машины — в её манифест (`seatBounds`).
+ * Посадка машины — в её манифест: кузов подробного уровня (`seatBody`) и
+ * постоянная (`seatClearance`).
  *
- * Уровни машины выгружены из одного .blend и лежат в одних координатах, поэтому
- * в зале у них одна посадка на всех. Считать её можно только по подробному
- * уровню: он один приходит с колёсами. Но в гараже первым в кадр встаёт самый
- * лёгкий уровень, и если сажать его по своему габариту (без колёс, центр
- * смещён), машина переезжает, когда доедет подробный. Габарит подробного
- * в манифесте даёт посадку до первого GLB — все уровни встают в одно место.
+ * Основа посадки — кузов, а не колёса (`app/utils/carSeating.ts`). Низ кузова
+ * выше низа уровня ровно на высоту колеса, и это постоянная самой машины: у
+ * упрощённых уровней колёс нет вовсе, и по своему габариту они встали бы
+ * кузовом на пол. По кузову подробного уровня и постоянной конфигуратор знает
+ * посадку ещё до первого GLB и ставит ею все уровни машины — лёгкий встаёт
+ * туда же, где потом встанет подробный.
  *
  *   node scripts/car-seat-bounds.mjs [папка=public/media/projects/rp-grand]
  *
@@ -33,8 +34,10 @@ function readGlbJson(file) {
   throw new Error(`${file}: нет JSON-чанка`)
 }
 
+/* Габарит кузова (узлы не-колёса) и габарит уровня целиком. */
 function glbBounds(json) {
-  const box = new THREE.Box3()
+  const body = new THREE.Box3()
+  const all = new THREE.Box3()
   const walk = (index, parent) => {
     const node = json.nodes[index]
     const local = new THREE.Matrix4()
@@ -51,13 +54,15 @@ function glbBounds(json) {
       for (const primitive of json.meshes[node.mesh].primitives) {
         const accessor = json.accessors[primitive.attributes.POSITION]
         const part = new THREE.Box3(new THREE.Vector3(...accessor.min), new THREE.Vector3(...accessor.max))
-        box.union(part.applyMatrix4(world))
+        part.applyMatrix4(world)
+        all.union(part)
+        if (!/^Wheel/.test(node.name ?? '')) body.union(part)
       }
     }
     for (const child of node.children ?? []) walk(child, world)
   }
   for (const root of json.scenes[json.scene ?? 0].nodes) walk(root, new THREE.Matrix4())
-  return box
+  return { body, all }
 }
 
 const round = value => Math.round(value * 10000) / 10000
@@ -69,8 +74,12 @@ for (const name of readdirSync(dir).filter(file => file.endsWith('.json'))) {
   if (!manifest.lods) continue
   /* Подробный уровень — первый по номеру, как в `buildLods`. */
   const [, detailed] = Object.entries(manifest.lods).sort(([a], [b]) => Number(a) - Number(b))[0]
-  const box = glbBounds(readGlbJson(path.join(dir, detailed.file)))
-  manifest.seatBounds = { min: box.min.toArray().map(round), max: box.max.toArray().map(round) }
+  const { body, all } = glbBounds(readGlbJson(path.join(dir, detailed.file)))
+
+  /* Прежнее поле габарита уровня убираем: посадку задаёт кузов. */
+  delete manifest.seatBounds
+  manifest.seatBody = { min: body.min.toArray().map(round), max: body.max.toArray().map(round) }
+  manifest.seatClearance = round(body.min.y - all.min.y)
   writeFileSync(file, `${JSON.stringify(manifest, null, 1)}\n`)
-  console.log(`${name}: ${detailed.file} min ${manifest.seatBounds.min.join(' ')} max ${manifest.seatBounds.max.join(' ')}`)
+  console.log(`${name}: ${detailed.file} — низ кузова выше низа уровня на ${manifest.seatClearance} м (низ уровня ${round(all.min.y)})`)
 }

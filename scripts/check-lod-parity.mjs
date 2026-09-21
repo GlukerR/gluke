@@ -235,9 +235,17 @@ for (const manifestPath of paths) {
     continue
   }
 
-  const { levels, issues, declared } = result
+  const { manifest, levels, issues, declared } = result
   levelsChecked += levels.length
   console.log(`\n${rel}`)
+
+  /* Посадка машины по кузову подробного уровня (`app/utils/carSeating.ts`):
+     без неё лёгкие уровни встают по постоянной прежней машины и садятся на
+     колёса, пока не доедет подробный. Пишет `scripts/car-seat-bounds.mjs`. */
+  if (!manifest.seatBody || typeof manifest.seatClearance !== 'number') {
+    console.log('  ✗ нет посадки (seatBody/seatClearance) — прогоните node scripts/car-seat-bounds.mjs')
+    failed++
+  }
 
   for (const level of levels) {
     const roles = Object.entries(level.roles).map(([role, names]) => `${role}: ${names.length}`).join(', ')

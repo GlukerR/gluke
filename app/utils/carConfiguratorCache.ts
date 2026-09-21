@@ -1,6 +1,7 @@
 import type * as THREE from 'three'
 import type { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { disposeCarMaterials, type CarLampSplit, type CarMaterialHandle, type CarSelection } from '~/utils/carMaterials'
+import type { CarSeat } from '~/utils/carSeating'
 import type { CarManifest, CarManifestNode, CarVariantGroup } from '~/utils/carVariants'
 import { disposeObjectResources, ViewerCache, type CachedViewer } from '~/utils/modelViewerCache'
 
@@ -9,6 +10,8 @@ export interface CarLodModel {
   root: THREE.Object3D
   materials: CarMaterialHandle
   nodeByName: Map<string, THREE.Object3D>
+  /* Ноды-колёса этого уровня по именам: кузов меряется без них. */
+  wheels: string[]
 }
 
 /**
@@ -43,11 +46,12 @@ export interface CachedCarConfigurator extends CachedViewer {
      пустом месте. Группа живёт ровно столько же, сколько сцена, — её ресурсы
      отпускает общий `disposeViewer` вместе с остальной сценой. */
   wheels: THREE.Group
-  /* Посадка машины на пол гаража (высота, на которую поднят кузов). Считается
-     один раз по подробному уровню — он один имеет колёса и касается пола —
-     и применяется ко всем остальным: у LOD1/LOD2 колёс нет, и посадка по их
-     собственному габариту утапливала бы кузов в пол. */
-  seatOffsetY: number
+  /* Посадка машины — одна на все её уровни (`app/utils/carSeating.ts`).
+     Считается по кузову подробного уровня: низ кузова — на пол плюс
+     постоянную `clearance` (высоту колеса), центр — в точку зала. Колёса в
+     расчёт не входят, поэтому их наличие в уровне посадку не меняет. */
+  seat: CarSeat
+  clearance: number
   /* Движок и загрузчик держим вместе со сценой: другая детализация
      догружается уже после первого рендера, а не при монтировании. */
   three: typeof import('three')
@@ -55,11 +59,10 @@ export interface CachedCarConfigurator extends CachedViewer {
   /* Собранные уровни: возврат на просмотренный LOD — мгновенный, без
      повторной загрузки GLB и пересборки материалов. */
   lodModels: Map<string, CarLodModel>
-  /* Машина гаража, стоящая в сцене (слаг манифеста), её разворот и сдвиг
-     по горизонтали: упрощённые уровни ставятся тем же разворотом и сдвигом. */
+  /* Машина гаража, стоящая в сцене (слаг манифеста) и её разворот: любой
+     следующий уровень ставится тем же разворотом и по кузову. */
   vehicleId: string
   carRotation: number
-  carShift: { x: number, z: number }
   /* Точка зала, в которую ставится любая машина (центр по горизонтали),
      и пол под ней. */
   anchor: { x: number, z: number }

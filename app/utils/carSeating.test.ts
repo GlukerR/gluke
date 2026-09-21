@@ -1,208 +1,219 @@
 import * as THREE from 'three'
 import { describe, expect, it } from 'vitest'
-import { applySeat, reseatLevels, seatFromBounds, seatLevelByBounds, type CarSeat } from './carSeating'
+import { applySeat, bodyBottomY, measureFromManifest, measureLevel, placeLevel, seatFromMeasure, seatLevels } from './carSeating'
 
 /*
- * Посадка уровней — место, где ошибка уже случалась. Подробный уровень
- * приезжает последним и задаёт высоту кузова; упрощённые (один кузов, без
- * колёс) стоят на полу ниже ровно на высоту колеса. Если их не перенести на
- * посадку подробного, возврат на LOD1/LOD2 из HUD показывает кузов, ушедший
- * в пол, — и держится это не момент, а всё время, пока уровень лежит в кэше.
+ * Посадка уровней — место, где ошибка уже случалась, и не раз. Сначала лёгкие
+ * уровни садились по своему габариту и вставали кузовом на пол (ниже подробного
+ * на высоту колеса). Потом посадка стала общей, но считалась по габариту уровня
+ * целиком: у уровня без колёс низ габарита — это низ кузова, поэтому стоило
+ * манифесту приехать без постоянной — и лёгкий уровень проваливался на пол
+ * ровно на высоту колеса (0,23 м у coupe-sport).
  *
- * Проверка держит инвариант: после сборки цепочки все уровни машины стоят
- * на одной высоте, на посадке подробного.
+ * Потом каждый уровень стал садиться по собственному кузову — и съезжал
+ * относительно колёс LOD0, которые стоят в сцене на всех уровнях: у
+ * упрощённой сетки срезан нижний край кузова (у sedan-awd низ LOD2 выше на
+ * 3,9 см), и LOD2 опускался на колёса на эти сантиметры.
+ *
+ * Правило теперь такое: **основа — кузов подробного уровня**, и его посадка
+ * одна на все уровни. Колёса в расчёт не входят, а уровни стоят в тех же
+ * координатах, в которых их выгрузил моделлер, — над теми же колёсами.
  */
 
-/* Колесо: 0,32 м. Кузов стоит на колёсах, поэтому у подробного уровня низ
-   габарита — шина (0), а у упрощённого — порог кузова (0,32). */
+/* Колесо: 0,32 м. Кузов стоит на колёсах, поэтому низ габарита подробного
+   уровня — шина (0), а низ его кузова — 0,32. */
 const WHEEL_RADIUS = 0.32
-/* Пол зала и точка, в которую ставится машина (центр по горизонтали). */
-const SPOT = { anchor: { x: 0.42, z: -1.18 }, bottomY: 0.084 }
+/* Пол зала, точка зала и постоянная машины в работе. */
+const FLOOR = 0.084
+const ANCHOR = { x: 0.42, z: -1.18 }
+const CLEARANCE = WHEEL_RADIUS
 
 const WHEEL_SPOTS: [number, number][] = [[-0.85, 1.45], [0.85, 1.45], [-0.85, -1.45], [0.85, -1.45]]
 
-function carRoot(withWheels: boolean): THREE.Object3D {
+/** Колёса уровня — те, что не считаются кузовом. */
+const wheelNames = (withWheels: boolean) => (withWheels ? WHEEL_SPOTS.map((_, index) => `Wheel.${String(index).padStart(3, '0')}`) : [])
+
+/** Уровень машины: кузов и, если он у него есть, колёса. */
+function carRoot(withWheels: boolean, options: { bodyLift?: number, wheelRadius?: number } = {}): THREE.Object3D {
+  const { bodyLift = 0, wheelRadius = WHEEL_RADIUS } = options
   const car = new THREE.Group()
   const body = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.7, 4.6))
-  body.position.y = WHEEL_RADIUS + 0.35
+  body.position.y = WHEEL_RADIUS + 0.35 + bodyLift
   car.add(body)
   if (withWheels) {
-    for (const [x, z] of WHEEL_SPOTS) {
-      const wheel = new THREE.Mesh(new THREE.CylinderGeometry(WHEEL_RADIUS, WHEEL_RADIUS, 0.22, 12))
+    WHEEL_SPOTS.forEach(([x, z], index) => {
+      const wheel = new THREE.Mesh(new THREE.CylinderGeometry(wheelRadius, wheelRadius, 0.22, 12))
+      wheel.name = wheelNames(true)[index]!
       wheel.rotation.z = Math.PI / 2
-      wheel.position.set(x, WHEEL_RADIUS, z)
+      wheel.position.set(x, wheelRadius, z)
       car.add(wheel)
-    }
+    })
   }
   car.updateMatrixWorld(true)
   return car
 }
 
-/** Уровни машины, как они лежат в сцене: id уровня → собранный корень. */
-function carLevels(): Map<string, { root: THREE.Object3D }> {
-  return new Map([
-    ['2', { root: carRoot(false) }],
-    ['1', { root: carRoot(false) }],
-    ['0', { root: carRoot(true) }],
-  ])
+const spot = { anchor: ANCHOR, bottomY: bodyBottomY(FLOOR, CLEARANCE) }
+
+/**
+ * Низ кузова уровня в зале: по нему и видно расхождение посадки.
+ *
+ * Замер идёт модулем, но тот сбрасывает уровень в начало координат, поэтому
+ * высота посадки берётся до замера: поворот вокруг вертикали её не меняет,
+ * а смещение по горизонтали на высоту не влияет.
+ */
+function bodyBottom(root: THREE.Object3D, wheels: string[] = []): number {
+  const placed = root.position.clone()
+  const value = measureLevel(THREE, root, wheels).body.min.y + placed.y
+  /* Замер сбрасывает уровень в начало координат — возвращаем посадку,
+     иначе следующий замер увидит уже снятую высоту. */
+  root.position.copy(placed)
+  root.updateMatrixWorld(true)
+  return value
 }
 
-/** Высоты уровней в порядке сборки — по ним и видно расхождение посадки. */
-function heights(levels: Map<string, { root: THREE.Object3D }>): number[] {
-  return [...levels.values()].map(level => Number(level.root.position.y.toFixed(6)))
-}
+describe('measureLevel', () => {
+  it('высота колеса у подробного уровня и ноль у уровня без колёс', () => {
+    expect(measureLevel(THREE, carRoot(true), wheelNames(true)).clearance).toBeCloseTo(WHEEL_RADIUS, 6)
+    expect(measureLevel(THREE, carRoot(false), wheelNames(false)).clearance).toBeCloseTo(0, 6)
+  })
 
-/** Собирает уровни как конфигуратор: каждый встаёт по своему габариту. */
-function seatAll(levels: Map<string, { root: THREE.Object3D }>): Map<string, CarSeat> {
-  const seats = new Map<string, CarSeat>()
-  for (const [id, level] of levels) seats.set(id, seatLevelByBounds(THREE, level.root, SPOT))
-  return seats
-}
-
-describe('seatLevelByBounds', () => {
-  it('ставит низ габарита на пол, а центр — в точку зала', () => {
+  it('замер не вбирает прошлую посадку: второй замер тот же', () => {
     const root = carRoot(true)
-    const seat = seatLevelByBounds(THREE, root, SPOT)
+    placeLevel(THREE, root, spot, wheelNames(true))
+
+    const second = measureLevel(THREE, root, wheelNames(true))
+
+    expect(second.clearance).toBeCloseTo(WHEEL_RADIUS, 6)
+    expect(second.body.min.y).toBeCloseTo(WHEEL_RADIUS, 6)
+  })
+})
+
+describe('placeLevel', () => {
+  it('ставит низ кузова на пол плюс постоянную, а центр кузова — в точку зала', () => {
+    const root = carRoot(true)
+    placeLevel(THREE, root, spot, wheelNames(true))
+
     const box = new THREE.Box3().setFromObject(root)
     const center = box.getCenter(new THREE.Vector3())
-    expect(box.min.y).toBeCloseTo(SPOT.bottomY, 6)
-    expect(center.x).toBeCloseTo(SPOT.anchor.x, 6)
-    expect(center.z).toBeCloseTo(SPOT.anchor.z, 6)
-    expect(seat.offsetY).toBeCloseTo(SPOT.bottomY, 6)
+    expect(bodyBottom(root, wheelNames(true))).toBeCloseTo(FLOOR + WHEEL_RADIUS, 6)
+    expect(center.x).toBeCloseTo(ANCHOR.x, 6)
+    expect(center.z).toBeCloseTo(ANCHOR.z, 6)
+    /* Колёса стоят на полу: низ габарита — пол. */
+    expect(box.min.y).toBeCloseTo(FLOOR, 6)
   })
 
-  it('на время загрузки ставит кузов на низ кузова прежней машины — на её колёса', () => {
-    /* Прежняя машина стоит на своих колёсах, её кузов — на низу кузова. */
-    const previous = carRoot(true)
-    const previousSeat = seatLevelByBounds(THREE, previous, SPOT)
-    const previousBodyBottom = new THREE.Box3().setFromObject(carRoot(false)).min.y + previousSeat.offsetY
-
-    /* Новый кузов ставится на эту же высоту: чужие колёса стоят под ним. */
+  it('уровень без колёс встаёт кузовом туда же, где подробный: провала в пол нет', () => {
+    const detailed = carRoot(true)
     const light = carRoot(false)
-    seatLevelByBounds(THREE, light, { anchor: SPOT.anchor, bottomY: previousBodyBottom })
-    const lightBox = new THREE.Box3().setFromObject(light)
-    const borrowedBox = new THREE.Box3().setFromObject(previous)
+    placeLevel(THREE, detailed, spot, wheelNames(true))
+    placeLevel(THREE, light, spot, [])
 
-    expect(lightBox.min.y).toBeCloseTo(previousBodyBottom, 6)
-    /* Чужие колёса стоят на полу, а их верх заходит в арку — не висят под кузовом. */
-    expect(borrowedBox.min.y).toBeCloseTo(SPOT.bottomY, 6)
-    expect(lightBox.min.y).toBeLessThan(borrowedBox.max.y)
-  })
-
-  it('ставит уровень по габариту, даже если он уже стоял на другой посадке', () => {
-    const root = carRoot(false)
-    const localBottom = new THREE.Box3().setFromObject(carRoot(false)).min.y
-    seatLevelByBounds(THREE, root, SPOT)
-
-    /* Второй вызов — как переезд кузова на низ кузова прежней машины: замер
-       не должен вбирать в себя первую посадку. */
-    const second = seatLevelByBounds(THREE, root, { anchor: SPOT.anchor, bottomY: 0.8 })
-
-    expect(new THREE.Box3().setFromObject(root).min.y).toBeCloseTo(0.8, 6)
-    expect(second.offsetY).toBeCloseTo(0.8 - localBottom, 6)
-  })
-
-  it('упрощённый уровень по своему габариту встаёт ниже подробного на высоту колеса', () => {
-    const detailed = seatLevelByBounds(THREE, carRoot(true), SPOT)
-    const light = seatLevelByBounds(THREE, carRoot(false), SPOT)
-    expect(detailed.offsetY - light.offsetY).toBeCloseTo(WHEEL_RADIUS, 6)
+    expect(bodyBottom(light)).toBeCloseTo(bodyBottom(detailed, wheelNames(true)), 6)
+    /* По старому правилу (низ габарита на пол) кузов лёгкого уровня встал бы
+       ниже ровно на высоту колеса — это и был видимый провал. */
+    expect(bodyBottom(light) - WHEEL_RADIUS).toBeCloseTo(FLOOR, 6)
   })
 
   it('держит посадку при повороте выгрузки (coupe-jdm идёт с rotation: 90)', () => {
     const root = carRoot(true)
     root.rotation.y = Math.PI / 2
-    seatLevelByBounds(THREE, root, SPOT)
+    placeLevel(THREE, root, spot, wheelNames(true))
+
     const box = new THREE.Box3().setFromObject(root)
     const center = box.getCenter(new THREE.Vector3())
-    expect(box.min.y).toBeCloseTo(SPOT.bottomY, 6)
-    expect(center.x).toBeCloseTo(SPOT.anchor.x, 6)
-    expect(center.z).toBeCloseTo(SPOT.anchor.z, 6)
+    expect(bodyBottom(root, wheelNames(true))).toBeCloseTo(FLOOR + WHEEL_RADIUS, 6)
+    expect(center.x).toBeCloseTo(ANCHOR.x, 6)
+    expect(center.z).toBeCloseTo(ANCHOR.z, 6)
   })
 })
 
-describe('reseatLevels', () => {
-  it('ставит все собранные уровни на посадку подробного', () => {
-    const levels = carLevels()
-    const seats = seatAll(levels)
-    /* До переноса расхождение есть: лёгкие уровни стоят кузовом на полу. */
-    expect(new Set(heights(levels)).size).toBe(2)
+describe('measureFromManifest', () => {
+  it('совпадает с замером подробного уровня при любом развороте', () => {
+    for (const rotation of [0, Math.PI / 2, 0.7]) {
+      const root = carRoot(true)
+      root.rotation.y = rotation
+      const measured = measureLevel(THREE, root, wheelNames(true))
+      /* Кузов в координатах файла — то, что пишет `car-seat-bounds`. */
+      const file = measureLevel(THREE, carRoot(true), wheelNames(true))
+      const known = measureFromManifest(THREE, {
+        seatBody: { min: file.body.min.toArray(), max: file.body.max.toArray() },
+        seatClearance: file.clearance,
+      }, rotation)!
 
-    const moved = reseatLevels(levels, seats.get('0')!, '0')
-
-    expect(moved).toBe(2)
-    expect(new Set(heights(levels)).size).toBe(1)
-    expect(heights(levels)[2]).toBeCloseTo(seats.get('0')!.offsetY, 6)
-    /* По горизонтали все уровни тоже на одном сдвиге — посадка общая. */
-    const shifts = [...levels.values()].map(level => `${level.root.position.x}|${level.root.position.z}`)
-    expect(new Set(shifts).size).toBe(1)
+      const a = seatFromMeasure(THREE, measured, spot)
+      const b = seatFromMeasure(THREE, known, spot)
+      expect(b.offsetY).toBeCloseTo(a.offsetY, 6)
+      expect(b.shift.x).toBeCloseTo(a.shift.x, 6)
+      expect(b.shift.z).toBeCloseTo(a.shift.z, 6)
+    }
   })
 
-  it('переносит и тот уровень, что сейчас в кадре', () => {
-    const levels = carLevels()
-    const seats = seatAll(levels)
-    /* В кадре лёгкий уровень: он и есть тот, кто встал раньше подробного. */
-    const displayed = levels.get('2')!
-    reseatLevels(levels, seats.get('0')!, '0')
-    expect(displayed.root.position.y).toBeCloseTo(seats.get('0')!.offsetY, 6)
-  })
-
-  it('не двигает сам уровень-правитель: его посадка и есть правитель', () => {
-    const levels = carLevels()
-    const light = seatLevelByBounds(THREE, levels.get('2')!.root, SPOT)
-    seatLevelByBounds(THREE, levels.get('0')!.root, SPOT)
-    const detailedY = levels.get('0')!.root.position.y
-
-    const moved = reseatLevels(levels, light, '0')
-
-    /* Переехали оба лёгких уровня, правитель — нет. */
-    expect(moved).toBe(2)
-    expect(levels.get('0')!.root.position.y).toBe(detailedY)
-  })
-
-  it('упрощённый уровень, поставленный посадкой правителя, держит кузов на его высоте', () => {
-    const detailed = carRoot(true)
-    const ruler = seatLevelByBounds(THREE, detailed, SPOT)
-    const light = carRoot(false)
-    applySeat(light, ruler)
-
-    /* Кузов лёгкого уровня — на высоте кузова подробного; колёса подставляет
-       вьювер (`lod-wheels`), поэтому низ габарита у него на колесо выше. */
-    const detailedBox = new THREE.Box3().setFromObject(detailed)
-    const lightBox = new THREE.Box3().setFromObject(light)
-    expect(lightBox.min.y).toBeCloseTo(detailedBox.min.y + WHEEL_RADIUS, 6)
+  it('без кузова или постоянной в манифесте — null', () => {
+    expect(measureFromManifest(THREE, {}, 0)).toBeNull()
+    expect(measureFromManifest(THREE, { seatClearance: 0.3 }, 0)).toBeNull()
+    expect(measureFromManifest(THREE, { seatBody: { min: [0, 0, 0], max: [1, 1, 1] } }, 0)).toBeNull()
   })
 })
 
-describe('seatFromBounds', () => {
-  /* Габарит подробного в координатах файла — как его пишет в манифест
-     scripts/car-seat-bounds.mjs. */
-  function detailedBounds() {
-    const box = new THREE.Box3().setFromObject(carRoot(true))
-    return { min: box.min.toArray(), max: box.max.toArray() }
+describe('одна посадка на все уровни', () => {
+  /** Уровни машины, как они лежат в сцене: LOD2 с кузовом чуть выше и в стороне. */
+  function levels() {
+    const lod2 = carRoot(false, { bodyLift: 0.039 })
+    lod2.children[0]!.position.x += 0.038
+    lod2.updateMatrixWorld(true)
+    return new Map([
+      ['2', { root: lod2 }],
+      ['1', { root: carRoot(false) }],
+      ['0', { root: carRoot(true) }],
+    ])
   }
 
-  it.each([0, Math.PI / 2, 0.7])('совпадает с посадкой подробного по его габариту (поворот %s)', (rotation) => {
-    const detailed = carRoot(true)
-    detailed.rotation.y = rotation
-    const expected = seatLevelByBounds(THREE, detailed, SPOT)
-    const seat = seatFromBounds(THREE, detailedBounds(), rotation, SPOT)
-    expect(seat.offsetY).toBeCloseTo(expected.offsetY, 6)
-    expect(seat.shift.x).toBeCloseTo(expected.shift.x, 6)
-    expect(seat.shift.z).toBeCloseTo(expected.shift.z, 6)
+  it('кузов упрощённого уровня не съезжает относительно колёс подробного', () => {
+    const car = levels()
+    const { seat } = placeLevel(THREE, car.get('0')!.root, spot, wheelNames(true))
+
+    const moved = seatLevels(car, seat)
+
+    expect(moved).toBe(3)
+    /* Все уровни — одним сдвигом, как их выгрузил моделлер: колёса LOD0 стоят
+       под каждым из них там же, где под подробным. */
+    for (const level of car.values()) {
+      expect(level.root.position.toArray()).toEqual(car.get('0')!.root.position.toArray())
+    }
+    /* Уровень без колёс не садится на пол кузовом: низ его кузова — над полом
+       на высоту колеса (плюс срезанный край у LOD2), а не на полу. */
+    expect(bodyBottom(car.get('1')!.root)).toBeCloseTo(FLOOR + WHEEL_RADIUS, 6)
+    expect(bodyBottom(car.get('2')!.root)).toBeCloseTo(FLOOR + WHEEL_RADIUS + 0.039, 6)
   })
 
-  it('все уровни на посадке из манифеста стоят в одном месте с самого начала', () => {
-    /* Лёгкий уровень смещён по горизонтали относительно подробного (как у
-       настоящих выгрузок: у LOD2 другой набор деталей) — по своему габариту
-       он встал бы в другое место и переехал бы, когда доедет подробный. */
-    const levels = carLevels()
-    levels.get('2')!.root.children[0]!.position.x += 0.08
-    const seat = seatFromBounds(THREE, detailedBounds(), 0, SPOT)
-    for (const level of levels.values()) applySeat(level.root, seat)
+  it('посадка из манифеста ставит лёгкий уровень туда же, где встанет подробный', () => {
+    const file = measureLevel(THREE, carRoot(true), wheelNames(true))
+    const known = measureFromManifest(THREE, {
+      seatBody: { min: file.body.min.toArray(), max: file.body.max.toArray() },
+      seatClearance: file.clearance,
+    }, 0)!
+    const seat = seatFromMeasure(THREE, known, spot)
 
-    const positions = [...levels.values()].map(level => level.root.position.toArray().join('|'))
-    expect(new Set(positions).size).toBe(1)
-    const detailedBox = new THREE.Box3().setFromObject(levels.get('0')!.root)
-    expect(detailedBox.min.y).toBeCloseTo(SPOT.bottomY, 6)
+    const light = carRoot(false)
+    applySeat(light, seat)
+    const detailed = carRoot(true)
+    placeLevel(THREE, detailed, spot, wheelNames(true))
+
+    expect(light.position.toArray()).toEqual(detailed.position.toArray())
+    expect(bodyBottom(light)).toBeCloseTo(FLOOR + WHEEL_RADIUS, 6)
+  })
+
+  it('колёса посадку не двигают: другой их размер её не меняет', () => {
+    const own = placeLevel(THREE, carRoot(true), spot, wheelNames(true)).seat
+    const foreign = placeLevel(THREE, carRoot(true, { wheelRadius: 0.4 }), spot, wheelNames(true)).seat
+
+    expect(foreign).toEqual(own)
+  })
+})
+
+describe('bodyBottomY', () => {
+  it('низ кузова — пол плюс постоянная машины', () => {
+    expect(bodyBottomY(0.084, 0.2346)).toBeCloseTo(0.3186, 6)
   })
 })

@@ -40,7 +40,7 @@ import {
   type CarSelection,
 } from '~/utils/carMaterials'
 import { loadCarSelection, saveCarSelection } from '~/utils/carPaintStorage'
-import { applySeat, reseatLevels, seatFromBounds, seatLevelByBounds, type CarSeat } from '~/utils/carSeating'
+import { applySeat, bodyBottomY, measureFromManifest, measureLevel, placeLevel, seatFromMeasure, seatLevels, type CarSeat } from '~/utils/carSeating'
 import { withShareImageVersion } from '~/utils/shareImage'
 import { createGarageAudio, type GarageAudio, type GarageAudioState, type GarageAudioTrack } from '~/utils/garageAudio'
 import { hasSeenGarageIntro, markGarageIntroSeen } from '~/utils/garageIntro'
@@ -990,9 +990,11 @@ async function buildLodModel(active: CachedCarConfigurator, entry: CarLodEntry):
   }
 
   root.rotation.y = degreesToRadians(active.carRotation)
-  /* Уровень ставится посадкой подробного: колёса есть только у него, и по
-     собственному габариту упрощённый уровень встал бы ниже на высоту колеса. */
-  applySeat(root, { shift: active.carShift, offsetY: active.seatOffsetY })
+  /* Посадка машины одна на все уровни и посчитана по кузову подробного
+     (`app/utils/carSeating.ts`): уровень встаёт над теми же колёсами, где его
+     поставил моделлер, а колёса — есть они в уровне или нет — её не двигают. */
+  const wheels = nodeNamesByRole(buildNodeMeta(active.manifest, entry.id), WHEEL_ROLE)
+  applySeat(root, active.seat)
 
   const materials = createCarMaterials(active.three, root, {
     textureBase: carTextureBase(props.model.src),
@@ -1000,7 +1002,7 @@ async function buildLodModel(active: CachedCarConfigurator, entry: CarLodEntry):
     selection: { ...paint.value },
     lampSplit: active.lampSplit ?? lampSplitFromBumpers(active.three, root),
     tileCache: active.materials.tiles,
-    wheelNodes: nodeNamesByRole(buildNodeMeta(active.manifest, entry.id), WHEEL_ROLE),
+    wheelNodes: wheels,
   })
   await setCarSelection(materials, { ...paint.value })
 
@@ -1009,7 +1011,7 @@ async function buildLodModel(active: CachedCarConfigurator, entry: CarLodEntry):
     if (object.name) nodeByName.set(object.name, object)
   })
 
-  return { root, materials, nodeByName }
+  return { root, materials, nodeByName, wheels }
 }
 
 /*
@@ -1047,26 +1049,29 @@ interface VehicleLodJob {
   tileCache?: Map<string, THREE.Texture>
   /* Разделитель оптики подробного уровня: у уровней без бамперов свой не собрать. */
   lampSplit?: CarLampSplit | null
-  /* Посадка машины по габариту подробного из манифеста: одна на все уровни.
-     Нет её (старый манифест) — уровень садится по своему габариту. */
-  seat?: CarSeat | null
+  /* Посадка машины из манифеста (кузов подробного уровня): одна на все уровни
+     цепочки, поэтому ни один из них не садится ниже других — включая шаг без
+     колёс. null — манифест без посадки: уровень встаёт по своему кузову на
+     постоянную `clearance`, пока не доедет подробный. */
+  seat: CarSeat | null
+  clearance: number
 }
 
-/* Собранный уровень новой машины вместе с посадкой, которой он встал: подробный
-   уровень отдаёт посадку вьюверу (она и есть правитель), остальные живут до
-   конца цепочки. */
+/* Собранный уровень новой машины: посадка, которой он встал, его собственный
+   замер постоянной и разделитель оптики. */
 interface BuiltVehicleLod extends CarLodModel {
   seat: CarSeat
+  clearance: number
   lampSplit: CarLampSplit | null
 }
 
 /*
  * Собирает уровень новой машины: грузит GLB, разворачивает, ставит в ту же
- * точку зала (центр по горизонтали — `anchor`) и садится на тот же пол.
+ * точку зала (центр кузова по горизонтали — `anchor`) и садится на тот же пол.
  *
- * Посадка считается по собственному габариту уровня: подробный уровень
- * приходит с колёсами и садится на пол как есть, а упрощённые (без колёс)
- * стоят на полу кузовом и встанут на высоту подробного, когда он доедет (§44).
+ * Посадка — по кузову подробного уровня из манифеста (`seatBody`,
+ * `seatClearance`), одна на все уровни: уровни с колёсами и без встают в одно
+ * место, а появление колёс при загрузке подробного ничего не сдвигает.
  */
 async function buildVehicleLod(
   active: CachedCarConfigurator,
@@ -1088,14 +1093,14 @@ async function buildVehicleLod(
 
   const { three } = active
   root.rotation.y = degreesToRadians(job.rotation)
-  let seat: CarSeat
-  if (job.seat) {
-    seat = job.seat
-    applySeat(root, seat)
-  }
-  else {
-    seat = seatLevelByBounds(three, root, { anchor: active.anchor, bottomY: active.floorY })
-  }
+  const wheels = nodeNamesByRole(buildNodeMeta(job.manifest, entry.id), WHEEL_ROLE)
+  /* Замер нужен всегда: у подробного уровня он даёт настоящую постоянную. */
+  const measure = measureLevel(three, root, wheels)
+  const seat = job.seat ?? seatFromMeasure(three, measure, {
+    anchor: active.anchor,
+    bottomY: bodyBottomY(active.floorY, job.clearance),
+  })
+  applySeat(root, seat)
 
   const lampSplit = job.lampSplit ?? lampSplitFromBumpers(three, root)
   const materials = createCarMaterials(three, root, {
@@ -1104,7 +1109,7 @@ async function buildVehicleLod(
     selection: { ...paint.value },
     lampSplit,
     tileCache: job.tileCache ?? new Map(),
-    wheelNodes: nodeNamesByRole(buildNodeMeta(job.manifest, entry.id), WHEEL_ROLE),
+    wheelNodes: wheels,
   })
   await setCarSelection(materials, { ...paint.value })
 
@@ -1113,7 +1118,9 @@ async function buildVehicleLod(
     if (object.name) nodeByName.set(object.name, object)
   })
 
-  return { root, materials, nodeByName, seat, lampSplit }
+  /* `clearance` — замер уровня как есть: у упрощённого (без колёс) он ноль,
+     у подробного — настоящая постоянная машины. */
+  return { root, materials, nodeByName, wheels, seat, clearance: measure.clearance, lampSplit }
 }
 
 /* Собранный уровень не попал в кадр (машину сменили на полпути) — отпускаем его. */
@@ -1145,20 +1152,16 @@ function showVehicleLod(
 }
 
 /*
- * Переносит на посадку подробного уровня всё, что уже собрано у этой машины.
+ * Переставляет на посадку подробного уровня всё, что уже собрано у этой машины.
  *
- * Упрощённые уровни приезжают без колёс и до подробного стоят на полу кузовом:
- * по своему габариту машина ниже на высоту колеса. Когда подробный уровень
- * доехал, он становится правителем посадки — и тогда на его место переезжают
- * и уже собранные лёгкие уровни, иначе возврат на LOD1/LOD2 выглядел бы как
- * кузов, ушедший в пол.
+ * Нужна только для манифеста без посадки: подробный уровень — единственный с
+ * колёсами, поэтому только его замер даёт настоящую постоянную машины. До его
+ * приезда уровни стояли по своему кузову на постоянной прежней машины, после —
+ * переезжают все, включая тот, что в кадре, на его посадку.
  */
-function reseatLodLevels(
-  active: CachedCarConfigurator,
-  ruler: CarSeat,
-  detailedId: string,
-): void {
-  reseatLevels(active.lodModels, ruler, detailedId)
+function reseatLodLevels(active: CachedCarConfigurator, seat: CarSeat): void {
+  active.seat = seat
+  seatLevels(active.lodModels, seat)
   requestRender()
 }
 
@@ -1188,9 +1191,9 @@ function seatCameraOnCar(active: CachedCarConfigurator, moveCamera: boolean): vo
  * Уровни новой машины приходят ступенями (`buildLodLoadOrder`): первым в кадр
  * встаёт самый дешёвый GLB, поэтому машина показывается почти сразу, а
  * подробности доезжают следом и подменяются на месте — та же сцена, та же
- * камера, та же окраска. Правитель посадки — подробный уровень: он один
- * приходит с колёсами и задаёт высоту кузова, а пока он в пути, машина стоит
- * на полу по своему габариту.
+ * камера, та же окраска. Посадка — по кузову подробного уровня из манифеста,
+ * одна на все уровни: лёгкий уровень с первого кадра стоит там, где потом
+ * встанет подробный, и не зависит от того, приехали колёса или нет.
  *
  * Старая машина снимается со сцены, когда первый уровень новой уже собран:
  * в кадре не бывает пустого места. Окраска переезжает с прежней машины,
@@ -1229,41 +1232,39 @@ async function selectVehicle(id: string) {
     active.groups = built
     selection.value = defaultSelection(built)
 
-    /* Посадка из манифеста: все уровни встают в одно место и при подмене не
-       переезжают. Без неё — старый путь: лёгкий по своему габариту, потом
-       переезд на посадку подробного. */
-    const knownSeat = manifest.seatBounds
-      ? seatFromBounds(active.three, manifest.seatBounds, degreesToRadians(rotation), { anchor: active.anchor, bottomY: active.floorY })
+    /* Посадка новой машины — по кузову её подробного уровня из манифеста,
+       одна на все уровни цепочки: провалиться на шаге без колёс нечему. Нет
+       её (манифест без прогона `car-seat-bounds`) — уровни встают по своему
+       кузову на постоянной машины, которая стоит в зале сейчас, и переезжают,
+       когда доедет подробный. */
+    const known = measureFromManifest(active.three, manifest, degreesToRadians(rotation))
+    const clearance = known?.clearance ?? active.clearance
+    const knownSeat = known
+      ? seatFromMeasure(active.three, known, { anchor: active.anchor, bottomY: bodyBottomY(active.floorY, clearance) })
       : null
-    const job: VehicleLodJob = { manifest, rotation, seat: knownSeat }
+    const job: VehicleLodJob = { manifest, rotation, seat: knownSeat, clearance }
     const light = await buildVehicleLod(active, job, first)
     if (disposed || viewer !== active || token !== vehicleLoadToken) {
       disposeVehicleLod(light)
       return
     }
 
-    /* Прежняя машина уходит, а её колёса остаются: они уже стоят на том же
-       полу и станут колёсами новой машины, пока та едет лёгким уровнем.
-       Без посадки из манифеста кузов новой ставится на низ кузова прежней —
-       то есть ровно на них; с ней он сразу стоит на своей высоте. */
+    /* Прежняя машина уходит, а её колёса остаются: они уже стоят на полу и
+       станут колёсами новой машины, пока та едет лёгким уровнем (§83). Кузов
+       новой стоит по своей постоянной — чужие колёса его не двигают. */
     const borrowed = active.wheels.children.length > 0 ? active.wheels : null
-    const carryHeight = borrowed && !knownSeat ? new active.three.Box3().setFromObject(active.model).min.y : null
     const previousVehicleId = active.vehicleId
 
     releaseCar(active, !!borrowed)
     active.lodModels = new Map()
     if (borrowed) borrowed.userData.borrowedCar = previousVehicleId
-    const lightSeat = carryHeight === null
-      ? light.seat
-      : seatLevelByBounds(active.three, light.root, { anchor: active.anchor, bottomY: carryHeight })
 
     active.manifest = manifest
     active.vehicleId = vehicle.id
     active.carRotation = rotation
     active.lampSplit = light.lampSplit
-    /* Посадка лёгкого уровня — временная: подробный приедет со своими. */
-    active.carShift = lightSeat.shift
-    active.seatOffsetY = lightSeat.offsetY
+    active.clearance = clearance
+    active.seat = light.seat
 
     showVehicleLod(active, light, first)
     seatCameraOnCar(active, true)
@@ -1286,12 +1287,20 @@ async function selectVehicle(id: string) {
       showVehicleLod(active, level, entry)
       if (entry.id !== detailed.id) continue
 
-      /* Подробный уровень: он задаёт посадку и приносит колёса, которых
-         у упрощённых нет вовсе. Кадр на этом шаге уже стоит по машине. */
-      active.carShift = level.seat.shift
-      active.seatOffsetY = level.seat.offsetY
+      /* Подробный уровень приносит колёса. С посадкой из манифеста он уже
+         стоит на ней вместе с остальными; без неё его замер — настоящая
+         постоянная машины, и по его кузову переставляются все собранные
+         уровни, включая тот, что в кадре. Кадр на этом шаге уже стоит по
+         машине. */
       active.lampSplit = level.lampSplit
-      if (!knownSeat) reseatLodLevels(active, level.seat, detailed.id)
+      if (!job.seat && level.clearance > 0) {
+        active.clearance = level.clearance
+        const { seat } = placeLevel(active.three, level.root, {
+          anchor: active.anchor,
+          bottomY: bodyBottomY(active.floorY, level.clearance),
+        }, level.wheels)
+        reseatLodLevels(active, seat)
+      }
       hoistWheels(active)
       syncWheels(active)
       seatCameraOnCar(active, false)
@@ -1619,7 +1628,16 @@ async function mountViewer() {
     /* Гараж встаёт в ту же сцену до машины, и машина садится на его пол. */
     let garage: THREE.Object3D | null = null
     let garageBox: THREE.Box3 | null = null
-    let seatOffsetY = 0
+    /* Посадка — по кузову подробного уровня: из манифеста, а без него — по
+       замеру первого уровня. Первый уровень может быть и упрощённым (выбран
+       раньше), но встаёт той же посадкой, что и подробный. Центр кузова —
+       точка зала. */
+    const startWheels = nodeNamesByRole(buildNodeMeta(manifest, startLod), WHEEL_ROLE)
+    const startMeasure = (manifest && measureFromManifest(THREE, manifest, degreesToRadians(carRotation)))
+      ?? measureLevel(THREE, model, startWheels)
+    const clearance = startMeasure.clearance
+    const carCenter = startMeasure.body.getCenter(new THREE.Vector3())
+    let seat: CarSeat = { shift: { x: 0, z: 0 }, offsetY: 0 }
     /* Уровень пола под машиной: на него же садятся машины, выбранные потом. */
     let floorLevel: number | null = null
     if (garageGltf) {
@@ -1636,8 +1654,13 @@ async function mountViewer() {
       })
       const seatFloor = floorY ?? garageBox.min.y
       floorLevel = seatFloor
-      seatOffsetY = seatFloor - carBox.min.y
-      model.position.y += seatOffsetY
+      /* Кузов — основа: его низ встаёт на пол плюс постоянную машины, а центр
+         остаётся там, где его поставил файл: это и есть точка зала. */
+      seat = seatFromMeasure(THREE, startMeasure, {
+        anchor: { x: carCenter.x, z: carCenter.z },
+        bottomY: bodyBottomY(seatFloor, clearance),
+      })
+      applySeat(model, seat)
       scene.add(garage)
       /* Тёплый свет мастерской, дымка и контактная тень под кузовом. */
       dressGarage(THREE, {
@@ -1646,7 +1669,7 @@ async function mountViewer() {
         hemisphere,
         key,
         fill,
-        carBox: carBox.clone().translate(new THREE.Vector3(0, seatOffsetY, 0)),
+        carBox: new THREE.Box3().setFromObject(model),
         floorY: seatFloor,
       })
     }
@@ -1737,19 +1760,20 @@ async function mountViewer() {
       materials: carMaterials,
       paint: { ...paint.value },
       lampSplit,
-      seatOffsetY,
+      seat,
+      clearance,
       lod: startLod,
       three: THREE,
       loader,
       garage,
       garageBox,
       wheels: new THREE.Group(),
-      lodModels: new Map([[startLod, { root: model, materials: carMaterials, nodeByName }]]),
+      lodModels: new Map([[startLod, { root: model, materials: carMaterials, nodeByName, wheels: startWheels }]]),
       vehicleId: activeVehicle.value.id,
       carRotation,
-      carShift: { x: 0, z: 0 },
-      /* Точка зала, где стоит машина, и пол под ней — общие для всех машин. */
-      anchor: { x: center.x, z: center.z },
+      /* Точка зала, где стоит машина, и пол под ней — общие для всех машин.
+         Точка — центр кузова: по нему же садятся все остальные машины. */
+      anchor: { x: carCenter.x, z: carCenter.z },
       floorY: floorLevel ?? box.min.y,
     }
     lod.value = startLod
