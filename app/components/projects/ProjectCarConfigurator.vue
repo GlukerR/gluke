@@ -4,6 +4,7 @@ import type * as THREE from 'three'
 import { carConfiguratorCache, carPaintHandles, type CachedCarConfigurator, type CarLodModel } from '~/utils/carConfiguratorCache'
 import { CAMERA_POSE_LENGTH, cameraPoseChanged, createQualityGovernor, physicalPixelRatio, writeCameraPose } from '~/utils/framePacing'
 import { deferStart } from '~/utils/deferredStart'
+import { countVisibleVertices, estimateVideoMemoryMb } from '~/utils/garageTechStats'
 import { addStudioLights, createStudioScene } from '~/utils/studioScene'
 import { disposeObjectResources } from '~/utils/modelViewerCache'
 import {
@@ -45,7 +46,7 @@ import {
 import { loadCarSelection, saveCarSelection } from '~/utils/carPaintStorage'
 import { applySeat, bodyBottomY, measureFromManifest, measureLevel, placeLevel, seatFromMeasure, seatLevels, type CarSeat } from '~/utils/carSeating'
 import { withShareImageVersion } from '~/utils/shareImage'
-import { createGarageAudio, type GarageAudio, type GarageAudioState, type GarageAudioTrack } from '~/utils/garageAudio'
+import { formatTrackTime, useGarageAudio, type GarageAudioConfig } from '~/composables/useGarageAudio'
 import { hasSeenGarageIntro, markGarageIntroSeen } from '~/utils/garageIntro'
 import { dressGarage, fitContactShadow } from '~/utils/garageAtmosphere'
 import { buildGarageVehicles, type GarageVehicle, type GarageVehicleInput } from '~/utils/garageVehicles'
@@ -101,15 +102,6 @@ interface ConfiguratorGarage {
   zoomMax?: number
 }
 
-/* Музыка зала (`configurator.audio`): один трек или очередь. Вместе со
-   страницей она не грузится — адрес отдаётся, когда сцена уже собрана. */
-interface ConfiguratorAudio {
-  src?: string
-  tracks?: { src: string, title: string, artist?: string }[]
-  volume?: number
-  fadeIn?: number
-}
-
 const props = withDefaults(defineProps<{
   model: ConfiguratorModel
   /* Манифест вариантов (`<slug>.json` рядом с GLB): какие ноды к какой роли
@@ -120,7 +112,9 @@ const props = withDefaults(defineProps<{
      с `model.src`. Без списка в гараже одна машина из `manifest`. */
   vehicles?: GarageVehicleInput[]
   garage?: ConfiguratorGarage
-  audio?: ConfiguratorAudio
+  /* Музыка зала: вместе со страницей не грузится — трек включается, когда
+     сцена уже собрана. */
+  audio?: GarageAudioConfig
   poster?: string
   /* Постер грузить сразу (hero-позиция, LCP), а не лениво. */
   priority?: boolean
@@ -675,14 +669,8 @@ function observeVisibility() {
 
 /* ───── Технический монитор ───── */
 
-/*
- * Живые показатели текущей конфигурации: считаем по видимым мешам после
- * каждого переключения, поэтому счётчик всегда совпадает с тем, что на экране.
- *
- * Колёса в цифры машины не идут (§56): машина сдана без них, то, что стоит
- * в кадре, вьювер подставил сам. Текстуры и видеопамять — наоборот, по всей
- * сцене: это цена кадра целиком, вместе с гаражом, и подписаны они отдельно.
- */
+/* Живые показатели текущей конфигурации — после каждого переключения, по
+   видимому (utils/garageTechStats): машина без колёс, память — вся сцена. */
 interface TechStats {
   vertices: number
   textures: number
@@ -690,63 +678,13 @@ interface TechStats {
 }
 const tech = ref<TechStats | null>(null)
 
-function isVisibleInScene(object: THREE.Object3D): boolean {
-  for (let node: THREE.Object3D | null = object; node; node = node.parent) {
-    if (!node.visible) return false
-  }
-  return true
-}
-
 function refreshStats() {
   if (!viewer) return
   stats.value = countRenderStats(viewer.model)
-
-  let vertices = 0
-  viewer.model.traverse((object) => {
-    const mesh = object as THREE.Mesh
-    if (!mesh.isMesh || !isVisibleInScene(mesh)) return
-    vertices += mesh.geometry?.attributes?.position?.count ?? 0
-  })
-
-  /* Видеопамять — оценка сверху по тому, что реально лежит в сцене: буферы
-     видимой геометрии и карты материалов (с мип-уровнями). Точного счётчика
-     байтов WebGL не отдаёт. */
-  const geometries = new Set<THREE.BufferGeometry>()
-  const textures = new Set<THREE.Texture>()
-  const addTexture = (value: unknown) => {
-    if (value && (value as THREE.Texture).isTexture) textures.add(value as THREE.Texture)
-  }
-  viewer.scene.traverse((object) => {
-    const mesh = object as THREE.Mesh
-    if (!mesh.isMesh || !isVisibleInScene(mesh)) return
-    geometries.add(mesh.geometry)
-    const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
-    for (const material of materials) {
-      for (const value of Object.values(material)) addTexture(value)
-      const uniforms = material.userData.carUniforms as Record<string, { value: unknown }> | undefined
-      if (uniforms) for (const uniform of Object.values(uniforms)) addTexture(uniform.value)
-    }
-  })
-  for (const tile of viewer.materials.tiles.values()) addTexture(tile)
-  addTexture(viewer.scene.environment)
-
-  let bytes = 0
-  for (const geometry of geometries) {
-    for (const attribute of Object.values(geometry.attributes)) {
-      bytes += (attribute as THREE.BufferAttribute).array?.byteLength ?? 0
-    }
-    bytes += geometry.index?.array.byteLength ?? 0
-  }
-  for (const texture of textures) {
-    const image = texture.image as { width?: number, height?: number } | undefined
-    const pixels = (image?.width ?? 0) * (image?.height ?? 0)
-    bytes += pixels * 4 * (texture.generateMipmaps ? 4 / 3 : 1)
-  }
-
   tech.value = {
-    vertices,
+    vertices: countVisibleVertices(viewer.model),
     textures: viewer.renderer.info.memory.textures,
-    vramMb: bytes / (1024 * 1024),
+    vramMb: estimateVideoMemoryMb(viewer.scene, [...viewer.materials.tiles.values(), viewer.scene.environment]),
   }
 }
 
@@ -1694,115 +1632,36 @@ async function mountViewer() {
 
 /* ───── Музыка ───── */
 
-/* Очередь из контента; одиночный `src` — очередь из одного трека. Подпись
-   трека без названия — имя файла: плеер не показывает пустую строку. */
-const audioTracks = computed<GarageAudioTrack[]>(() => {
-  if (props.audio?.tracks?.length) {
-    return props.audio.tracks.map((track, index) => ({ id: `track-${index}`, ...track }))
-  }
-  if (!props.audio?.src) return []
-  const file = props.audio.src.split('/').pop()?.replace(/\.[^.]+$/, '') ?? ''
-  return [{ id: 'track-0', src: props.audio.src, title: file.replace(/[-_]+/g, ' ') }]
-})
-const hasSound = computed(() => audioTracks.value.length > 0)
-const soundState = ref<GarageAudioState>('muted')
-const trackId = ref<string | null>(null)
-const trackTime = ref(0)
-const trackDuration = ref(0)
-let garageAudio: GarageAudio | undefined
-
-const currentTrack = computed(() => audioTracks.value.find(track => track.id === trackId.value) ?? audioTracks.value[0])
-const trackProgress = computed(() => (trackDuration.value > 0 ? Math.min(1, trackTime.value / trackDuration.value) : 0))
-
-function syncAudioState() {
-  if (!garageAudio) return
-  soundState.value = garageAudio.state
-  trackId.value = garageAudio.trackId
-  trackTime.value = garageAudio.currentTime
-  trackDuration.value = garageAudio.duration
-}
-
-function ensureAudio(): GarageAudio | undefined {
-  if (!garageAudio && hasSound.value) {
-    garageAudio = createGarageAudio(
-      { tracks: audioTracks.value, volume: props.audio?.volume, fadeIn: props.audio?.fadeIn },
-      { onChange: syncAudioState },
-    )
-    syncAudioState()
-  }
-  return garageAudio
-}
-
-function toggleSound() {
-  ensureAudio()?.toggle()
-  syncAudioState()
-}
-
-function nextTrack() {
-  ensureAudio()?.next()
-  syncAudioState()
-}
-
-function previousTrack() {
-  ensureAudio()?.previous()
-  syncAudioState()
-}
-
-function seekTrack(event: PointerEvent) {
-  const bar = event.currentTarget as HTMLElement
-  const rect = bar.getBoundingClientRect()
-  if (rect.width <= 0) return
-  garageAudio?.seek((event.clientX - rect.left) / rect.width)
-  syncAudioState()
-}
-
-function formatTime(seconds: number): string {
-  if (!Number.isFinite(seconds) || seconds <= 0) return '0:00'
-  const whole = Math.floor(seconds)
-  return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, '0')}`
-}
-
-/* Музыка включается, когда человек пришёл в гараж: курсор вошёл в экран
-   (или уже стоял над ним к моменту сборки), фокус с клавиатуры, касание.
-   Раньше трек стартовал при сборке сцены — пока человек ещё читал текст
-   выше. Грузится трек по-прежнему только после сборки: сначала картинка.
-
-   Ограничение браузера: наведение не считается действием пользователя.
-   Если на странице ещё не было ни клика, ни тапа, ни клавиши (зашли на кейс
-   прямой ссылкой), `play()` отклоняется, трек встаёт «на взвод» и стартует с
-   первого жеста — это делает garageAudio. Пришли кликом со страницы проектов —
-   звук пойдёт сразу при наведении. */
-let soundArmed = false
-
-function startSoundIfArmed() {
-  if (!soundArmed || status.value !== 'ready') return
-  ensureAudio()?.start()
-  syncAudioState()
-}
-
-function armSound() {
-  if (soundArmed) return
-  soundArmed = true
-  startSoundIfArmed()
-}
+/* Плеер и «взвод» звука — composables/useGarageAudio; имена ниже — те, что
+   читает разметка HUD. */
+const {
+  hasSound,
+  soundState,
+  currentTrack,
+  trackTime,
+  trackDuration,
+  trackProgress,
+  toggle: toggleSound,
+  next: nextTrack,
+  previous: previousTrack,
+  seek: seekTrack,
+  arm: armSound,
+  startIfArmed: startSoundIfArmed,
+  retryAfterTouch: onGaragePointerUp,
+  stop: stopSound,
+} = useGarageAudio(() => props.audio, () => status.value === 'ready')
+const formatTime = formatTrackTime
 
 function onGaragePointerDown() {
   dismissIntro()
   armSound()
 }
 
-/* Касание даёт браузеру «действие пользователя» только к отпусканию пальца:
-   если трек отклонили на касании, пробуем ещё раз, не дожидаясь второго тапа. */
-function onGaragePointerUp() {
-  if (soundState.value !== 'waiting' || !garageAudio) return
-  garageAudio.toggle()
-  syncAudioState()
-}
-
-/* `immediate`: с закэшированной сценой статус уже `ready`. */
+/* `immediate`: с закэшированной сценой статус уже `ready`. Курсор уже над
+   гаражом к моменту сборки — это тоже приход в гараж. */
 watch(status, (value) => {
   if (value !== 'ready') return
-  if (hudRoot.value?.matches(':hover')) soundArmed = true
+  if (hudRoot.value?.matches(':hover')) armSound()
   startSoundIfArmed()
 }, { immediate: true })
 
@@ -1867,8 +1726,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   cancelStart?.()
-  garageAudio?.stop()
-  garageAudio = undefined
+  stopSound()
   disposed = true
   if (viewer && activeCategory.value === 'tech') {
     activeCategory.value = null
