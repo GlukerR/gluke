@@ -12,6 +12,7 @@
  */
 import fs from 'node:fs'
 import sharp from 'sharp'
+import { CHUNK_BIN, CHUNK_JSON, readGlb } from './glb.mjs'
 
 const DEFAULT_QUALITY = 82
 const DEFAULT_MAX_SIZE = 1024
@@ -36,22 +37,9 @@ if (!input) {
   process.exit(1)
 }
 
-/** Разбирает GLB на JSON и BIN. */
-function readGlb(file) {
-  const buf = fs.readFileSync(file)
-  if (buf.toString('ascii', 0, 4) !== 'glTF') throw new Error('not a GLB file')
-  let offset = 12
-  let json = null
-  let bin = null
-  while (offset < buf.length) {
-    const length = buf.readUInt32LE(offset)
-    const type = buf.readUInt32LE(offset + 4)
-    const data = buf.subarray(offset + 8, offset + 8 + length)
-    if (type === 0x4E4F534A) json = JSON.parse(data.toString('utf8'))
-    else bin = data
-    offset += 8 + length
-  }
-  if (!json) throw new Error('no JSON chunk')
+/** Разбирает GLB на JSON и BIN (нет BIN — пустой буфер). */
+function readGlbParts(file) {
+  const { json, bin } = readGlb(file)
   return { json, bin: bin ?? Buffer.alloc(0) }
 }
 
@@ -69,16 +57,16 @@ function writeGlb(json, bin, file) {
   header.writeUInt32LE(12 + 8 + jsonChunk.length + 8 + binChunk.length, 8)
   const jsonHeader = Buffer.alloc(8)
   jsonHeader.writeUInt32LE(jsonChunk.length, 0)
-  jsonHeader.writeUInt32LE(0x4E4F534A, 4)
+  jsonHeader.writeUInt32LE(CHUNK_JSON, 4)
   const binHeader = Buffer.alloc(8)
   binHeader.writeUInt32LE(binChunk.length, 0)
-  binHeader.writeUInt32LE(0x004E4942, 4)
+  binHeader.writeUInt32LE(CHUNK_BIN, 4)
   fs.writeFileSync(file, Buffer.concat([header, jsonHeader, jsonChunk, binHeader, binChunk]))
 }
 
 const viewData = view => bin.subarray(view.byteOffset ?? 0, (view.byteOffset ?? 0) + view.byteLength)
 
-const { json, bin } = readGlb(input)
+const { json, bin } = readGlbParts(input)
 const images = json.images ?? []
 if (images.length === 0) {
   console.error('в файле нет карт — нечего сжимать')

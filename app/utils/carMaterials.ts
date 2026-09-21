@@ -1006,10 +1006,7 @@ function lampGlow(
  * кладёт `applyLampIslands`: без них нормаль не выгнуть — острова в геометрии
  * лишены развёртки, а мировая проекция не знает, где у площадки центр.
  */
-function patchLampGlow(
-  three: typeof import('three'),
-  material: THREE.MeshPhysicalMaterial,
-): void {
+function patchLampGlow(material: THREE.MeshPhysicalMaterial): void {
   const uniforms = {
     uGlowDome: { value: CAR_LAMP.glow.front.dome },
     uGlowDim: { value: CAR_LAMP.glow.front.dim },
@@ -1251,7 +1248,7 @@ export function createCarMaterials(
            шейдер не знает, где у площадки центр. Нет островов — оставляем
            ровное свечение, а не чёрные нормали. */
         if (applyLampIslands(three, mesh)) {
-          for (const material of created) patchLampGlow(three, material)
+          for (const material of created) patchLampGlow(material)
         }
         lamps.push(...created)
         return

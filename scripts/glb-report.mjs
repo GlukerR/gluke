@@ -5,6 +5,7 @@
  * Запуск: node scripts/glb-report.mjs <file.glb>
  */
 import fs from 'node:fs'
+import { parseGlb } from './glb.mjs'
 
 const file = process.argv[2]
 if (!file) {
@@ -13,21 +14,7 @@ if (!file) {
 }
 
 const buf = fs.readFileSync(file)
-const readChunks = (buffer) => {
-  const chunks = []
-  let offset = 12
-  while (offset + 8 <= buffer.length) {
-    const length = buffer.readUInt32LE(offset)
-    const type = buffer.toString('ascii', offset + 4, offset + 8)
-    chunks.push({ type, data: buffer.subarray(offset + 8, offset + 8 + length) })
-    offset += 8 + length
-  }
-  return chunks
-}
-
-const chunks = readChunks(buf)
-const json = JSON.parse(chunks.find(c => c.type.startsWith('JSON')).data.toString('utf8'))
-const bin = chunks.find(c => c.type.startsWith('BIN'))
+const { json, bin } = parseGlb(buf)
 
 const imageBytes = (json.images ?? []).reduce((sum, image) => {
   const view = json.bufferViews?.[image.bufferView]
@@ -40,7 +27,7 @@ const geometryBytes = (json.bufferViews ?? []).reduce((sum, view, index) => {
 
 console.log('=== файл ===')
 console.log(file, (buf.length / 1024).toFixed(0) + ' КБ')
-console.log('BIN:', bin ? (bin.data.length / 1024).toFixed(0) + ' КБ' : '-')
+console.log('BIN:', bin ? (bin.length / 1024).toFixed(0) + ' КБ' : '-')
 console.log('карты:', (imageBytes / 1024).toFixed(0) + ' КБ', '| геометрия+прочее:', (geometryBytes / 1024).toFixed(0) + ' КБ')
 console.log('просит (extensionsRequired):', (json.extensionsRequired ?? []).join(', ') || '—')
 console.log('умеет (extensionsUsed):', (json.extensionsUsed ?? []).join(', ') || '—')

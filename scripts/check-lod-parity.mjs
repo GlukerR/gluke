@@ -24,24 +24,9 @@
 import { readdir, readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
 import process from 'node:process'
+import { parseGlb } from './glb.mjs'
 
 const root = process.cwd()
-
-/** Читает JSON-чанк GLB. */
-function readGlbJson(bytes) {
-  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
-  if (view.getUint32(0, true) !== 0x46546C67) throw new Error('не GLB: неверная подпись')
-  let offset = 12
-  while (offset + 8 <= bytes.byteLength) {
-    const length = view.getUint32(offset, true)
-    const type = view.getUint32(offset + 4, true)
-    if (type === 0x4E4F534A) {
-      return JSON.parse(new TextDecoder().decode(bytes.subarray(offset + 8, offset + 8 + length)))
-    }
-    offset += 8 + length
-  }
-  throw new Error('в GLB нет JSON-чанка')
-}
 
 /**
  * Имя ноды в том виде, в каком его отдаёт загрузчик three: пробелы становятся
@@ -103,7 +88,7 @@ async function checkManifest(manifestPath) {
     if (!entry?.file) continue
     const file = path.join(dir, entry.file)
     const bytes = await readFile(file)
-    const facts = glbFacts(readGlbJson(bytes))
+    const facts = glbFacts(parseGlb(bytes).json)
 
     const roles = {}
     const missing = []

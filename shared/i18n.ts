@@ -24,7 +24,7 @@ export const COUNTRY_HEADER = 'x-vercel-ip-country'
 /** Запасной сигнал: языковые предпочтения браузера. */
 export const ACCEPT_LANGUAGE_HEADER = 'accept-language'
 
-export const RUSSIAN_COUNTRY_CODE = 'RU'
+const RUSSIAN_COUNTRY_CODE = 'RU'
 
 export interface SiteLocaleOption {
   readonly code: LocaleCode

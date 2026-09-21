@@ -19,20 +19,9 @@
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import * as THREE from 'three'
+import { readGlbJson } from './glb.mjs'
 
 const dir = process.argv[2] ?? 'public/media/projects/rp-grand'
-
-function readGlbJson(file) {
-  const bytes = readFileSync(file)
-  let offset = 12
-  while (offset < bytes.length) {
-    const length = bytes.readUInt32LE(offset)
-    const type = bytes.readUInt32LE(offset + 4)
-    if (type === 0x4E4F534A) return JSON.parse(bytes.subarray(offset + 8, offset + 8 + length).toString('utf8'))
-    offset += 8 + length
-  }
-  throw new Error(`${file}: нет JSON-чанка`)
-}
 
 /* Габарит кузова (узлы не-колёса) и габарит уровня целиком. */
 function glbBounds(json) {
