@@ -795,6 +795,15 @@ function ensureLod(active: CachedCarConfigurator): void {
   viewerGroups = activeGroups
 }
 
+/** Ноды модели по имени: по ним HUD включает варианты обвеса. */
+function nodesByName(root: THREE.Object3D): Map<string, THREE.Object3D> {
+  const nodes = new Map<string, THREE.Object3D>()
+  root.traverse((object) => {
+    if (object.name) nodes.set(object.name, object)
+  })
+  return nodes
+}
+
 /** Узел лежит в поддереве `root` (по цепочке родителей). */
 function isDescendant(node: THREE.Object3D, root: THREE.Object3D): boolean {
   for (let parent = node.parent; parent; parent = parent.parent) {
@@ -922,44 +931,17 @@ async function selectLod(nextLod: string) {
   }
 }
 
-async function buildLodModel(active: CachedCarConfigurator, entry: CarLodEntry): Promise<CarLodModel> {
-  /* Свой декодер на загрузку: после первого GLB draco уничтожается. */
-  const { DRACOLoader } = await import('three/examples/jsm/loaders/DRACOLoader.js')
-  const draco = new DRACOLoader()
-  active.loader.setDRACOLoader(draco)
-
-  let root: THREE.Object3D
-  try {
-    const gltf = await active.loader.loadAsync(lodSrc(entry))
-    root = gltf.scene
-  }
-  finally {
-    draco.dispose()
-  }
-
-  root.rotation.y = degreesToRadians(active.carRotation)
-  /* Посадка машины одна на все уровни и посчитана по кузову подробного
-     (`app/utils/carSeating.ts`): уровень встаёт над теми же колёсами, где его
-     поставил моделлер, а колёса — есть они в уровне или нет — её не двигают. */
-  const wheels = nodeNamesByRole(buildNodeMeta(active.manifest, entry.id), WHEEL_ROLE)
-  applySeat(root, active.seat)
-
-  const materials = createCarMaterials(active.three, root, {
-    textureBase: carTextureBase(props.model.src),
-    anisotropy: active.renderer.capabilities.getMaxAnisotropy(),
-    selection: { ...paint.value },
-    lampSplit: active.lampSplit ?? lampSplitFromBumpers(active.three, root),
+/* Уровень той же машины, что стоит в зале: её посадка, разворот, тайлы и
+   разделитель оптики. */
+function buildLodModel(active: CachedCarConfigurator, entry: CarLodEntry): Promise<CarLodModel> {
+  return buildVehicleLod(active, {
+    manifest: active.manifest,
+    rotation: active.carRotation,
     tileCache: active.materials.tiles,
-    wheelNodes: wheels,
-  })
-  await setCarSelection(materials, { ...paint.value })
-
-  const nodeByName = new Map<string, THREE.Object3D>()
-  root.traverse((object) => {
-    if (object.name) nodeByName.set(object.name, object)
-  })
-
-  return { root, materials, nodeByName }
+    lampSplit: active.lampSplit,
+    seat: active.seat,
+    clearance: active.clearance,
+  }, entry)
 }
 
 /*
@@ -988,7 +970,7 @@ function releaseCar(active: CachedCarConfigurator, keepWheels = false): void {
 /* Задание на сборку уровня новой машины: в сцене ещё стоит прежняя, поэтому
    кэш тайлов и разделитель оптики приходят сюда, а не читаются из неё. */
 interface VehicleLodJob {
-  manifest: CarManifest
+  manifest: CarManifest | null
   /* Разворот машины в зале: у каждой выгрузки он свой. */
   rotation: number
   /* Кэш тайловых карт. У первого уровня его ещё нет — прежняя машина в этот
@@ -1063,10 +1045,7 @@ async function buildVehicleLod(
   })
   await setCarSelection(materials, { ...paint.value })
 
-  const nodeByName = new Map<string, THREE.Object3D>()
-  root.traverse((object) => {
-    if (object.name) nodeByName.set(object.name, object)
-  })
+  const nodeByName = nodesByName(root)
 
   /* `clearance` — замер уровня как есть: у упрощённого (без колёс) он ноль,
      у подробного — настоящая постоянная машины. */
@@ -1628,7 +1607,7 @@ async function mountViewer() {
 
     const lampSplit = lampSplitFromBumpers(THREE, model)
     const carMaterials = createCarMaterials(THREE, model, {
-      textureBase: carTextureBase(props.model.src),
+      textureBase: textureBase.value,
       anisotropy: renderer.capabilities.getMaxAnisotropy(),
       selection: { ...paint.value },
       lampSplit,
@@ -1639,10 +1618,7 @@ async function mountViewer() {
     /* Пульс оптики — у обычного вьювера (общий тип кэша), в гараже свет ровный. */
     const emissiveMaterials: THREE.MeshStandardMaterial[] = []
 
-    const nodeByName = new Map<string, THREE.Object3D>()
-    model.traverse((object) => {
-      if (object.name) nodeByName.set(object.name, object)
-    })
+    const nodeByName = nodesByName(model)
 
     const nodeMeta = buildNodeMeta(manifest, startLod)
     const activeGroups = buildVariantGroups(manifest, startLod)
