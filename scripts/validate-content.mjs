@@ -15,6 +15,13 @@
  * jiti + scripts/content-config-stub.mjs), читает файлы коллекций и прогоняет
  * их через `safeParse`. Ошибка — ненулевой код возврата и путь до поля.
  *
+ * Вторая проверка здесь — порядок подборки профиля (`categoryOrder`): он задан
+ * в кейсах руками, а сетку `/projects?category=…` собирает код. Правка
+ * `position` (он ведёт архив), вывод кейса из профиля или новая выгрузка
+ * перетасуют подборку молча, поэтому состав и порядок сверяются с явным
+ * списком. Правило — `app/utils/categoryOrder.ts`, оно же здесь и применяется,
+ * чтобы проверка не завела свою копию.
+ *
  * Использование: pnpm validate:content   (входит в pnpm check и в CI)
  */
 import { existsSync, readFileSync } from 'node:fs'
@@ -188,6 +195,70 @@ function deployConfigIssues() {
   return issues
 }
 
+/* Подборка профиля: состав и порядок заданы явно — то, что видно глазами
+   и потому легко ломается молча. Список намеренно лежит здесь, а не в кейсах:
+   проверка должна знать, что **должно** быть, иначе она подтвердит любую
+   перестановку. */
+const SHOWCASE = {
+  category: 'webgl',
+  order: [
+    'getic',
+    'softlogic',
+    'rp-grand',
+    'energy-fill',
+    'pyramid',
+    'constellation',
+    'particles',
+    'metaballs',
+    'image-particles',
+  ],
+}
+
+function categoryOrderIssues(byLocale, orderCategoryProjects) {
+  const issues = []
+  const members = {}
+
+  for (const [locale, projects] of Object.entries(byLocale)) {
+    members[locale] = projects.filter(project => project.categories?.includes(SHOWCASE.category))
+
+    /* Порядок подборки — только `categoryOrder`: кейс без него встаёт по
+       номеру архива, то есть подборка незаметно поедет. */
+    for (const project of members[locale]) {
+      if (typeof project.categoryOrder?.[SHOWCASE.category] !== 'number') {
+        issues.push(`    подборка «${SHOWCASE.category}» (${locale}): у кейса ${project.slug} не задан categoryOrder — его место решает номер архива`)
+      }
+    }
+
+    const orders = members[locale]
+      .map(project => project.categoryOrder?.[SHOWCASE.category])
+      .filter(value => typeof value === 'number')
+    if (new Set(orders).size !== orders.length) {
+      issues.push(`    подборка «${SHOWCASE.category}» (${locale}): номера categoryOrder повторяются — порядок этих кейсов не определён`)
+    }
+
+    const actual = orderCategoryProjects(members[locale], SHOWCASE.category).map(project => project.slug)
+    if (actual.join(', ') !== SHOWCASE.order.join(', ')) {
+      issues.push(`    подборка «${SHOWCASE.category}» (${locale}) идёт: ${actual.join(', ')}`)
+      issues.push(`    подборка «${SHOWCASE.category}» (${locale}) ожидается:  ${SHOWCASE.order.join(', ')}`)
+    }
+  }
+
+  /* Подборка одна на два языка: разные составы означают, что один из них
+     правили мимоходом. */
+  const [first, ...rest] = Object.entries(members)
+  if (first) {
+    const expected = first[1].map(project => project.slug).sort()
+    for (const [locale, projects] of rest) {
+      const actual = projects.map(project => project.slug).sort()
+      if (actual.join(', ') !== expected.join(', ')) {
+        issues.push(`    подборка «${SHOWCASE.category}»: состав локалей разный — ${first[0]}: ${expected.join(', ')}; ${locale}: ${actual.join(', ')}`)
+      }
+    }
+  }
+
+  return issues
+}
+
 function collectIssues(error) {
   return error.issues.map((issue) => {
     const path = issue.path.length ? issue.path.join('.') : '(корень)'
@@ -202,24 +273,37 @@ function readFrontmatter(raw) {
   return match ? parseYaml(match[1]) : {}
 }
 
-/* content.config.ts грузится через jiti с подменой `@nuxt/content`: настоящий
-   `defineCollection()` конвертирует zod в JSON Schema и исходную схему теряет,
-   а нам нужна именно она. См. scripts/content-config-stub.mjs. */
-async function loadCollections() {
-  const jiti = createJiti(import.meta.url, {
+function createProjectJiti() {
+  return createJiti(import.meta.url, {
     alias: { '@nuxt/content': join(root, 'scripts', 'content-config-stub.mjs') },
     interopDefault: true,
   })
+}
+
+/* content.config.ts грузится через jiti с подменой `@nuxt/content`: настоящий
+   `defineCollection()` конвертирует zod в JSON Schema и исходную схему теряет,
+   а нам нужна именно она. См. scripts/content-config-stub.mjs. */
+async function loadCollections(jiti) {
   const configUrl = pathToFileURL(join(root, 'content.config.ts')).href
   const config = await jiti.import(configUrl, { default: true })
 
   return config.collections ?? {}
 }
 
+/* Правило порядка подборки берётся из самого модуля приложения: своя копия
+   здесь подтверждала бы любую перестановку. jiti умеет и TypeScript. */
+async function loadCategoryOrder(jiti) {
+  const moduleUrl = pathToFileURL(join(root, 'app', 'utils', 'categoryOrder.ts')).href
+  return await jiti.import(moduleUrl)
+}
+
 async function main() {
-  const collections = await loadCollections()
+  const jiti = createProjectJiti()
+  const collections = await loadCollections(jiti)
+  const { orderCategoryProjects } = await loadCategoryOrder(jiti)
   const imageVersions = collectImageVersions({ rootDir: root })
   const failures = []
+  const projectsByLocale = {}
   let checked = 0
 
   for (const [name, collection] of Object.entries(collections)) {
@@ -269,11 +353,23 @@ async function main() {
         if (issues.length) {
           failures.push({ file: shortPath, collection: name, issues })
         }
+
+        /* Собираются все кейсы локали: порядок подборки — свойство набора,
+           а не отдельного файла, поэтому проверяется после обхода. */
+        const locale = result.data.locale
+        projectsByLocale[locale] = [...(projectsByLocale[locale] ?? []), result.data]
       }
     }
   }
 
   const configIssues = deployConfigIssues()
+  const orderIssues = categoryOrderIssues(projectsByLocale, orderCategoryProjects)
+
+  if (orderIssues.length) {
+    console.error('\n[validate:content] подборки профилей нарушены:\n')
+    console.error(orderIssues.join('\n'))
+    console.error('')
+  }
 
   if (configIssues.length) {
     console.error('\n[validate:content] конфигурация деплоя нарушена:\n')
@@ -291,7 +387,7 @@ async function main() {
     }
   }
 
-  if (failures.length || configIssues.length) {
+  if (failures.length || configIssues.length || orderIssues.length) {
     process.exit(1)
   }
 

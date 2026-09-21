@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { orderCategoryProjects, type ProjectCategory } from '~/utils/categoryOrder'
+
 const site = useSiteContent()
 const locale = useCurrentLocale()
 const { t } = useI18n()
@@ -7,10 +9,8 @@ const { prefetchOnEnter, prefetchOnLeave } = useCasePrefetch()
 const { toAbsolute } = useSiteUrls()
 const route = useRoute()
 
-type ProjectCategory = 'orgtech' | 'industrial' | 'furniture' | 'exteriors' | 'cinematics' | 'gameready' | 'webgl'
-
 /* Профили, показываемые на хабе (gameready появится, когда появятся кейсы). */
-const CATEGORIES = ['orgtech', 'industrial', 'furniture', 'exteriors', 'cinematics', 'webgl'] as const
+const CATEGORIES: readonly ProjectCategory[] = ['orgtech', 'industrial', 'furniture', 'exteriors', 'cinematics', 'webgl']
 
 const { data: projects } = await useAsyncData(
   computed(() => `projects-archive-${locale.value}`),
@@ -39,20 +39,13 @@ const activeCategory = computed<ProjectCategory | null>(() => {
   return (CATEGORIES as readonly string[]).includes(raw) ? raw as ProjectCategory : null
 })
 
+/* Порядок подборки профиля — в `app/utils/categoryOrder.ts`: явный
+   `categoryOrder` кейса сильнее `position`, иначе сетка профиля зависела бы
+   от нумерации архива (и от того, в каком профиле кейс ещё лежит). */
 const visibleProjects = computed(() => {
   const category = activeCategory.value
   if (!category) return publishedProjects.value
-
-  /* Внутри профиля вперёд идут кейсы, для которых он основной: `categories`
-     упорядочен, и первый профиль в списке — профильный. Иначе кросс-листинги
-     (Getic и SoftLogic лежат ещё и в «Оргтехнике») обгоняли бы по общей
-     нумерации те кейсы, ради которых профиль и заведён. */
-  return publishedProjects.value
-    .filter(project => project.categories?.includes(category))
-    .sort((a, b) => {
-      const rank = (project: typeof a) => project.categories?.indexOf(category) ?? 0
-      return rank(a) - rank(b) || a.position - b.position
-    })
+  return orderCategoryProjects(publishedProjects.value, category)
 })
 
 /* Обложка категории — представительный кейс (не повторяет топ главной),

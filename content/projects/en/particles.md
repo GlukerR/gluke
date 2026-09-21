@@ -7,12 +7,14 @@ client: Web graphics
 industry: Widgets
 categories:
   - webgl
+categoryOrder:
+  webgl: 7
 position: 26
 featured: false
 status: published
 navigation: false
 period: "2026"
-updated: 2026-09-07
+updated: 2026-09-21
 engagement: completed
 services:
   - Surface sampling of a model

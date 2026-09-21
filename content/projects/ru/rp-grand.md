@@ -7,12 +7,14 @@ client: RP Grand
 industry: Игровые ассеты
 categories:
   - webgl
+categoryOrder:
+  webgl: 3
 position: 30
 featured: false
 status: published
 navigation: false
 period: "2026"
-updated: 2026-09-16
+updated: 2026-09-21
 engagement: completed
 clientUrl: https://rpgrand.com
 services:

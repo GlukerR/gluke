@@ -8,12 +8,14 @@ industry: Networking hardware and e-commerce
 categories:
   - orgtech
   - webgl
+categoryOrder:
+  webgl: 1
 position: 1
 featured: true
 status: published
 navigation: false
 period: 2021-2026
-updated: 2026-09-01
+updated: 2026-09-21
 engagement: completed
 clientUrl: https://www.getic.com/
 services:

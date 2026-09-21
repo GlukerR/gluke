@@ -6,14 +6,13 @@ description: A series of GLB cottage models for Hilbert with interiors visible t
 client: Hilbert
 industry: Residential construction
 categories:
-  - webgl
   - exteriors
 position: 12
 featured: false
 status: published
 navigation: false
 period: "2026"
-updated: 2026-09-19
+updated: 2026-09-21
 engagement: active
 clientUrl: https://hilbert-house.ru/projects/cottages-e/3d-model-e
 services:

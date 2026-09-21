@@ -7,12 +7,14 @@ client: Web graphics
 industry: Widgets
 categories:
   - webgl
+categoryOrder:
+  webgl: 6
 position: 24
 featured: false
 status: published
 navigation: false
 period: "2026"
-updated: 2026-09-06
+updated: 2026-09-21
 engagement: completed
 services:
   - WebGL with no dependencies

@@ -161,6 +161,14 @@ export default defineContentConfig({
         industry: z.string().min(1),
         /* Профили, к которым относится кейс (массив — кейс может быть в двух сразу). */
         categories: z.array(z.enum(['orgtech', 'industrial', 'furniture', 'exteriors', 'cinematics', 'gameready', 'webgl'])).optional(),
+        /* Явный порядок внутри профиля: `categoryOrder: { webgl: 1 }` — кейс
+           идёт первым в сетке этого профиля. Общей нумерацией подборку
+           профиля не расставить: `position` ведёт архив и главную (новый кейс
+           уезжает в конец), а кейс может лежать в двух профилях сразу.
+           Кейсы с явным порядком идут первыми по возрастанию, остальные —
+           как раньше (профиль из `categories` раньше кросс-листинга, затем
+           `position`). Правило — `app/utils/categoryOrder.ts`. */
+        categoryOrder: z.record(z.number().int().positive()).optional(),
         position: z.number().int().positive(),
         featured: z.boolean(),
         status: z.enum(['draft', 'review', 'published']),

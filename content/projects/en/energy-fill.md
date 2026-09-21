@@ -7,11 +7,14 @@ client: Web graphics
 industry: Widgets
 categories:
   - webgl
+categoryOrder:
+  webgl: 4
 position: 29
 featured: false
 status: published
 navigation: false
 period: "2026"
+updated: 2026-09-21
 engagement: active
 services:
   - Fragment shader that fills along the shape

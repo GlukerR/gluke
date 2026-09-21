@@ -7,12 +7,14 @@ client: Веб-графика
 industry: Интерактивные виджеты
 categories:
   - webgl
+categoryOrder:
+  webgl: 9
 position: 28
 featured: false
 status: published
 navigation: false
 period: "2026"
-updated: 2026-09-08
+updated: 2026-09-21
 engagement: completed
 services:
   - Разбор фотографии на частицы

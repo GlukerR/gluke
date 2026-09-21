@@ -7,12 +7,14 @@ client: Web graphics
 industry: Widgets
 categories:
   - webgl
+categoryOrder:
+  webgl: 5
 position: 23
 featured: false
 status: published
 navigation: false
 period: "2026"
-updated: 2026-09-05
+updated: 2026-09-21
 engagement: completed
 services:
   - SDF raymarch shader

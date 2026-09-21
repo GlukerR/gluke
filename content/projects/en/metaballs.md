@@ -7,12 +7,14 @@ client: Web graphics
 industry: Widgets
 categories:
   - webgl
+categoryOrder:
+  webgl: 8
 position: 27
 featured: false
 status: published
 navigation: false
 period: "2026"
-updated: 2026-09-09
+updated: 2026-09-21
 engagement: completed
 services:
   - Fragment shader of a metaball field

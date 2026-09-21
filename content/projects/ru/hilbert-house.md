@@ -6,14 +6,13 @@ description: Серия GLB-моделей коттеджей Hilbert с инт�
 client: Hilbert
 industry: Загородное строительство
 categories:
-  - webgl
   - exteriors
 position: 12
 featured: false
 status: published
 navigation: false
 period: "2026"
-updated: 2026-09-19
+updated: 2026-09-21
 engagement: active
 clientUrl: https://hilbert-house.ru/projects/cottages-e/3d-model-e
 services:
