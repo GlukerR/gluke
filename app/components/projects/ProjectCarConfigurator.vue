@@ -757,27 +757,14 @@ function wheelNodes(active: CachedCarConfigurator): THREE.Object3D[] {
 }
 
 /*
- * Чужие колёса: при смене машины прежние колёса остаются в сцене, чтобы новая
- * не показывалась кузовом на полу, пока едет её подробный уровень (§83).
- * Свои колёса приносит подробный уровень — тогда чужие надо отпустить, иначе
- * они заслонят место под колёсами новой машины.
- */
-function dropBorrowedWheels(active: CachedCarConfigurator): boolean {
-  if (!active.wheels.userData.borrowedCar) return false
-  active.scene.remove(active.wheels)
-  disposeObjectResources(active.wheels)
-  active.wheels = new active.three.Group()
-  return true
-}
-
-/*
  * Колёса держим в сцене, а не внутри уровня детализации: упрощённые уровни
  * приходят без колёс вовсе. Ноды подробного уровня переносятся в группу
- * `lod-wheels` через `attach` с сохранением мировых координат.
+ * `lod-wheels` через `attach` с сохранением мировых координат. До его приезда
+ * колёс в кадре нет: кузов и так стоит на своей высоте (посадка из манифеста),
+ * а чужие колёса под ним стояли не по его аркам (§89).
  */
 function hoistWheels(active: CachedCarConfigurator): void {
   if (active.lod !== lods.value[0]?.id) return
-  dropBorrowedWheels(active)
   if (active.wheels.children.length > 0) return
 
   const nodes = wheelNodes(active)
@@ -882,14 +869,10 @@ function buildLodModel(active: CachedCarConfigurator, entry: CarLodEntry): Promi
   }, entry)
 }
 
-/*
- * Снимает машину со сцены и освобождает все её собранные уровни.
- *
- * Колёса можно оставить (`keepWheels`): при смене машины они остаются стоять
- * там, где стояли, и новой машине подставляются вместо своих, пока её подробный
- * уровень в пути. Забирает их обратно `dropBorrowedWheels`.
- */
-function releaseCar(active: CachedCarConfigurator, keepWheels = false): void {
+/* Снимает машину со сцены и освобождает все её собранные уровни вместе с
+   колёсами; группа колёс заводится пустая — её наполнит подробный уровень
+   следующей машины. */
+function releaseCar(active: CachedCarConfigurator): void {
   active.scene.remove(active.model)
   const disposeWire = (root: THREE.Object3D) => root.traverse((object) => {
     if (object.userData.garageWire) (object as THREE.LineSegments).geometry.dispose()
@@ -899,10 +882,10 @@ function releaseCar(active: CachedCarConfigurator, keepWheels = false): void {
     disposeObjectResources(model.root)
     disposeCarMaterials(model.materials)
   }
-  if (keepWheels) return
   active.scene.remove(active.wheels)
   disposeWire(active.wheels)
   disposeObjectResources(active.wheels)
+  active.wheels = new active.three.Group()
 }
 
 /* Задание на сборку уровня новой машины: в сцене ещё стоит прежняя, поэтому
@@ -1116,15 +1099,11 @@ async function selectVehicle(id: string) {
       return
     }
 
-    /* Прежняя машина уходит, а её колёса остаются: они уже стоят на полу и
-       станут колёсами новой машины, пока та едет лёгким уровнем (§83). Кузов
-       новой стоит по своей постоянной — чужие колёса его не двигают. */
-    const borrowed = active.wheels.children.length > 0 ? active.wheels : null
-    const previousVehicleId = active.vehicleId
-
-    releaseCar(active, !!borrowed)
+    /* Прежняя машина уходит вместе с колёсами. Новая до подробного уровня
+       стоит без колёс, но на своей высоте: колёса другой машины под её
+       кузовом не попадали в арки (§89). */
+    releaseCar(active)
     active.lodModels = new Map()
-    if (borrowed) borrowed.userData.borrowedCar = previousVehicleId
 
     active.manifest = manifest
     active.vehicleId = vehicle.id
