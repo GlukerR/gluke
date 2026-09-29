@@ -27,30 +27,42 @@ demo:
   tunable: true
   model: /media/projects/particles/deer.glb
   params:
-    points: 21000
-    pointSize: 0.9
-    spread: 0.08
-    revealSpeed: 0.195
-    pointOpacity: 0.145
-    brightness: 1
-    paths: 8
-    pathStep: 0.11
-    pathSpeed: 13
-    lineTail: 1850
-    lineFade: 9.5
-    lineOpacity: 0.425
-    lineDisplace: 0.05
-    hueShift: 0
-    lineHueSpread: 0.5
-    lineShimmer: 0.09
-    spin: 0.01
+    points: 35000
+    pointSize: 0.8
+    spread: 0.05
+    revealSpeed: 0.4
+    pointOpacity: 0.165
+    brightness: 0.47
+    paths: 32
+    pathStep: 0.16
+    pathSpeed: 327
+    lineTail: 850
+    lineFade: 10
+    lineOpacity: 0.205
+    lineDisplace: 0
+    hueShift: 0.08
+    lineHueSpread: 0.49
+    lineShimmer: 0.06
+    pointJitter: 0.009
+    jitterSpeed: 0.55
+    pointTravel: 0
+    pointHop: 2
+    twinkle: 1
+    twinkleSpeed: 0.85
+    modelScale: 1.15
+    cursorPush: 0.03
+    cursorReach: 0.13
+    waveStrength: 0.45
+    waveSpeed: 1.65
+    waveWidth: 0.12
+    spin: 0.1
     tilt: 0.17
 metrics:
   - value: 21K
     label: triangles in the source model
   - value: "30"
     label: parameters you can turn right on the page
-  - value: 21K
+  - value: 35K
     label: points by default, up to 80 thousand in the lab
 cover:
   src: /media/projects/particles/particles-cover.jpg

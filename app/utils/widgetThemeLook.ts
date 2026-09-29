@@ -56,7 +56,11 @@ export const PARTICLES_THEME_LOOK: Record<'dark' | 'light', WidgetThemeLook> = {
     additive: true,
     color: '#c084fc',
     accent: '#38bdf8',
-    brightness: 1,
+    /* Яркость и линии тёмной темы — те же, что в кейсе: вид задаёт этот
+       набор, и без них карточка после светлой темы оставалась бы с её
+       значениями. */
+    brightness: 0.47,
+    lineOpacity: 0.205,
   },
   light: {
     additive: false,
