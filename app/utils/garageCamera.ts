@@ -45,18 +45,25 @@ export function polarFromElevation(degrees: number): number {
  * камера встаёт в три четверти к ней, на `turn` градусов от оси торца.
  * `side` — деталь по борту (юбки): камера встаёт сбоку, перпендикулярно
  * длинной оси. Подъём — небольшой: это подъезд к детали, а не смена плана.
+ * `lead` — доля пути, на которую цель облёта уезжает от центра машины к
+ * детали: 0 — камера смотрит в центр, 1 — прямо в деталь.
  */
 export interface GarageFocusSpec {
   view: 'end' | 'side'
   elevation: number
   turn: number
+  lead: number
 }
 
 export const GARAGE_FOCUS: Readonly<Record<string, GarageFocusSpec>> = {
-  bumper_front: { view: 'end', elevation: 11, turn: 36 },
-  bumper_rear: { view: 'end', elevation: 13, turn: 36 },
-  spoiler: { view: 'end', elevation: 24, turn: 40 },
-  skirt: { view: 'side', elevation: 7, turn: 0 },
+  /* Бампер — самая низкая деталь: камера почти на его уровне (~1,2 м на
+     дистанции гаража) и смотрит в точку между центром машины и бампером —
+     сверху он прячется под капотом и багажником, а с целью в центре машины
+     нос уходит за край кадра. */
+  bumper_front: { view: 'end', elevation: 4, turn: 30, lead: 0.55 },
+  bumper_rear: { view: 'end', elevation: 5, turn: 30, lead: 0.55 },
+  spoiler: { view: 'end', elevation: 24, turn: 40, lead: 0 },
+  skirt: { view: 'side', elevation: 7, turn: 0, lead: 0 },
 }
 
 export interface FocusInput {
@@ -85,6 +92,22 @@ export function focusAzimuth({ spec, theta, part, size }: FocusInput): number | 
   const base = Math.atan2(part.x, part.z)
   const turn = (spec.turn * Math.PI) / 180
   return nearestAngle(theta, [base + turn, base - turn])
+}
+
+export interface Point3 {
+  x: number
+  y: number
+  z: number
+}
+
+/** Цель облёта при подъезде к детали: от центра машины к детали на долю `lead`. */
+export function focusTarget(car: Point3, part: Point3 | null, lead: number): Point3 {
+  if (!part || lead <= 0) return { ...car }
+  return {
+    x: car.x + (part.x - car.x) * lead,
+    y: car.y + (part.y - car.y) * lead,
+    z: car.z + (part.z - car.z) * lead,
+  }
 }
 
 /**

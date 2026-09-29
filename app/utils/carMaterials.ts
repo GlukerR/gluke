@@ -593,8 +593,8 @@ export interface CarSelection {
 
 /* Стартовое состояние — «без цвета» под печатью «Сакура»: кейс открывается
    материалом ровно таким, каким его отдал заказчик, и первым в списке печатей
-   стоит самый спокойный из узоров. Любой цвет — уже тонировка поверх узора,
-   а «без узора» — чистая краска без печати. */
+   стоит самый спокойный из узоров. Цвет и узор взаимоисключающие
+   (`withPaint`): выбранный цвет — чистая краска без печати. */
 export function defaultCarSelection(): CarSelection {
   return {
     color: resolveColor('none').id,
@@ -614,6 +614,23 @@ export function resolvePattern(id: string): CarPattern {
 
 export function resolveCoverage(id: string): CarCoverage {
   return CAR_COVERAGES.find(coverage => coverage.id === id) ?? CAR_COVERAGES[0] as CarCoverage
+}
+
+/*
+ * Цвет и узор взаимоисключающие: выбранный цвет снимает узор, выбранный узор
+ * снимает цвет — на кузове либо чистая краска, либо печать как в файле, без
+ * тонировки поверх неё. «Без цвета» и «без узора» другую ось не трогают.
+ * Покрытие и масштаб от этого не зависят.
+ */
+export function withPaint(
+  selection: CarSelection,
+  kind: 'color' | 'pattern' | 'coverage',
+  id: string,
+): CarSelection {
+  const next = { ...selection, [kind]: id }
+  if (kind === 'color' && id !== 'none') next.pattern = 'none'
+  if (kind === 'pattern' && id !== 'none') next.color = 'none'
+  return next
 }
 
 /** Папка кейса с моделями: тот же путь, что у GLB, без имени файла. */
@@ -1385,17 +1402,25 @@ async function loadTile(handle: CarMaterialHandle, tileId: string): Promise<THRE
  * раскладывает значения по юниформам. Ничего не пересобирает — геометрия и
  * программы шейдеров те же, меняются только значения.
  */
+/*
+ * `isCurrent` — выбор ещё актуален: пока грузились карты, могли выбрать другой,
+ * и поздно догрузившийся прежний выбор не должен лечь поверх нового.
+ * Возвращает, наложен ли выбор.
+ */
 export async function setCarSelection(
   handle: CarMaterialHandle,
   selection: CarSelection,
-): Promise<void> {
+  isCurrent: () => boolean = () => true,
+): Promise<boolean> {
   const coverage = resolveCoverage(selection.coverage)
   const pattern = resolvePattern(selection.pattern)
   const [cover, tile] = await Promise.all([
     coverage.tile ? loadTile(handle, coverage.tile) : Promise.resolve(null),
     pattern.tile ? loadTile(handle, pattern.tile) : Promise.resolve(null),
   ])
+  if (!isCurrent()) return false
   applySelection(handle, selection, cover, tile)
+  return true
 }
 
 /** Освобождает текстуры тайлов. Материалы освободит общий dispose вьювера. */

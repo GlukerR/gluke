@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   easeInOutCubic,
   focusAzimuth,
+  focusTarget,
   GARAGE_FOCUS,
   nearestAngle,
   polarFromElevation,
@@ -49,9 +50,9 @@ describe('focusAzimuth', () => {
   it('бампер: три четверти к торцу, со стороны текущей камеры', () => {
     /* Передний бампер в +Z от центра машины. */
     const theta = focusAzimuth({ spec: GARAGE_FOCUS.bumper_front!, theta: deg(60), part: { x: 0, z: 2 } })
-    expect(theta).toBeCloseTo(deg(36))
+    expect(theta).toBeCloseTo(deg(GARAGE_FOCUS.bumper_front!.turn))
     const other = focusAzimuth({ spec: GARAGE_FOCUS.bumper_front!, theta: deg(-60), part: { x: 0, z: 2 } })
-    expect(other).toBeCloseTo(deg(-36))
+    expect(other).toBeCloseTo(deg(-GARAGE_FOCUS.bumper_front!.turn))
   })
 
   it('юбка: сбоку, перпендикулярно длинной оси', () => {
@@ -63,6 +64,28 @@ describe('focusAzimuth', () => {
   it('без данных камера остаётся на месте', () => {
     expect(focusAzimuth({ spec: GARAGE_FOCUS.bumper_rear!, theta: 0 })).toBeNull()
     expect(focusAzimuth({ spec: GARAGE_FOCUS.skirt!, theta: 0 })).toBeNull()
+  })
+})
+
+describe('focusTarget', () => {
+  const car = { x: 0, y: 0.8, z: 0 }
+
+  it('цель уезжает к детали на долю lead', () => {
+    const target = focusTarget(car, { x: 0, y: 0.5, z: 2 }, 0.5)
+    expect(target.x).toBeCloseTo(0)
+    expect(target.y).toBeCloseTo(0.65)
+    expect(target.z).toBeCloseTo(1)
+  })
+
+  it('без детали или с нулевой долей — центр машины', () => {
+    expect(focusTarget(car, null, 0.5)).toEqual(car)
+    expect(focusTarget(car, { x: 0, y: 0.5, z: 2 }, 0)).toEqual(car)
+  })
+
+  it('бамперы смотрят ближе к себе, юбки и спойлер — в центр', () => {
+    expect(GARAGE_FOCUS.bumper_front!.lead).toBeGreaterThan(0)
+    expect(GARAGE_FOCUS.bumper_rear!.lead).toBeGreaterThan(0)
+    expect(GARAGE_FOCUS.skirt!.lead).toBe(0)
   })
 })
 

@@ -42,6 +42,7 @@ import {
   resolveCoverage,
   resolvePattern,
   setCarSelection,
+  withPaint,
   type CarLampSplit,
   type CarSelection,
 } from '~/utils/carMaterials'
@@ -55,6 +56,7 @@ import { buildGarageVehicles, type GarageVehicle, type GarageVehicleInput } from
 import {
   easeInOutCubic,
   focusAzimuth,
+  focusTarget,
   GARAGE_FOCUS,
   polarFromElevation,
   shortestAngleDelta,
@@ -177,6 +179,8 @@ interface VehicleLoad {
 }
 let vehicleLoad: VehicleLoad | null = null
 let vehicleLoadToken = 0
+/* Номер последней окраски: догрузившийся прежний выбор не ложится поверх нового. */
+let paintToken = 0
 
 function vehicleRotation(vehicle: GarageVehicle | undefined): number {
   return vehicle?.rotation ?? props.model.rotation ?? 0
@@ -454,6 +458,10 @@ interface CameraTween {
   deltaTheta: number
   fromPhi: number
   toPhi: number
+  /* Цель облёта едет вместе с углами: к детали при подъезде, в центр машины
+     при возврате (`GarageFocusSpec.lead`). */
+  fromTarget: THREE.Vector3
+  toTarget: THREE.Vector3
   startedAt: number
 }
 const CAMERA_TWEEN_MS = 1100
@@ -472,7 +480,8 @@ function roleCenter(active: CachedCarConfigurator, role: string): THREE.Vector3 
 /*
  * Камера мягко встаёт к выбранной детали: к переднему бамперу — в три четверти
  * спереди, к заднему — сзади, к юбкам — сбоку. Дистанция не меняется, подъём
- * небольшой: это подъезд внутри того же гаража, а не монтажная склейка.
+ * небольшой: это подъезд внутри того же гаража, а не монтажная склейка. К
+ * бамперам камера опускается почти на их уровень и смотрит ближе к ним.
  */
 function focusOnRole(role: string) {
   focusRole.value = role
@@ -485,11 +494,14 @@ function focusOnRole(role: string) {
   const spherical = new three.Spherical().setFromVector3(offset)
   const center = spec.view === 'end' ? roleCenter(active, role) : null
   const size = new three.Box3().setFromObject(active.model).getSize(new three.Vector3())
+  /* Ракурс считается от центра машины, а не от цели облёта: её мог сдвинуть
+     подъезд к прошлой детали. */
+  const car = active.center
 
   const theta = focusAzimuth({
     spec,
     theta: spherical.theta,
-    part: center ? { x: center.x - controls.target.x, z: center.z - controls.target.z } : undefined,
+    part: center ? { x: center.x - car.x, z: center.z - car.z } : undefined,
     size: { x: size.x, z: size.z },
   })
   if (theta === null) return
@@ -499,15 +511,38 @@ function focusOnRole(role: string) {
     toTheta = Math.min(controls.maxAzimuthAngle, Math.max(controls.minAzimuthAngle, theta))
   }
   const toPhi = Math.min(controls.maxPolarAngle, Math.max(controls.minPolarAngle, polarFromElevation(spec.elevation)))
+  const target = focusTarget(car, center, spec.lead)
 
   cameraTween = {
     fromTheta: spherical.theta,
     deltaTheta: shortestAngleDelta(spherical.theta, toTheta),
     fromPhi: spherical.phi,
     toPhi,
+    fromTarget: controls.target.clone(),
+    toTarget: new three.Vector3(target.x, target.y, target.z),
     startedAt: performance.now(),
   }
   /* Подъезд анимируется в цикле: кадры нужны уже сейчас. */
+  requestRender()
+}
+
+/* Деталь больше не в фокусе — цель облёта возвращается в центр машины,
+   ракурс и подъём остаются, какими их оставил подъезд. */
+function releaseFocusTarget() {
+  const active = viewer
+  if (!active) return
+  const { camera, controls } = active
+  if (controls.target.distanceToSquared(active.center) < 1e-6) return
+  const spherical = new active.three.Spherical().setFromVector3(camera.position.clone().sub(controls.target))
+  cameraTween = {
+    fromTheta: spherical.theta,
+    deltaTheta: 0,
+    fromPhi: spherical.phi,
+    toPhi: spherical.phi,
+    fromTarget: controls.target.clone(),
+    toTarget: active.center.clone(),
+    startedAt: performance.now(),
+  }
   requestRender()
 }
 
@@ -523,6 +558,7 @@ function stepCameraTween(now: number): boolean {
     cameraTween.fromPhi + (cameraTween.toPhi - cameraTween.fromPhi) * eased,
     cameraTween.fromTheta + cameraTween.deltaTheta * eased,
   )
+  controls.target.lerpVectors(cameraTween.fromTarget, cameraTween.toTarget, eased)
   camera.position.copy(controls.target).add(offset)
   if (progress >= 1) cameraTween = null
   return true
@@ -795,8 +831,14 @@ function applySelection() {
 /* Окраска одной точкой: красятся все собранные уровни сразу (§55). */
 async function paintScene(): Promise<void> {
   if (!viewer) return
-  requestRender()
-  await Promise.all(carPaintHandles(viewer).map(handle => setCarSelection(handle, { ...paint.value })))
+  /* Кадр — после того, как окраска легла: карта узора грузится асинхронно,
+     и ранний кадр показал бы прежний выбор, а цикл после него заснул бы.
+     Выбор, который обогнали, не накладывается вовсе. */
+  const token = ++paintToken
+  const selection = { ...paint.value }
+  const isCurrent = () => token === paintToken
+  await Promise.all(carPaintHandles(viewer).map(handle => setCarSelection(handle, selection, isCurrent)))
+  if (isCurrent()) requestRender()
 }
 
 function selectVariant(groupId: string, variant: string) {
@@ -1192,10 +1234,11 @@ async function applyPaint(next: CarSelection) {
   await paintScene()
 }
 
+/* Цвет и узор взаимоисключающие (`withPaint`): выбор одного снимает другой. */
 function selectPaint(kind: 'color' | 'pattern' | 'coverage', id: string) {
   if (status.value !== 'ready') return
   if (paint.value[kind] === id) return
-  void applyPaint({ ...paint.value, [kind]: id })
+  void applyPaint(withPaint(paint.value, kind, id))
 }
 
 function selectScale(scale: number) {
@@ -1645,6 +1688,12 @@ watch(activeCategory, async (category, previous) => {
   updateViewShiftTarget()
 })
 
+/* Деталь сняли с фокуса (ушли из «Кузова», сменили машину) — камера снова
+   смотрит в центр машины. */
+watch(focusRole, (role) => {
+  if (!role) releaseFocusTarget()
+})
+
 watch(showWireframe, (on) => {
   syncWireframe()
   if (on) refreshStats()
@@ -1659,16 +1708,17 @@ onMounted(async () => {
   syncMenuIndicator()
 
   /* Окраска с прошлого визита — до сборки сцены, чтобы машина сразу
-     появилась в ней. Чужие или устаревшие id заменяются дефолтом. */
+     появилась в ней. Чужие или устаревшие id заменяются дефолтом. Запись
+     прежних визитов может держать и цвет, и узор сразу — остаётся узор. */
   if (!cachedViewer) {
     const stored = loadCarSelection()
     if (stored) {
-      paint.value = {
+      paint.value = withPaint({
         color: resolveColor(stored.color).id,
-        pattern: resolvePattern(stored.pattern).id,
+        pattern: 'none',
         scale: patternScale(stored.scale),
         coverage: resolveCoverage(stored.coverage).id,
-      }
+      }, 'pattern', resolvePattern(stored.pattern).id)
     }
   }
 

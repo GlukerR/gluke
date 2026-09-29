@@ -24,6 +24,7 @@ import {
   resolveColor,
   resolveCoverage,
   resolvePattern,
+  withPaint,
   zoneFromMask,
 } from './carMaterials'
 
@@ -186,6 +187,29 @@ describe('resolve', () => {
     expect(selection.pattern).toBe('cherry')
     expect(resolvePattern(selection.pattern).tile).toBe('cherry')
     expect(selection.scale).toBe(1)
+  })
+})
+
+describe('withPaint', () => {
+  const base = { color: 'none', pattern: 'cherry', scale: 1.5, coverage: 'matte' }
+
+  it('цвет снимает узор', () => {
+    expect(withPaint(base, 'color', 'racing-red')).toEqual({ ...base, color: 'racing-red', pattern: 'none' })
+  })
+
+  it('узор снимает цвет', () => {
+    const painted = { ...base, color: 'racing-red', pattern: 'none' }
+    expect(withPaint(painted, 'pattern', 'tiger')).toEqual({ ...painted, color: 'none', pattern: 'tiger' })
+  })
+
+  it('«без цвета» и «без узора» другую ось не трогают', () => {
+    expect(withPaint(base, 'color', 'none')).toEqual(base)
+    const painted = { ...base, color: 'racing-red', pattern: 'none' }
+    expect(withPaint(painted, 'pattern', 'none')).toEqual(painted)
+  })
+
+  it('покрытие не трогает ни цвет, ни узор', () => {
+    expect(withPaint(base, 'coverage', 'gloss')).toEqual({ ...base, coverage: 'gloss' })
   })
 })
 
