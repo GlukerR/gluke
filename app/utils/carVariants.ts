@@ -253,15 +253,27 @@ export function applyVariantSelection(
 export const WHEEL_ROLE = 'wheel'
 
 /**
- * Трисы уровня без колёс — единый счёт HUD и монитора (§56): машина сдана без
- * колёс, те, что в кадре, подставил вьювер. Иначе рядом стояли бы 32 370 у
- * LOD0 в файле и ~8 тыс. в кадре. Это вся геометрия уровня (все варианты
- * обвеса разом), поэтому число больше живого счётчика.
+ * Трисы видимой сборки уровня — подписи HUD считают то же, что живой счётчик
+ * Performance (§56, §91): колёса не входят (машина сдана без них, в кадре их
+ * подставил вьювер), а из вариантов обвеса — только выбранный в каждой группе.
+ * Варианты в GLB лежат друг на друге, но в кадре (и в игре) грузится один;
+ * сумма всех давала у родстера 13 909 вместо 8 931.
+ *
+ * `groups` — группы вариантов этого уровня (`buildVariantGroups`): у уровней
+ * без обвеса их нет, и считается вся геометрия. Роль группы без записи
+ * в `selection` не видна, как у `applyVariantSelection`.
  */
-export function levelTrisWithoutWheels(level: CarManifestLod): number {
+export function levelTris(
+  level: CarManifestLod,
+  groups: CarVariantGroup[],
+  selection: Record<string, string>,
+): number {
+  const grouped = new Set(groups.map(group => group.id))
   let tris = level.tris
   for (const node of Object.values(level.nodes)) {
-    if (node.role === WHEEL_ROLE) tris -= node.tris
+    const hidden = node.role === WHEEL_ROLE
+      || (grouped.has(node.role) && selection[node.role] !== node.variant)
+    if (hidden) tris -= node.tris
   }
   return tris
 }

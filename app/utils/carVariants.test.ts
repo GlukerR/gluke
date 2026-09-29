@@ -6,7 +6,7 @@ import {
   buildVariantGroups,
   countRenderStats,
   defaultSelection,
-  levelTrisWithoutWheels,
+  levelTris,
   nodeKey,
   nodeNamesByRole,
   NO_VARIANT,
@@ -277,19 +277,39 @@ describe('countRenderStats', () => {
   })
 })
 
-describe('levelTrisWithoutWheels', () => {
-  it('вычитает из уровня только колёса — обвес и кузов остаются', () => {
-    const level = {
-      file: 'car-lod0.glb',
-      bytes: 1,
-      tris: 1000,
-      nodes: {
-        body: { role: 'body', variant: '', tris: 400, pivot: [0, 0, 0], dims: [1, 1, 1] },
-        Wheel: { role: 'wheel', variant: '', tris: 150, pivot: [0, 0, 0], dims: [1, 1, 1] },
-        Wheel001: { role: 'wheel', variant: '', tris: 150, pivot: [0, 0, 0], dims: [1, 1, 1] },
-        spoiler_b: { role: 'spoiler', variant: 'b', tris: 300, pivot: [0, 0, 0], dims: [1, 1, 1] },
-      },
-    }
-    expect(levelTrisWithoutWheels(level)).toBe(700)
+describe('levelTris', () => {
+  const node = (role: string, variant: string, tris: number) => ({ role, variant, tris, pivot: [0, 0, 0], dims: [1, 1, 1] })
+  const level = {
+    file: 'car-lod0.glb',
+    bytes: 1,
+    tris: 2000,
+    nodes: {
+      body: node('body', '', 400),
+      Wheel: node('wheel', '', 150),
+      Wheel001: node('wheel', '', 150),
+      bumper_front_a: node('bumper_front', 'a', 200),
+      bumper_front_b: node('bumper_front', 'b', 250),
+      spoiler_a: node('spoiler', 'a', 100),
+      spoiler_b: node('spoiler', 'b', 300),
+      glass_a: node('glass', 'a', 50),
+      glass_c: node('glass', 'c', 50),
+    },
+  }
+  const manifest = { slug: 'car', lods: { 0: level } }
+  const groups = buildVariantGroups(manifest, '0')
+
+  it('колёса и невыбранные варианты обвеса не считаются', () => {
+    /* Кузов 400 + бампер a 200 + оба стекла 100; спойлер снят. Прочие 250 —
+       геометрия уровня вне нод манифеста, она видна всегда. */
+    expect(levelTris(level, groups, defaultSelection(groups))).toBe(2000 - 300 - 250 - 100 - 300)
+  })
+
+  it('следует выбору: другой бампер и спойлер — другая сумма', () => {
+    const selection = { bumper_front: 'b', spoiler: 'b' }
+    expect(levelTris(level, groups, selection)).toBe(2000 - 300 - 200 - 100)
+  })
+
+  it('уровень без групп обвеса считается целиком, кроме колёс', () => {
+    expect(levelTris(level, [], {})).toBe(2000 - 300)
   })
 })

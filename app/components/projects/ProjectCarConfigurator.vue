@@ -14,7 +14,7 @@ import {
   buildNodeMeta,
   buildVariantGroups,
   countRenderStats,
-  levelTrisWithoutWheels,
+  levelTris,
   defaultSelection,
   nodeNamesByRole,
   NO_VARIANT,
@@ -338,12 +338,17 @@ async function ensureVehicleManifests() {
   vehicleManifests.value = next
 }
 
-/* Трисы подробного уровня без колёс — тот же счёт, что у монитора (§56). */
+/* Трисы видимой сборки подробного уровня — тот же счёт, что у монитора
+   (§56, §91): у машины в зале — с выбранным обвесом, у остальных — сток,
+   с которым они откроются. */
 function vehicleTris(vehicle: GarageVehicle): number | undefined {
+  if (vehicle.id === activeVehicleId.value) return lodTris(lods.value[0]?.id ?? '0')
   const manifest = vehicleManifests.value.get(vehicle.id)
   const first = buildLods(manifest)[0]
   const level = first ? manifest?.lods?.[first.id] : undefined
-  return level ? levelTrisWithoutWheels(level) : undefined
+  if (!level || !first) return undefined
+  const stock = buildVariantGroups(manifest, first.id)
+  return levelTris(level, stock, defaultSelection(stock))
 }
 
 /* ───── Кадр ───── */
@@ -1305,10 +1310,12 @@ function coverageName(id: string): string {
   return t(`project.configurator.paint.coverages.${id}`)
 }
 
-/* Трисы уровня без колёс (§56, `levelTrisWithoutWheels`). */
+/* Трисы уровня в выбранной сборке: без колёс и без скрытых вариантов обвеса
+   (§91, `levelTris`) — столько же покажет Performance на этом уровне. */
 function lodTris(id: string): number | undefined {
   const level = manifestData.value?.lods?.[id]
-  return level ? levelTrisWithoutWheels(level) : lods.value.find(item => item.id === id)?.tris
+  if (!level) return lods.value.find(item => item.id === id)?.tris
+  return levelTris(level, buildVariantGroups(manifestData.value, id), selection.value)
 }
 
 function lodQuality(id: string): string {
