@@ -94,6 +94,13 @@ function readInitial(key: string): number {
   return Number(themeParams.value[key] ?? spec.value?.defaults?.[key] ?? 0)
 }
 
+/* Знаков после запятой — сколько у шага, но не меньше двух: иначе ползунок
+   с шагом 0.001 показывал бы «0.00» на всём своём ходе. */
+function stepDecimals(step: number): number {
+  if (step >= 1) return 0
+  return Math.max(2, Math.min(4, Math.ceil(-Math.log10(step) - 1e-9)))
+}
+
 function controlValue(key: string): number {
   return tuned[key] ?? readInitial(key)
 }
@@ -286,6 +293,7 @@ defineExpose({ failed })
       /* Объектные виджеты (портрет) в обычном hero растягиваются на всю
          высоту своей половины вместо 16:9-карточки. */
       { 'widget-demo--hero-fill': props.variant === 'hero' && spec?.heroFill },
+      { 'widget-demo--tall': props.variant === 'tunable' && spec?.tallStage },
     ]"
   >
     <div
@@ -370,7 +378,7 @@ defineExpose({ failed })
               @input="tuned[control.key] = Number(($event.target as HTMLInputElement).value)"
             >
             <span class="text-body--sm widget-demo__slider-value">
-              {{ controlValue(control.key).toFixed(control.step >= 1 ? 0 : 2) }}
+              {{ controlValue(control.key).toFixed(stepDecimals(control.step)) }}
             </span>
           </label>
         </div>
@@ -415,6 +423,15 @@ defineExpose({ failed })
 .widget-demo--hero-fill .widget-demo__stage {
   aspect-ratio: auto;
   height: 100%;
+}
+
+/* Высокая сцена лаборатории: квадрат, срезанный по высоте экрана, — чтобы
+   вытянутая вверх модель не терялась узкой полосой в 16:9. Ширину держим
+   явно: иначе упор в max-height сужал бы квадрат и оставлял пустоту сбоку. */
+.widget-demo--tall .widget-demo__stage {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-height: calc(100svh - 128px);
 }
 
 /* Полноэкранный bleed-режим: виджет заполняет весь верх страницы фоном,

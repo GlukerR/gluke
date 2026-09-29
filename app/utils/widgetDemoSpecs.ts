@@ -105,6 +105,10 @@ export interface WidgetDemoSpec {
       занимает колонку целиком, на узком экране уходит вторым блоком под
       текст. */
   heroFill?: boolean
+  /** Высокая сцена в лаборатории: квадрат, но не выше экрана. Для моделей,
+      вытянутых вверх, — в 16:9-карточке олень упирался рогами и копытами
+      в край кадра, а по ширине занимал узкую полосу посередине. */
+  tallStage?: boolean
   /** Подпись под панелью: сколько объектов получится при текущих настройках. */
   estimate?: (stage: { w: number, h: number }, value: (key: string) => number) => number | null
 }
@@ -520,6 +524,7 @@ export const WIDGET_DEMO_SPECS: Record<string, WidgetDemoSpec> = {
     /* Олень — объект со своим центром композиции: в hero растягивается на всю
        высоту правой колонки, иначе в 16:9-карточке он выходит мелким. */
     heroFill: true,
+    tallStage: true,
     themeLook: light => PARTICLES_THEME_LOOK[light ? 'light' : 'dark'],
     defaults: {
       points: 21000,
@@ -538,6 +543,18 @@ export const WIDGET_DEMO_SPECS: Record<string, WidgetDemoSpec> = {
       hueShift: 0,
       lineHueSpread: 0.5,
       lineShimmer: 0.09,
+      pointJitter: 0,
+      jitterSpeed: 1,
+      pointTravel: 0,
+      pointHop: 2,
+      twinkle: 0.3,
+      twinkleSpeed: 0.8,
+      modelScale: 1,
+      cursorPush: 0.12,
+      cursorReach: 0.15,
+      waveStrength: 1,
+      waveSpeed: 1.2,
+      waveWidth: 0.12,
       spin: 0.01,
       tilt: 0.17,
     },
@@ -563,10 +580,10 @@ export const WIDGET_DEMO_SPECS: Record<string, WidgetDemoSpec> = {
       {
         id: 'lines',
         controls: [
-          { key: 'paths', min: 0, max: 8, step: 1 },
+          { key: 'paths', min: 0, max: 32, step: 1 },
           { key: 'pathStep', min: 0.03, max: 0.4, step: 0.01 },
-          { key: 'pathSpeed', min: 0, max: 100, step: 1 },
-          { key: 'lineTail', min: 0, max: 3600, step: 50 },
+          { key: 'pathSpeed', min: 0, max: 400, step: 1 },
+          { key: 'lineTail', min: 0, max: 20000, step: 50 },
           { key: 'lineFade', min: 0, max: 10, step: 0.05 },
           { key: 'lineOpacity', min: 0, max: 1, step: 0.005 },
           { key: 'lineDisplace', min: 0, max: 0.3, step: 0.005 },
@@ -581,10 +598,42 @@ export const WIDGET_DEMO_SPECS: Record<string, WidgetDemoSpec> = {
         ],
       },
       {
+        /* Точки не стоят: дрожат на месте и, обновляясь, перелетают на новое
+           место сквозь тело модели. Дальность ограничивает перелёт соседями —
+           тогда облако не роится, а течёт по поверхности. */
+        id: 'swarm',
+        controls: [
+          { key: 'pointJitter', min: 0, max: 0.05, step: 0.001 },
+          { key: 'jitterSpeed', min: 0, max: 5, step: 0.05 },
+          { key: 'pointTravel', min: 0, max: 6, step: 0.1 },
+          { key: 'pointHop', min: 0.02, max: 2, step: 0.01 },
+          { key: 'twinkle', min: 0, max: 1, step: 0.01 },
+          { key: 'twinkleSpeed', min: 0, max: 5, step: 0.05 },
+        ],
+      },
+      {
+        /* Курсор сдвигает точки в плоскости экрана (минус — притягивает),
+           нажатие пускает по телу волну из точки под курсором. */
+        id: 'cursor',
+        controls: [
+          { key: 'cursorPush', min: -0.4, max: 0.4, step: 0.01 },
+          { key: 'cursorReach', min: 0.02, max: 0.6, step: 0.01 },
+        ],
+      },
+      {
+        id: 'wave',
+        controls: [
+          { key: 'waveStrength', min: 0, max: 3, step: 0.05 },
+          { key: 'waveSpeed', min: 0.1, max: 4, step: 0.05 },
+          { key: 'waveWidth', min: 0.02, max: 0.5, step: 0.01 },
+        ],
+      },
+      {
         id: 'motion',
         controls: [
           { key: 'spin', min: -0.8, max: 0.8, step: 0.01 },
           { key: 'tilt', min: -0.6, max: 0.6, step: 0.01 },
+          { key: 'modelScale', min: 0.5, max: 2.5, step: 0.05 },
         ],
       },
     ],

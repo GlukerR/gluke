@@ -135,6 +135,8 @@ export default {
         /* Point cloud sampled from a model. */
         cloud: 'Points',
         lines: 'Lines',
+        swarm: 'Point life',
+        wave: 'Click wave',
         /* Energy fill. */
         beam: 'Beam',
         glow: 'Glow',
@@ -197,6 +199,17 @@ export default {
         lineOpacity: 'Line opacity',
         pointOpacity: 'Point opacity',
         lineDisplace: 'Lift off the surface',
+        pointJitter: 'Point jitter',
+        jitterSpeed: 'Jitter frequency',
+        pointTravel: 'Point flight, s',
+        pointHop: 'Flight range',
+        twinkleSpeed: 'Twinkle frequency',
+        cursorPush: 'Push (minus pulls)',
+        cursorReach: 'Cursor radius',
+        waveStrength: 'Wave strength',
+        waveSpeed: 'Wave speed',
+        waveWidth: 'Wave front width',
+        modelScale: 'Model scale',
         /* Energy fill. */
         markPick: 'Mark: 0 — triangle, 1 — G',
         detail: 'Map resolution',
