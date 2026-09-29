@@ -120,6 +120,9 @@ const DEFAULTS = {
    xyz — точка удара в координатах облака, w — время старта. Фронт идёт
    сферой от точки удара и гаснет, пока проходит модель насквозь. */
 const WAVES = 4
+/* Не чаще одной волны за столько секунд: частые щелчки в одну точку
+   сливались в пересвеченное пятно, в котором фронта не видно. */
+const WAVE_COOLDOWN = 0.3
 const WAVE_GLSL = `
 uniform float uTime;
 uniform vec4 uWaves[${WAVES}];
@@ -140,7 +143,11 @@ float waveAt(vec3 pos, inout vec3 push) {
     sum += band;
     if (dist > 1e-5) push += away / dist * band;
   }
-  return sum * uWaveStrength;
+  /* Наложенные волны не складываются выше одной: иначе серия щелчков в одну
+     точку пересвечивала место удара и расталкивала точки там всё сильнее. */
+  float len = length(push);
+  if (len > 1.0) push /= len;
+  return min(sum, 1.0) * uWaveStrength;
 }`
 
 const VERT = `
@@ -377,7 +384,7 @@ class Widget {
       uWaveLife: { value: 1 },
       uWavePush: { value: 0 },
     }
-    this.waveSlot = 0
+    this.lastStrike = -Infinity
     this.inverse = new Matrix4()
     this.mouse = new Vector2()
     this.mouseTarget = 0
@@ -1114,6 +1121,14 @@ class Widget {
      точнее для волны и не нужно. Промах мимо модели волну не запускает. */
   strike(ndc) {
     if (!this.ready || !this.parts || this.frozen || !(this.o.waveStrength > 0)) return
+    if (this.time - this.lastStrike < WAVE_COOLDOWN) return
+    /* Новая волна — только в свободный слот. Раньше пятый щелчок подряд
+       занимал слот самой старой волны, и та обрывалась посреди модели.
+       Слотов четыре, волна живёт ~1,8 с — не больше четырёх волн за это время,
+       лишние щелчки просто не срабатывают. */
+    const waves = this.fx.uWaves.value
+    const slot = waves.findIndex(wave => this.time - wave.w >= this.fx.uWaveLife.value)
+    if (slot < 0) return
     this.group.updateMatrixWorld()
     const ray = this.ray || (this.ray = new Raycaster())
     ray.setFromCamera(ndc, this.camera)
@@ -1143,8 +1158,8 @@ class Widget {
       }
     }
     if (best === Infinity) return
-    this.fx.uWaves.value[this.waveSlot].set(bx, by, bz, this.time)
-    this.waveSlot = (this.waveSlot + 1) % WAVES
+    waves[slot].set(bx, by, bz, this.time)
+    this.lastStrike = this.time
   }
 
   /* Источники кадров: активность вкладки и пересечение с вьюпортом — два
