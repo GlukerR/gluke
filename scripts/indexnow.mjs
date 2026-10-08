@@ -6,7 +6,11 @@
  *
  * Ключ: файл `public/<ключ>.txt`, имя которого и есть ключ (см. протокол IndexNow).
  * URL берутся из `NUXT_SITE_URL` (или дефолт https://gluke.ru) + статические
- * маршруты и слаги кейсов из `content/projects/en`.
+ * маршруты, слаги кейсов из `content/projects/en` и опубликованные статьи базы
+ * знаний из `content/knowledge/en` (с хабом и глоссарием), в обеих локалях.
+ *
+ * Аргументы — фильтр по пути: `pnpm indexnow -- /knowledge` отправит только
+ * адреса, в пути которых есть `/knowledge`.
  */
 import { readdirSync, readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
@@ -43,13 +47,31 @@ function collectUrls(base) {
       urls.push(`${base}/projects/${slug}`, `${base}/ru/projects/${slug}`)
     }
   }
+  if (existsSync(join(process.cwd(), 'content', 'knowledge'))) {
+    urls.push(`${base}/knowledge`, `${base}/ru/knowledge`)
+    if (existsSync(join(process.cwd(), 'content', 'glossary', 'en.yml'))) {
+      urls.push(`${base}/knowledge/glossary`, `${base}/ru/knowledge/glossary`)
+    }
+  }
+  const knowledgeDir = join(process.cwd(), 'content', 'knowledge', 'en')
+  if (existsSync(knowledgeDir)) {
+    for (const file of readdirSync(knowledgeDir)) {
+      if (!file.endsWith('.md')) continue
+      /* Черновик не отправляем: страницы у него ещё нет. */
+      if (!/^status:\s*published\s*$/m.test(readFileSync(join(knowledgeDir, file), 'utf8'))) continue
+      const slug = file.replace(/\.md$/, '')
+      urls.push(`${base}/knowledge/${slug}`, `${base}/ru/knowledge/${slug}`)
+    }
+  }
   return [...new Set(urls)]
 }
 
 async function main() {
   const base = String(process.env.NUXT_SITE_URL || 'https://gluke.ru').replace(/\/+$/, '')
   const key = findKey()
+  const filters = process.argv.slice(2).filter(arg => arg !== '--')
   const urls = collectUrls(base)
+    .filter(url => !filters.length || filters.some(part => new URL(url).pathname.includes(part)))
   console.log(`IndexNow key: ${key}`)
   console.log(`Pinging ${urls.length} URLs on ${base}...`)
 
