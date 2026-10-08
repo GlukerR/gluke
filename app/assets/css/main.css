@@ -74,6 +74,38 @@
   --site-on-accent-surface-hover: #171717;
   --site-on-accent-surface-text: #f5f5f1;
 
+  /* Схемы базы знаний (`app/components/knowledge/art/*`) рисуются прямо
+     в разметке SVG и своих цветов не имеют: каждая роль выведена из токенов
+     сайта выше. Поэтому схемы перекрашиваются вместе с темой и вслед за
+     любой правкой палитры сайта — так же, как текст.
+     ink — контуры и подписи, accent — главное на схеме, soft — заливки,
+     muted — второстепенное, paper — поле схемы. */
+  --kb-paper: var(--site-surface);
+  --kb-ink: var(--site-text);
+  --kb-muted: var(--site-text-muted);
+  --kb-line: var(--site-border-strong);
+  --kb-accent: var(--site-accent);
+  --kb-accent-strong: var(--site-accent-hover);
+  /* Подписи акцентом — та же роль, что у акцентного текста сайта:
+     контраст для мелкого текста уже подобран в обеих темах. */
+  --kb-accent-text: var(--site-accent-text);
+  --kb-soft: color-mix(in srgb, var(--site-accent) 16%, var(--kb-paper));
+  --kb-soft-strong: color-mix(in srgb, var(--site-accent) 34%, var(--kb-paper));
+  /* Грани объёмных предметов — фирменный цвет, осветлённый и затемнённый:
+     освещённая грань светлее средней, теневая темнее в любой теме. */
+  --kb-face-lit: color-mix(in srgb, var(--site-accent) 42%, white);
+  --kb-face-mid: color-mix(in srgb, var(--site-accent) 78%, var(--kb-paper));
+  --kb-face-dark: color-mix(in srgb, var(--site-accent) 55%, black);
+  --kb-shadow: rgb(0 0 0 / 60%);
+  --kb-glow: white;
+  /* Нейтральный «глиняный» рендер (clay): та же логика граней, но от
+     приглушённого цвета текста сайта, без фирменного оттенка. */
+  --kb-clay-lit: color-mix(in srgb, var(--kb-muted) 35%, white);
+  --kb-clay-mid: color-mix(in srgb, var(--kb-muted) 72%, white);
+  --kb-clay-dark: color-mix(in srgb, var(--kb-muted) 80%, black);
+  /* Текст поверх акцентной заливки — та же роль, что у кнопок сайта. */
+  --kb-on-accent: var(--site-accent-fg);
+
   --type-display: clamp(2.5rem, 6.5vw, 5.5rem);
   --type-display-leading: 1.02;
   --type-display-tracking: -0.035em;
@@ -139,6 +171,9 @@
      (добавлен ниже) не даёт белым 3D-моделям слиться с фоном. */
   --site-media-canvas: var(--site-surface-raised);
   --site-media-canvas-loop: var(--site-bg);
+
+  /* Тень на светлом поле — тёмный текст сайта, а не чёрный. */
+  --kb-shadow: color-mix(in srgb, var(--site-text) 28%, transparent);
 }
 
 @layer base {

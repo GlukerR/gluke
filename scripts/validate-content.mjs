@@ -259,6 +259,155 @@ function categoryOrderIssues(byLocale, orderCategoryProjects) {
   return issues
 }
 
+/* База знаний: связи статьи с остальным сайтом. Схема поля проверяет, а
+   существование того, на что поле ссылается, — нет: опечатка в slug кейса
+   дала бы молча пропавшую карточку, а в адресе схемы — пустую рамку.
+
+   Правила:
+   - статья лежит парой RU + EN с одним slug и одним статусом — sitemap и
+     hreflang считают, что у адреса есть обе версии;
+   - `cases` — опубликованные кейсы, `related` — опубликованные статьи той же
+     локали;
+   - у статьи есть `cover` или хотя бы один кейс: из них берётся картинка
+     превью ссылки;
+   - `::kb-figure{art}` — существующая схема в `app/components/knowledge/art/`,
+     и у неё есть `alt`;
+   - внутренние ссылки в тексте ведут на существующие кейсы и статьи своего
+     языка, а ссылка на глоссарий с якорем — на существующий термин;
+   - slug `glossary` занят страницей глоссария: статья с ним не открылась бы. */
+const ART_DIR = join(root, 'app', 'components', 'knowledge', 'art')
+const LOCALE_PREFIX = { en: '', ru: '/ru' }
+
+function artFile(name) {
+  return name.replace(/(^|-)([a-z0-9])/g, (_, __, char) => char.toUpperCase()) + '.vue'
+}
+
+function knowledgeIssues(knowledgeByLocale, projectsByLocale, glossaryByLocale) {
+  const failures = []
+  const locales = Object.keys(LOCALE_PREFIX)
+  const published = (items = []) => new Set(items.filter(item => item.status === 'published').map(item => item.slug))
+
+  for (const locale of locales) {
+    const articles = knowledgeByLocale[locale] ?? []
+    const cases = published(projectsByLocale[locale])
+    const ownArticles = published(articles.map(article => article.data))
+    const termIds = new Set((glossaryByLocale[locale]?.data.terms ?? []).map(term => term.id))
+    const prefix = LOCALE_PREFIX[locale]
+
+    for (const { data, raw, file } of articles) {
+      const issues = []
+
+      if (data.slug === GLOSSARY_SLUG) {
+        issues.push(`    slug «${GLOSSARY_SLUG}» занят страницей глоссария — статья по этому адресу не откроется`)
+      }
+
+      for (const other of locales.filter(code => code !== locale)) {
+        const pair = (knowledgeByLocale[other] ?? []).find(article => article.data.slug === data.slug)
+        if (!pair) {
+          issues.push(`    нет пары: статьи «${data.slug}» нет в локали ${other}`)
+        }
+        else if (pair.data.status !== data.status) {
+          issues.push(`    статус «${data.status}», а у пары в ${other} — «${pair.data.status}»`)
+        }
+      }
+
+      if (data.status !== 'published') {
+        if (issues.length) failures.push({ file, collection: 'knowledge', issues })
+        continue
+      }
+
+      for (const slug of data.cases ?? []) {
+        if (!cases.has(slug)) issues.push(`    cases: опубликованного кейса «${slug}» нет`)
+      }
+      for (const slug of data.related ?? []) {
+        if (!ownArticles.has(slug)) issues.push(`    related: опубликованной статьи «${slug}» нет`)
+      }
+      if (!data.cover && !(data.cases ?? []).length) {
+        issues.push('    нужен cover или хотя бы один кейс в cases — без них нечем показать превью ссылки')
+      }
+
+      for (const match of raw.matchAll(/::kb-figure\{([^}]*)\}/g)) {
+        const art = match[1].match(/art="([^"]+)"/)?.[1]
+        if (!art) {
+          issues.push(`    kb-figure без art: ${match[0]}`)
+          continue
+        }
+        if (!existsSync(join(ART_DIR, artFile(art)))) {
+          issues.push(`    kb-figure: схемы «${art}» нет (ждём app/components/knowledge/art/${artFile(art)})`)
+        }
+        if (!/alt="[^"]+"/.test(match[1])) {
+          issues.push(`    kb-figure «${art}»: нет alt — без него схема пуста для скринридера и для markdown-версии`)
+        }
+      }
+
+      for (const match of raw.matchAll(/\]\((\/[^)\s]*)/g)) {
+        const href = match[1]
+        const link = href.match(/^(\/ru)?\/(projects|knowledge)\/([a-z0-9-]+)(?:#([a-z0-9-]+))?$/)
+        if (!link) continue
+        const [, linkPrefix = '', kind, slug, hash] = link
+        if (linkPrefix !== prefix) {
+          issues.push(`    ссылка ${href} ведёт на другой язык`)
+        }
+        else if (kind === 'knowledge' && slug === GLOSSARY_SLUG) {
+          if (hash && !termIds.has(hash)) issues.push(`    ссылка ${href}: термина «${hash}» в глоссарии нет`)
+        }
+        else if (!(kind === 'projects' ? cases : ownArticles).has(slug)) {
+          issues.push(`    ссылка ${href}: такой опубликованной страницы нет`)
+        }
+      }
+
+      if (issues.length) failures.push({ file, collection: 'knowledge', issues })
+    }
+  }
+
+  return failures
+}
+
+/* Глоссарий: файл на каждую локаль, одинаковый набор `id` (это якоря одной
+   и той же страницы в двух языках), без повторов; `article` — опубликованная
+   статья той же локали. */
+const GLOSSARY_SLUG = 'glossary'
+
+function glossaryIssues(glossaryByLocale, knowledgeByLocale) {
+  const failures = []
+  const locales = Object.keys(LOCALE_PREFIX)
+
+  for (const locale of locales) {
+    const entry = glossaryByLocale[locale]
+    if (!entry) {
+      if (locales.some(code => glossaryByLocale[code])) {
+        failures.push({ file: `content/glossary/${locale}.yml`, collection: 'glossary', issues: ['    файла нет, а у другой локали глоссарий есть'] })
+      }
+      continue
+    }
+
+    const issues = []
+    const ids = entry.data.terms.map(term => term.id)
+    const articles = new Set((knowledgeByLocale[locale] ?? [])
+      .filter(article => article.data.status === 'published')
+      .map(article => article.data.slug))
+
+    for (const id of new Set(ids.filter((id, index) => ids.indexOf(id) !== index))) {
+      issues.push(`    id «${id}» повторяется`)
+    }
+    for (const other of locales.filter(code => code !== locale && glossaryByLocale[code])) {
+      const otherIds = new Set(glossaryByLocale[other].data.terms.map(term => term.id))
+      for (const id of ids.filter(id => !otherIds.has(id))) {
+        issues.push(`    термина «${id}» нет в локали ${other}`)
+      }
+    }
+    for (const term of entry.data.terms) {
+      if (term.article && !articles.has(term.article)) {
+        issues.push(`    ${term.id}: опубликованной статьи «${term.article}» нет`)
+      }
+    }
+
+    if (issues.length) failures.push({ file: entry.file, collection: 'glossary', issues })
+  }
+
+  return failures
+}
+
 function collectIssues(error) {
   return error.issues.map((issue) => {
     const path = issue.path.length ? issue.path.join('.') : '(корень)'
@@ -304,6 +453,8 @@ async function main() {
   const imageVersions = collectImageVersions({ rootDir: root })
   const failures = []
   const projectsByLocale = {}
+  const knowledgeByLocale = {}
+  const glossaryByLocale = {}
   let checked = 0
 
   for (const [name, collection] of Object.entries(collections)) {
@@ -360,11 +511,22 @@ async function main() {
         projectsByLocale[locale] ??= []
         projectsByLocale[locale].push(result.data)
       }
+
+      if (name === 'knowledge') {
+        knowledgeByLocale[result.data.locale] ??= []
+        knowledgeByLocale[result.data.locale].push({ data: result.data, raw, file: shortPath })
+      }
+
+      if (name === 'glossary') {
+        glossaryByLocale[result.data.locale] = { data: result.data, file: shortPath }
+      }
     }
   }
 
   const configIssues = deployConfigIssues()
   const orderIssues = categoryOrderIssues(projectsByLocale, orderCategoryProjects)
+  failures.push(...knowledgeIssues(knowledgeByLocale, projectsByLocale, glossaryByLocale))
+  failures.push(...glossaryIssues(glossaryByLocale, knowledgeByLocale))
 
   if (orderIssues.length) {
     console.error('\n[validate:content] подборки профилей нарушены:\n')

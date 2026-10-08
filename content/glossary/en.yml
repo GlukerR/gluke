@@ -1,0 +1,190 @@
+# Knowledge base glossary. A term, a one- or two-sentence plain-language
+# definition, and the article that explains it in depth (`article`, its slug).
+# `id` is the anchor on the page (/knowledge/glossary#lod) and the key shared
+# with ru.yml: both locales hold the same set of ids — `pnpm validate:content`
+# checks it. Order in the file doesn't matter: the page sorts terms A–Z.
+locale: en
+updated: 2026-10-08
+title: 3D terms in plain words
+intro: The words you hear when working with a 3D artist, explained in one or two sentences. Where a term is covered in more depth, there is a link to the article.
+terms:
+  - id: ar
+    term: AR
+    aka: [augmented reality]
+    definition: 'A 3D model placed over the phone camera image — the product stands in the room at full size. On a website it works without an app, through the viewers built into iPhone and Android.'
+    article: ar-on-website
+  - id: cad
+    term: CAD model
+    definition: 'A model from engineering software, with exact surfaces and dimensions. The best source of geometry for visualization; before rendering it''s converted to polygons.'
+    article: source-materials
+  - id: clay-render
+    term: Clay render
+    definition: 'A render of the model with no materials, usually gray. It shows only the shape, so silhouette, proportions and details are approved on it — before any work on color.'
+    article: approval-stages
+  - id: dpi
+    term: DPI
+    definition: 'How many pixels fall on an inch of paper in print. DPI means nothing for a screen; a catalog needs 300 DPI at the final size.'
+    article: image-specs
+  - id: draco
+    term: Draco
+    definition: 'A way to compress geometry in GLB. It makes the file noticeably smaller, but the phone has to unpack the model before showing it.'
+    article: mobile-3d-performance
+  - id: draw-call
+    term: Draw call
+    definition: 'A single job for the GPU to draw part of a scene. Every part with its own material is a separate call; hundreds of them slow down even a powerful phone.'
+    article: mobile-3d-performance
+  - id: fbx
+    term: FBX
+    definition: 'An exchange format between 3D programs and game engines. It carries animation and the part hierarchy well; materials don''t always transfer exactly.'
+    article: 3d-file-formats
+  - id: game-ready
+    term: Game-ready model
+    definition: 'A model prepared for a game engine — within a triangle and material budget, with UVs, textures and levels of detail.'
+    article: lod
+  - id: glb
+    term: GLB
+    aka: [glTF]
+    definition: 'glTF is the open standard for 3D on the web; GLB is its single-file version with geometry, materials, textures and animation. The main format for 3D on a website and AR on Android.'
+    article: 3d-file-formats
+  - id: hdri
+    term: HDRI
+    definition: 'A panorama of an environment with a wide range of brightness. It lights a 3D scene, and glossy surfaces reflect a real setting — a studio, a street, an interior.'
+  - id: ktx2
+    term: KTX2
+    definition: 'A texture format that stays compressed even in GPU memory. JPEG and PNG are unpacked there in full, which is why textures for the web and AR are converted to KTX2.'
+    article: mobile-3d-performance
+  - id: lod
+    term: LOD
+    aka: [levels of detail]
+    definition: 'Several versions of one model, from the full one down to almost a silhouette. The engine switches between them by distance to the camera, so a scene with hundreds of objects stays fast.'
+    article: lod
+  - id: meshopt
+    term: Meshopt
+    definition: 'A way to compress and reorder geometry in GLB — a smaller file that the phone unpacks quickly. Often used together with KTX2.'
+    article: mobile-3d-performance
+  - id: model-viewer
+    term: model-viewer
+    definition: 'An open web component by Google for showing a 3D model on a page. A single tag gives rotation, zoom, a poster and an AR button.'
+    article: 3d-viewer-on-website
+  - id: obj
+    term: OBJ
+    definition: 'An old, simple 3D format — geometry, basic materials in a separate .mtl file, textures as separate files. Opens in almost any program.'
+    article: 3d-file-formats
+  - id: pantone
+    term: Pantone
+    definition: 'A color catalog for print and design, with a number for each color. A number plus a physical sample is more precise than any description in words.'
+    article: color-and-materials
+  - id: pbr
+    term: PBR material
+    definition: 'A material described by physical properties — color, roughness, metalness. That''s why it looks believable under any light and carries over consistently between programs and engines.'
+    article: color-and-materials
+  - id: ral
+    term: RAL
+    definition: 'A catalog of standard colors for metal, plastic and facades, with a number for each color, such as RAL 9016. The most reliable way to specify a product''s color.'
+    article: color-and-materials
+  - id: step
+    term: STEP
+    definition: 'A CAD format with exact surfaces and no textures. Used by manufacturing and as a source for visualization; for a website it''s converted to GLB.'
+    article: 3d-file-formats
+  - id: usdz
+    term: USDZ
+    definition: 'Apple''s format for augmented reality. It lets a model open in AR straight from the browser on iPhone and iPad.'
+    article: ar-on-website
+  - id: webgl
+    term: WebGL
+    definition: 'The standard for 3D graphics in the browser. Through it the GPU redraws the model for every frame — that''s why you can rotate it.'
+    article: 3d-viewer-on-website
+  - id: exploded-view
+    term: Exploded view
+    definition: 'An image where the product''s parts are moved apart along the assembly axes. It shows what the product is made of and how it goes together — something a photo can''t capture.'
+    article: exploded-view
+  - id: viewer
+    term: 3D viewer
+    definition: 'A component on a web page that shows a 3D model and lets visitors rotate and zoom it. Either ready-made, like model-viewer, or custom — for configurators.'
+    article: 3d-viewer-on-website
+  - id: gloss
+    term: Gloss level
+    definition: 'How shiny a surface is, from matte to mirror-like. It''s specified separately from color: the same RAL looks different in a matte and a glossy finish.'
+    article: color-and-materials
+  - id: baking
+    term: Baking
+    definition: 'Transferring detail into textures — shadows, fine relief and lighting from a detailed model are "baked" into an image for a lighter one. The model looks richer than its mesh allows.'
+  - id: infographics
+    term: Infographics
+    definition: 'A product image with captions, callouts and benefit icons. For marketplaces it''s built from renders of a single model.'
+    article: 3d-for-marketplaces
+  - id: source-scene
+    term: Scene source file
+    definition: 'The 3D program''s working file with lights, cameras and materials. Unlike an export, every layer in it can be edited separately — which is why it''s the most valuable file for further work.'
+    article: deliverables
+  - id: real-scale
+    term: Real-world scale
+    aka: [1:1 scale]
+    definition: 'A model in real units — meters. Without it, a house in AR ends up the size of a box, and an armchair the size of a house.'
+    article: ar-on-website
+  - id: normals
+    term: Normals
+    definition: 'The directions the model''s faces point in; they determine how the surface reflects light. Broken normals cause dark patches and jagged highlights.'
+  - id: polygon
+    term: Polygon
+    definition: 'A flat face; a 3D model''s surface is built from them, and engines split polygons into triangles. The more there are, the smoother the shape and the heavier the model.'
+    article: mobile-3d-performance
+  - id: poster
+    term: Poster
+    definition: 'An image from the same angle shown in place of the 3D model while it loads. The page is never empty, even on a slow connection.'
+    article: 3d-viewer-on-website
+  - id: alpha
+    term: Transparent background
+    aka: [alpha channel]
+    definition: 'An image with nothing around the product, so it can be placed on any backdrop. JPEG can''t store transparency, so it takes a PNG; the shadow comes as a separate semi-transparent layer.'
+    article: image-specs
+  - id: storyboard
+    term: Storyboard
+    definition: 'A sequence of key frames for a future video, with captions. It''s approved before animating — rearranging frames on paper is easier than in a finished video.'
+    article: product-animation
+  - id: angle
+    term: Camera angle
+    definition: 'The point the camera looks at the product from — front, three-quarter, top. The list of angles goes into the brief: it decides how many shots are made.'
+    article: 3d-brief
+  - id: cutaway
+    term: Cutaway
+    definition: 'An image where part of the housing is cut away to show the inside. Unlike an exploded view, the parts stay in place.'
+    article: exploded-view
+  - id: reference
+    term: Reference
+    definition: 'An example shown to the artist — an image, a video or someone else''s work, with a note on what exactly you like about it: the light, the angle, the background.'
+    article: 3d-brief
+  - id: render
+    term: Render
+    definition: 'An image the computer calculates from a 3D scene — the model, materials, light and camera. A well-tuned render on a neutral background looks like a studio photo.'
+    article: render-vs-photo
+  - id: mesh
+    term: Mesh
+    aka: [polygon mesh]
+    definition: 'The model''s surface made of polygons — vertices, edges and faces. Mesh density decides how smooth the shape is and how much the file weighs.'
+    article: lod
+  - id: tessellation
+    term: Tessellation
+    definition: 'Converting exact CAD surfaces into a mesh of triangles. A fine mesh is smooth but heavy; a coarse one is light, but the facets show.'
+    article: 3d-file-formats
+  - id: texture
+    term: Texture
+    aka: [texture map]
+    definition: 'An image applied to a model — color, pattern, roughness, relief. In web models, textures usually take up the most memory.'
+    article: mobile-3d-performance
+  - id: topology
+    term: Topology
+    definition: 'How the mesh edges run across the model''s surface. Clean topology lets a model smooth cleanly, deform properly in animation and simplify without holes.'
+  - id: uv
+    term: UV unwrapping
+    aka: [UVs]
+    definition: 'Laying the model''s surface out flat, like a sewing pattern. Textures, labels and logos are placed on the model through it.'
+  - id: animatic
+    term: Animatic
+    aka: [rough animation]
+    definition: 'A draft version of the video: the motion without final materials and light. It''s where you approve what moves and how — after the final render, any change to the motion means redoing it.'
+    article: product-animation
+  - id: reference-model
+    term: Reference model
+    definition: 'The first model of a series, on which detail, materials and lighting are approved. The rest are matched to it, so the series looks consistent.'
+    article: approval-stages

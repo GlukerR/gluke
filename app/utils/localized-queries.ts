@@ -20,3 +20,18 @@ export function queryLocalizedProjects(locale: LocaleCode) {
 export function queryLocalizedProject(locale: LocaleCode, slug: string) {
   return queryLocalizedProjects(locale).where('slug', '=', slug)
 }
+
+/* Порядок статей внутри раздела (`position`) — тоже сортировкой в JS. */
+export function queryLocalizedArticles(locale: LocaleCode) {
+  return queryCollection('knowledge')
+    .where('locale', '=', locale)
+    .where('status', '=', 'published')
+}
+
+export function queryLocalizedArticle(locale: LocaleCode, slug: string) {
+  return queryLocalizedArticles(locale).where('slug', '=', slug)
+}
+
+export function queryLocalizedGlossary(locale: LocaleCode) {
+  return queryCollection('glossary').where('locale', '=', locale)
+}

@@ -4,6 +4,7 @@ import {
   z,
 } from '@nuxt/content'
 import { LOCALE_CODES } from './shared/i18n'
+import { KNOWLEDGE_AUDIENCES, KNOWLEDGE_SECTIONS } from './shared/knowledge'
 
 const MEDIA_PREFIX = '/media/'
 
@@ -284,6 +285,63 @@ export default defineContentConfig({
         }).optional(),
         media: z.array(mediaSchema),
         metrics: z.array(metricSchema).min(1),
+      }),
+    }),
+    /* База знаний: одна статья — один вопрос, который возникает при работе
+       с 3D-специалистом. Как писать — `KB_TEMPLATE.md`, список тем —
+       `docs/knowledge-topics.md`. Статья всегда лежит парой RU + EN с одним
+       `slug` (как кейс): sitemap и hreflang считают, что у адреса есть обе
+       версии, и `pnpm validate:content` это проверяет. */
+    knowledge: defineCollection({
+      type: 'page',
+      source: 'knowledge/**/*.md',
+      schema: z.object({
+        locale: localeSchema,
+        slug: slugSchema,
+        /* Вопрос словами читателя: он же H1 и заголовок в поиске. */
+        title: z.string().min(1).max(90),
+        /* Сниппет в поиске и подпись в соцсетях. */
+        description: z.string().min(1).max(200),
+        /* Короткий ответ: выводится блоком «Коротко» под заголовком и уходит
+           в llms.txt. Отвечает на вопрос целиком — без «в статье расскажем». */
+        summary: z.string().min(40).max(520),
+        section: z.enum(KNOWLEDGE_SECTIONS),
+        audience: z.array(z.enum(KNOWLEDGE_AUDIENCES)).min(1),
+        /* Порядок внутри раздела на хабе. Сортировка — в JS, как у кейсов. */
+        position: z.number().int().positive(),
+        status: z.enum(['draft', 'review', 'published']),
+        updated: updatedSchema.optional(),
+        /* Кейсы-доказательства (slug'и кейсов) и связанные статьи (slug'и
+           статей). Существование проверяет `pnpm validate:content`. */
+        cases: z.array(slugSchema).optional(),
+        related: z.array(slugSchema).optional(),
+        cover: visualSchema.optional(),
+      }),
+    }),
+    /* Глоссарий базы знаний: один файл на локаль. Термины пишутся для
+       заказчика, а не для 3D-специалиста; подробности — в статье `article`.
+       `id` — якорь на странице и общий ключ с другой локалью (набор id
+       одинаковый, это проверяет `pnpm validate:content`). */
+    glossary: defineCollection({
+      type: 'data',
+      source: 'glossary/*.yml',
+      schema: z.object({
+        locale: localeSchema,
+        updated: updatedSchema.optional(),
+        /* Заголовок и вступление страницы — здесь, а не в i18n: их же берёт
+           markdown-версия для ИИ (scripts/generate-llms.mjs). */
+        title: z.string().min(1).max(60),
+        intro: z.string().min(1).max(300),
+        terms: z.array(z.object({
+          id: slugSchema,
+          term: z.string().min(1).max(40),
+          /* Другие названия того же: «меш», «аниматик». Видны рядом с
+             термином и попадают в разметку DefinedTerm как alternateName. */
+          aka: z.array(z.string().min(1)).optional(),
+          /* 1–2 предложения: определение цитируют поиск и ассистенты. */
+          definition: z.string().min(40).max(280),
+          article: slugSchema.optional(),
+        })).min(1),
       }),
     }),
     site: defineCollection({

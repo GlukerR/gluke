@@ -7,7 +7,14 @@
  * теряется при правках, и именно он тихо ломает выдачу.
  */
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { queryLocalizedProject, queryLocalizedProjects, queryLocalizedSite } from './localized-queries'
+import {
+  queryLocalizedArticle,
+  queryLocalizedArticles,
+  queryLocalizedGlossary,
+  queryLocalizedProject,
+  queryLocalizedProjects,
+  queryLocalizedSite,
+} from './localized-queries'
 
 interface RecordedFilter {
   field: string
@@ -101,5 +108,40 @@ describe('localized-queries', () => {
     )
 
     expect(locales).toEqual(['ru', 'en'])
+  })
+
+  /* База знаний живёт по тем же правилам: черновик статьи в выдаче —
+     такая же публикация до срока, как черновик кейса. */
+  it('статьи базы знаний фильтруются по локали и статусу, одна статья — ещё и по slug', () => {
+    queryLocalizedArticles('ru')
+    queryLocalizedArticle('en', 'source-materials')
+
+    expect(queries).toEqual([
+      {
+        collection: 'knowledge',
+        filters: [
+          { field: 'locale', operator: '=', value: 'ru' },
+          { field: 'status', operator: '=', value: 'published' },
+        ],
+      },
+      {
+        collection: 'knowledge',
+        filters: [
+          { field: 'locale', operator: '=', value: 'en' },
+          { field: 'status', operator: '=', value: 'published' },
+          { field: 'slug', operator: '=', value: 'source-materials' },
+        ],
+      },
+    ])
+  })
+  it('глоссарий берётся только своей локали', () => {
+    queryLocalizedGlossary('ru')
+
+    expect(queries).toEqual([
+      {
+        collection: 'glossary',
+        filters: [{ field: 'locale', operator: '=', value: 'ru' }],
+      },
+    ])
   })
 })

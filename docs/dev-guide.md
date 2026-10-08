@@ -71,6 +71,16 @@ CASE_TEMPLATE.md       ВНУТРЕННИЙ шаблон кейсов (нару�
 - **Кейс** (`projects/[slug].vue`) — hero (`ProjectDetailHero`), метрики и услуги
   (`ProjectDetailOverview`/`ProjectDetailScope`), галерея (`ProjectMediaGallery`
   + `ProjectMediaItem`), переходы (`ProjectPager`).
+- **База знаний** (`knowledge/index.vue`, `knowledge/[slug].vue`) — статьи из
+  коллекции `knowledge` (`content/knowledge/{ru,en}/*.md`, всегда парой).
+  Схемы в статьях — SVG-компоненты `app/components/knowledge/art/*`,
+  вставляются блоком `::kb-figure{art alt}` (`app/components/content/KbFigure.vue`)
+  и красятся только ролями `--kb-*`, выведенными из `--site-*`. Markdown-версии
+  статей для ИИ (`public/knowledge/*.md`, `public/ru/knowledge/*.md`) и раздел
+  в `llms.txt` собирает `pnpm llms`. Как писать — `KB_TEMPLATE.md`.
+  Глоссарий (`knowledge/glossary.vue`) — коллекция `glossary`
+  (`content/glossary/{ru,en}.yml`): термины по алфавиту, якорь у каждого,
+  разметка DefinedTermSet и markdown-версия `/knowledge/glossary.md`.
 - **i18n**: EN — без префикса (дефолт), RU — под `/ru`
   (`strategy: prefix_except_default`). Строки — `i18n/locales/*.ts`,
   `baseUrl` — из `NUXT_SITE_URL`.

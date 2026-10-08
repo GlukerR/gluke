@@ -1,6 +1,7 @@
 export default {
   nav: {
     projects: 'Projects',
+    knowledge: 'Knowledge base',
     services: 'Services',
     process: 'Process',
     about: 'Studio',
@@ -409,9 +410,65 @@ export default {
       next: 'Next case',
     },
   },
+  knowledge: {
+    eyebrow: 'KNOWLEDGE BASE',
+    title: 'What helps when working with a 3D artist',
+    intro: 'Practical answers to the questions that come up when you order 3D models, renders and interactive graphics: what to prepare, how to brief the work, which files to ask for. Written from our own practice, with examples from our case studies.',
+    back: 'All articles',
+    summary: 'In short',
+    toc: 'Contents',
+    updated: 'Updated {date}',
+    readingTime: '{minutes} min read',
+    audience: 'Useful for',
+    cases: 'From our projects',
+    related: 'Read next',
+    read: 'Read',
+    sections: {
+      'preparation': {
+        title: 'Preparing source materials',
+        description: 'What to send a 3D artist so the model comes out accurate.',
+      },
+      'briefing': {
+        title: 'Brief and approvals',
+        description: 'How to set the task and sign off the work stage by stage.',
+      },
+      'formats': {
+        title: 'Formats and deliverables',
+        description: 'Which files to ask for and where to use them.',
+      },
+      'use-cases': {
+        title: 'Where 3D pays off',
+        description: 'Renders, exploded views, animation and marketplace content.',
+      },
+      'realtime': {
+        title: '3D on the web, in AR and in games',
+        description: 'Interactive models: formats, file size and speed on phones.',
+      },
+      'craft': {
+        title: 'For 3D artists',
+        description: 'Technical techniques tested on real projects.',
+      },
+    },
+    audiences: {
+      client: 'Clients',
+      marketing: 'Marketers',
+      developer: 'Developers',
+      artist: '3D artists',
+    },
+    glossary: {
+      eyebrow: 'GLOSSARY',
+      letters: 'Alphabetical index',
+      aka: 'Also: {names}',
+      more: 'Read more',
+      link: 'Glossary',
+      linkHint: 'An unfamiliar word in an article? Short definitions are in the glossary.',
+    },
+  },
   breadcrumb: {
     home: 'Home',
     projects: 'Projects',
+    knowledge: 'Knowledge base',
+    glossary: 'Glossary',
   },
   seo: {
     homeTitle: '{site} — {tagline}',
@@ -422,11 +479,17 @@ export default {
     projectTitle: '{title} — {site}',
     projectsDescription: 'GLUKE case archive: 3D modeling, catalogue renders, animations and web-ready 3D models.',
     projectsCategoryDescription: '{category}: {description}',
+    knowledgeTitle: '3D visualization knowledge base — {site}',
+    knowledgeDescription: 'Practical articles on working with a 3D artist: which source materials are needed, how to photograph a product, which formats to ask for and where 3D pays off.',
+    articleTitle: '{title} — {site}',
+    glossaryTitle: '3D visualization glossary in plain words — {site}',
+    glossaryDescription: 'What a clay render, LOD, GLB, USDZ, a PBR material, tessellation and other 3D visualization terms mean — short and clear, with links to in-depth articles.',
   },
   errors: {
     featuredProjectsMissing: 'No published featured projects were found',
     publishedProjectsMissing: 'No published projects were found',
     projectNotFound: 'Project not found',
+    articleNotFound: 'Article not found',
     projectOrderFailed: 'Could not determine the case order',
   },
 }

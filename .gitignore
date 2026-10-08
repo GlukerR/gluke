@@ -27,6 +27,10 @@ npm-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Markdown-версии статей базы знаний: собирает scripts/generate-llms.mjs
+/public/knowledge/
+/public/ru/
+
 # Agent workspace
 .freebuff
 

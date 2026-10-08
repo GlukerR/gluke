@@ -55,7 +55,9 @@ function today() {
 }
 
 async function modifiedInWorkingTree() {
-  const out = await git(['status', '--porcelain', '--', 'content'])
+  /* `-uall`: новый файл в новой папке иначе показывается одной строкой
+     с папкой, и его путь не совпал бы ни с одним файлом. */
+  const out = await git(['status', '--porcelain', '-uall', '--', 'content'])
   return new Set(
     out.split('\n')
       /* Формат porcelain: два символа статуса, пробел, путь — поэтому slice(3),
@@ -71,8 +73,8 @@ async function lastCommitDate(path) {
   return out || today()
 }
 
-/* Поле пишется в frontmatter сразу после `period` (у кейсов) или после
-   `locale` (у site/*.yml) — рядом с остальными датами и всегда на одном месте,
+/* Поле пишется в frontmatter сразу после `period` (у кейсов), `status`
+   (у статей базы знаний) или `locale` (у site/*.yml) — рядом с остальными датами и всегда на одном месте,
    чтобы диффы оставались читаемыми. */
 function withUpdated(source, date, anchor) {
   if (/^updated:/m.test(source)) {
@@ -92,6 +94,8 @@ async function main() {
   const targets = [
     ...(await Array.fromAsync(glob('content/projects/*/*.md', { cwd: root }))).map(p => ({ p, anchor: 'period' })),
     ...(await Array.fromAsync(glob('content/site/*.yml', { cwd: root }))).map(p => ({ p, anchor: 'locale' })),
+    ...(await Array.fromAsync(glob('content/knowledge/*/*.md', { cwd: root }))).map(p => ({ p, anchor: 'status' })),
+    ...(await Array.fromAsync(glob('content/glossary/*.yml', { cwd: root }))).map(p => ({ p, anchor: 'locale' })),
   ]
 
   let changed = 0
