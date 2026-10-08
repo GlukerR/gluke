@@ -14,7 +14,7 @@ featured: false
 status: published
 navigation: false
 period: "2026"
-updated: 2026-09-21
+updated: 2026-10-08
 engagement: completed
 services:
   - Surface sampling of a model
@@ -81,6 +81,8 @@ We wanted a third option: take a finished model file and build the effect from i
 The demo model is our own deer: a single mesh, 21,248 triangles, 65 KB with Draco compression. Nothing was prepared specially for the effect — it is an ordinary working file.
 
 ## The work
+
+The technique comes from Louis Hoebregts' Codrops tutorial [“Surface Sampling in Three.js”](https://tympanus.net/codrops/2021/08/31/surface-sampling-in-three-js/): points on a model's surface and lines crawling across it. The gradual reveal, the endless redraw, the theme-aware palette and the parameter lab are built on top of it.
 
 - the points are scattered by `MeshSurfaceSampler` from three.js: it builds a table of face areas across the mesh and then returns a random point on the surface. Each face is picked in proportion to its area, so density does not depend on how the model happens to be triangulated — the deer's body and the thin branches of its antlers are covered just as evenly;
 - when a model has several parts, the budget is split between them by the same area, and the table is cached per geometry: instances of one mesh do not need their own;
